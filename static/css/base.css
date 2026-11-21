@@ -1063,6 +1063,20 @@ body.has-app-nav .app-main {
   border-color: #bef264;
 }
 
+.profile-rank-pill {
+  background-color: var(--duo-amber-soft);
+  color: #92400e;
+  border: 1px solid #fde68a;
+  font-weight: 800;
+}
+
+.profile-subject-row {
+  background-color: #f8fafc;
+  border: 1px solid var(--border-soft);
+  border-radius: 14px;
+  padding: 0.72rem 0.9rem;
+}
+
 .advanced-options-accordion {
   background-color: #f8fafc;
   border: 1.5px solid var(--border-soft);

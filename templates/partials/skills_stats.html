@@ -1,89 +1,114 @@
       <!-- =========================================================
-           SECCIÓN C: MIS SKILLS (RANGO, MEDALLAS, RADAR, PRE-EXAMEN Y BAÚL ACTIVO)
+           SECCIÓN C: MIS SKILLS (ANALÍTICA 100% POR MATERIA Y BAÚL ACTIVO)
            ========================================================= -->
       <section id="view-skills" class="app-view d-none">
-        <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+        <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-3">
           <div>
-            <span class="path-kicker">PROGRESO POR ÁREA Y MEMORIA IA</span>
-            <h2 class="h3 fw-black mb-1">Mis Skills y Baúl de Errores</h2>
+            <span class="path-kicker">ANALÍTICA POR MATERIA Y MEMORIA IA</span>
+            <h2 class="h3 fw-black mb-1">Mis Skills por Materia</h2>
             <p class="text-secondary small mb-0">
-              Revisa tu Rango FNI, Medallas de hábitos, preparación para examen y supera tus fallas en el Baúl Activo.
+              Progreso real tema por tema, radar dinámico de dominio, precisión con el auditor IA y Baúl de Errores.
             </p>
           </div>
+          <span id="skills-selected-badge" class="badge rounded-pill text-bg-primary px-3 py-2 align-self-center">
+            Materia
+          </span>
         </div>
 
-        <!-- Rango FNI, Preparación de Examen y Medallas -->
-        <div class="row g-4 mb-4">
-          <div class="col-12 col-lg-5">
-            <div class="duo-card p-4 h-100 d-flex flex-column justify-content-between gap-3">
-              <div>
-                <div class="d-flex align-items-center justify-content-between gap-2 mb-2">
-                  <span id="skills-rank-level" class="rank-level-pill">Nivel 1</span>
-                  <span id="skills-rank-xp" class="stat-pill stat-pill-xp">⚡ 0 XP</span>
-                </div>
-                <h3 id="skills-rank-title" class="h4 fw-black mb-1">Postulante</h3>
-                <div id="skills-rank-next-label" class="small text-secondary mb-2">
-                  Faltan 200 XP para Ingresante FNI
-                </div>
-                <div class="duo-progress-track">
-                  <div id="skills-rank-bar" class="duo-progress-fill" style="width: 0%;"></div>
-                </div>
-              </div>
+        <!-- Selector de Materia (etapa actual, sin desbordamiento) -->
+        <div
+          id="skills-subject-selector"
+          class="skills-subject-selector mb-4"
+          role="tablist"
+          aria-label="Seleccionar materia para analizar"
+        ></div>
 
-              <div class="exam-readiness-box">
-                <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-1">
-                  <span id="skills-readiness-subject" class="small fw-bold text-dark">Preparación para Examen</span>
-                  <span id="skills-readiness-pct" class="badge rounded-pill text-bg-success">0%</span>
-                </div>
-                <div class="duo-progress-track duo-progress-track-slim">
-                  <div id="skills-readiness-bar" class="duo-progress-fill" style="width: 0%;"></div>
-                </div>
+        <!-- 4 Tarjetas KPI específicas de la materia seleccionada -->
+        <div class="row g-2 g-sm-3 mb-4">
+          <div class="col-6 col-md-3">
+            <div class="duo-card skills-kpi-card p-3 h-100">
+              <div class="skills-kpi-label">Dominio en la materia</div>
+              <div id="skills-kpi-mastery" class="skills-kpi-value text-success">0%</div>
+              <div class="duo-progress-track duo-progress-track-slim mt-2 mb-1">
+                <div id="skills-kpi-mastery-bar" class="duo-progress-fill" style="width: 0%;"></div>
               </div>
+              <div id="skills-kpi-mastery-sub" class="skills-kpi-sub">Progreso real en nodos</div>
             </div>
           </div>
 
-          <div class="col-12 col-lg-7">
-            <div class="duo-card p-4 h-100">
-              <div class="d-flex align-items-center justify-content-between gap-2 mb-3">
-                <h3 class="h5 fw-black mb-0">
-                  <i class="bi bi-award-fill text-warning me-2"></i>Medallas FNI
-                </h3>
-                <span id="skills-medals-unlocked-count" class="badge rounded-pill text-bg-light border">0/6</span>
+          <div class="col-6 col-md-3">
+            <div class="duo-card skills-kpi-card p-3 h-100">
+              <div class="skills-kpi-label">Temas completados</div>
+              <div id="skills-kpi-completed" class="skills-kpi-value text-primary">0/0</div>
+              <div id="skills-kpi-completed-sub" class="skills-kpi-sub mt-1">Nodos dominados</div>
+            </div>
+          </div>
+
+          <div class="col-6 col-md-3">
+            <div class="duo-card skills-kpi-card p-3 h-100">
+              <div class="skills-kpi-label">Precisión auditoría IA</div>
+              <div id="skills-kpi-ai-accuracy" class="skills-kpi-value skills-kpi-value-sm text-dark">
+                Sin intentos aún
               </div>
-              <div id="skills-medals-grid" class="medals-grid"></div>
+              <div id="skills-kpi-ai-detail" class="skills-kpi-sub mt-1">Sube tu primera foto</div>
+            </div>
+          </div>
+
+          <div class="col-6 col-md-3">
+            <div class="duo-card skills-kpi-card p-3 h-100">
+              <div class="skills-kpi-label">Alertas / Errores activos</div>
+              <div id="skills-kpi-alerts" class="skills-kpi-value text-danger">0</div>
+              <div id="skills-kpi-alerts-sub" class="skills-kpi-sub mt-1">Baúl pendiente + críticos</div>
             </div>
           </div>
         </div>
 
-        <!-- Resumen Pre-Examen (Top 3 fallos repetitivos) -->
-        <div class="duo-card pre-exam-card p-4 mb-4">
+        <!-- Resumen Pre-Examen (Top 3 de la materia seleccionada) -->
+        <div class="duo-card pre-exam-card p-3 p-sm-4 mb-4">
           <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2">
             <h3 class="h5 fw-black mb-0">⚠️ Antes de tu parcial, ten cuidado con:</h3>
-            <span class="badge rounded-pill text-bg-warning text-dark">Top 3 Alertas</span>
+            <span id="pre-exam-warnings-badge" class="badge rounded-pill text-bg-warning text-dark">
+              Top 3 Alertas
+            </span>
           </div>
           <div id="pre-exam-warnings-empty" class="small text-secondary mb-0">
-            ¡Excelente historial! Aún no tienes fallas repetitivas registradas; cuando la IA audite errores, verás aquí tus advertencias clave antes del examen.
+            ¡Excelente historial en esta materia! No tienes fallas pendientes registradas; cuando la IA audite errores, verás aquí tus alertas clave.
           </div>
           <div id="pre-exam-warnings-list" class="d-flex flex-column gap-2 d-none"></div>
         </div>
 
         <div class="row g-4 align-items-start">
-          <!-- Radar + Medallas por área -->
+          <!-- Radar dinámico por nodos reales + Desglose por tema -->
           <div class="col-12 col-lg-7">
-            <div class="duo-card p-4 h-100">
-              <h3 class="h5 fw-black mb-3">Radar de Dominio por Área</h3>
-              <div class="radar-canvas-wrap mb-4">
-                <canvas id="skills-radar-chart" aria-label="Gráfico radar de nivel de dominio en Mis Skills"></canvas>
+            <div class="duo-card p-3 p-sm-4 h-100">
+              <h3 id="skills-radar-title" class="h5 fw-black mb-1">Radar de Dominio</h3>
+              <p class="small text-secondary mb-3">
+                Avance real (0% a 100%) sobre cada nodo de la materia seleccionada.
+              </p>
+
+              <div class="radar-canvas-wrap skills-radar-wrap mb-4">
+                <canvas
+                  id="skills-radar-chart"
+                  aria-label="Gráfico radar de progreso real por tema en Mis Skills"
+                ></canvas>
               </div>
-              <h4 class="h6 fw-bold text-uppercase text-secondary mb-3">Nivel de Dominio (Bronce / Plata / Oro)</h4>
-              <div id="skills-mastery-list" class="d-flex flex-column gap-2"></div>
+
+              <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+                <h4 id="skills-topics-heading" class="h6 fw-black text-uppercase text-secondary mb-0">
+                  Desglose por Tema
+                </h4>
+                <span id="skills-topics-count" class="badge rounded-pill text-bg-light border">
+                  0 temas
+                </span>
+              </div>
+              <div id="skills-topics-breakdown" class="d-flex flex-column gap-2"></div>
             </div>
           </div>
 
-          <!-- Baúl de Errores Activo (Memoria IA) -->
+          <!-- Baúl de Errores Activo filtrado por materia -->
           <div class="col-12 col-lg-5">
-            <div id="card-error-vault" class="duo-card panel-card p-4 h-100">
-              <div class="d-flex align-items-center justify-content-between mb-3">
+            <div id="card-error-vault" class="duo-card panel-card p-3 p-sm-4 h-100">
+              <div class="d-flex align-items-center justify-content-between mb-2">
                 <h3 class="h5 fw-black mb-0 d-flex align-items-center gap-2">
                   <span class="panel-icon panel-icon-red">
                     <i class="bi bi-journal-medical"></i>
@@ -93,18 +118,43 @@
                 <span id="error-vault-count" class="badge rounded-pill text-bg-danger">0</span>
               </div>
               <p class="small text-secondary mb-3">
-                Supera tus fallas pendientes resolviendo un reto focalizado (+30 XP) o deja que Gemini consulte este historial al auditar.
+                Supera fallas con un reto focalizado (+30 XP) o deja que Gemini consulte este historial al auditar.
               </p>
+
+              <div class="vault-scope-toggle mb-3" role="group" aria-label="Filtrar Baúl por materia">
+                <button
+                  type="button"
+                  id="btn-vault-scope-subject"
+                  class="vault-scope-btn active"
+                  aria-pressed="true"
+                >
+                  Solo esta materia
+                </button>
+                <button
+                  type="button"
+                  id="btn-vault-scope-all"
+                  class="vault-scope-btn"
+                  aria-pressed="false"
+                >
+                  Todas las materias
+                </button>
+              </div>
 
               <div id="error-vault-empty" class="vault-empty-state text-center p-4">
                 <i class="bi bi-shield-check fs-3 text-success d-block mb-2"></i>
-                <span class="small text-secondary">Aún no hay errores guardados. Resuelve un reto en el Paso 3 para activar la memoria longitudinal.</span>
+                <span id="error-vault-empty-text" class="small text-secondary">
+                  Aún no hay errores guardados para esta materia. Resuelve retos en el Paso 3 para activar la memoria longitudinal.
+                </span>
               </div>
 
               <ul id="error-vault-list" class="vault-list list-unstyled mb-0 d-flex flex-column gap-2"></ul>
 
               <div class="mt-3 text-end">
-                <button type="button" id="btn-clear-vault" class="btn btn-link btn-sm text-decoration-none text-secondary p-0 d-none">
+                <button
+                  type="button"
+                  id="btn-clear-vault"
+                  class="btn btn-link btn-sm text-decoration-none text-secondary p-0 d-none"
+                >
                   <i class="bi bi-trash3 me-1"></i>Limpiar historial de errores
                 </button>
               </div>

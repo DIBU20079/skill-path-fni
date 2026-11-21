@@ -496,6 +496,261 @@
   .sidebar-sticky {
     position: static;
   }
+
+  .camino-ranking-aside {
+    display: none !important;
+  }
+}
+
+/* ==========================================================================
+   Tarjetas Temas Críticos Clicables, Prioridad Cualitativa y Highlight
+   ========================================================================== */
+
+.ranking-item-btn {
+  cursor: pointer;
+  background-color: #f8fafc;
+  border: 1.5px solid var(--border-soft);
+  border-radius: 14px;
+  padding: 0.7rem 0.85rem;
+  transition: transform 0.14s ease, border-color 0.14s ease, box-shadow 0.14s ease, background-color 0.14s ease;
+}
+
+.ranking-item-btn:hover {
+  transform: translateY(-1px);
+  border-color: var(--duo-blue);
+  background-color: #f0f9ff;
+  box-shadow: 0 4px 12px rgba(28, 176, 246, 0.12);
+}
+
+.ranking-item-btn:focus-visible {
+  outline: 3px solid rgba(28, 176, 246, 0.35);
+}
+
+.ranking-item-btn.is-priority {
+  border-color: #fca5a5;
+  background-color: #fff5f5;
+}
+
+.ranking-item-btn.is-priority:hover {
+  border-color: var(--duo-red);
+  background-color: #fee2e2;
+}
+
+.priority-pill {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.72rem;
+  font-weight: 800;
+  padding: 0.14rem 0.55rem;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  white-space: nowrap;
+}
+
+.priority-fijo {
+  background-color: #fff7ed;
+  color: #c2410c;
+  border-color: #fed7aa;
+}
+
+.priority-frecuente {
+  background-color: #fefce8;
+  color: #a16207;
+  border-color: #fde047;
+}
+
+.priority-base {
+  background-color: #eff6ff;
+  color: #1d4ed8;
+  border-color: #bfdbfe;
+}
+
+.priority-custom {
+  background-color: #f1f5f9;
+  color: #334155;
+  border-color: #cbd5e1;
+}
+
+.ranking-progress-bar {
+  height: 7px;
+  border-radius: 999px;
+  background-color: #e2e8f0;
+  overflow: hidden;
+  margin-top: 0.45rem;
+}
+
+.ranking-progress-fill {
+  height: 100%;
+  border-radius: 999px;
+  transition: width 0.3s ease;
+}
+
+.ranking-progress-fill.is-unlocked {
+  background: linear-gradient(90deg, var(--duo-green) 0%, #84e629 100%);
+}
+
+.ranking-progress-fill.is-active {
+  background: linear-gradient(90deg, var(--duo-amber) 0%, var(--duo-blue) 100%);
+}
+
+.ranking-progress-fill.is-blocker {
+  background: linear-gradient(90deg, #ef4444 0%, var(--duo-red) 100%);
+}
+
+.ranking-progress-fill.is-locked {
+  background-color: #cbd5e1;
+}
+
+.node-label-card.is-highlighted {
+  border-color: var(--duo-blue);
+  box-shadow: 0 0 0 4px rgba(28, 176, 246, 0.28), 0 8px 20px rgba(28, 176, 246, 0.16);
+  transition: box-shadow 0.25s ease, border-color 0.25s ease;
+}
+
+/* ==========================================================================
+   Sección C: Mis Skills Analítica por Materia
+   ========================================================================== */
+
+.skills-subject-selector {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  max-width: 100%;
+}
+
+.subject-selector-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.5rem 0.95rem;
+  border-radius: 14px;
+  border: 2px solid var(--border-soft);
+  border-bottom-width: 4px;
+  background-color: #ffffff;
+  color: #334155;
+  font-family: "Nunito", sans-serif;
+  font-weight: 800;
+  font-size: 0.88rem;
+  cursor: pointer;
+  max-width: 100%;
+  transition: transform 0.12s ease, border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.subject-selector-pill:hover {
+  border-color: var(--duo-blue);
+  background-color: #f0f9ff;
+}
+
+.subject-selector-pill.active {
+  background-color: var(--duo-blue);
+  border-color: var(--duo-blue-dark);
+  color: #ffffff;
+}
+
+.skills-kpi-card {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.skills-kpi-label {
+  font-family: "Nunito", sans-serif;
+  font-weight: 800;
+  font-size: 0.74rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+}
+
+.skills-kpi-value {
+  font-family: "Nunito", sans-serif;
+  font-weight: 900;
+  font-size: 1.6rem;
+  line-height: 1.15;
+  margin-top: 0.25rem;
+  word-break: break-word;
+}
+
+.skills-kpi-value-sm {
+  font-size: 1.15rem;
+}
+
+.skills-kpi-sub {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  line-height: 1.3;
+}
+
+.skills-radar-wrap {
+  max-width: 440px;
+  height: 320px;
+}
+
+.topic-breakdown-item {
+  background-color: #f8fafc;
+  border: 1.5px solid var(--border-soft);
+  border-radius: 14px;
+  padding: 0.75rem 0.9rem;
+  max-width: 100%;
+}
+
+.topic-breakdown-item.is-blocker {
+  border-color: #fca5a5;
+  background-color: #fff5f5;
+}
+
+.topic-breakdown-item.is-active {
+  border-color: #fde047;
+  background-color: #fffef5;
+}
+
+.vault-scope-toggle {
+  display: inline-grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.35rem;
+  width: 100%;
+  background-color: #f1f5f9;
+  border: 1.5px solid var(--border-soft);
+  border-radius: 12px;
+  padding: 0.25rem;
+}
+
+.vault-scope-btn {
+  border: 0;
+  background: transparent;
+  color: #475569;
+  font-family: "Nunito", sans-serif;
+  font-weight: 800;
+  font-size: 0.8rem;
+  padding: 0.4rem 0.5rem;
+  border-radius: 9px;
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.vault-scope-btn.active {
+  background-color: #ffffff;
+  color: #0f172a;
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.08);
+}
+
+@media (max-width: 768px) {
+  .skills-radar-wrap {
+    height: 260px;
+    max-height: 280px;
+  }
+
+  .skills-kpi-value {
+    font-size: 1.35rem;
+  }
+
+  .skills-kpi-value-sm {
+    font-size: 1.02rem;
+  }
+
+  .subject-selector-pill {
+    padding: 0.42rem 0.75rem;
+    font-size: 0.82rem;
+  }
 }
 
 @media (max-width: 768px) {

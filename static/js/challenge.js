@@ -20,9 +20,13 @@ import {
   getActiveMateria,
   getHistorialResumenes,
   getMateriaSkills,
+  getStageMaterias,
   incrementMedallaCounter,
   launchConfetti,
   marcarErrorSuperado,
+  obtenerPrioridadTema,
+  registrarIntentoIA,
+  registrarPasoNodo,
   renderMath,
   saveState,
   showBootstrapModal,
@@ -406,16 +410,46 @@ export function toggleStep3FormulasDrawer() {
   }
 }
 
+function resolveCurrentAuditMateriaId() {
+  if (modalSession.skill) {
+    const found = findSkillGlobal(modalSession.skill.id);
+    if (found?.materia?.id) return found.materia.id;
+  }
+  if (modalSession.errorTarget) {
+    if (modalSession.errorTarget.materia_id) {
+      return modalSession.errorTarget.materia_id;
+    }
+    const errMat = String(modalSession.errorTarget.materia || "")
+      .trim()
+      .toLowerCase();
+    if (errMat) {
+      for (const stageKey of ["pre_u", "facultad"]) {
+        const match = getStageMaterias(stageKey).find(
+          (m) => m.nombre.trim().toLowerCase() === errMat
+        );
+        if (match) return match.id;
+      }
+    }
+  }
+  return state.materia_activa || "";
+}
+
 export function openNodeModal(skillId, options = {}) {
   const found = findSkillGlobal(skillId);
   if (!found) return;
-  const { skill } = found;
 
+  const { skill } = found;
   cleanupModalResources();
+
   const exercise = cloneExerciseFromSkill(skill);
   const isReinforcement = Boolean(state.nodo_retorno && state.nodo_retorno !== skill.id);
   const nodeStatus = state.nodos_estado[skill.id] || "active";
   const wasBlocker = nodeStatus === "blocker";
+  const savedSteps = Number(state.nodos_pasos?.[skill.id] || 0);
+  const restoredUnlockedStep =
+    nodeStatus === "unlocked"
+      ? 3
+      : Math.max(1, Math.min(3, savedSteps + 1));
   const openInLearn = !options.autoGenerateAI && (nodeStatus === "active" || nodeStatus === "blocker");
 
   Object.assign(modalSession, {
@@ -432,7 +466,7 @@ export function openNodeModal(skillId, options = {}) {
     revealedStepsCount: 0,
     isGeneratedAI: false,
     currentStep: 1,
-    maxUnlockedStep: 1,
+    maxUnlockedStep: restoredUnlockedStep,
     step1Selected: null,
     step1Passed: false,
     step2Passed: false,
@@ -452,8 +486,9 @@ export function openNodeModal(skillId, options = {}) {
 
   if (dom["modal-node-meta"]) {
     const unitBadge = skill.unidad ? `${skill.unidad} · ` : "";
+    const priority = obtenerPrioridadTema(skill);
     dom["modal-node-meta"].textContent =
-      `#${skill.ranking_criticidad} · ${unitBadge}${skill.materia} · ${skill.frecuencia_examen} en examen`;
+      `#${skill.ranking_criticidad} · ${unitBadge}${skill.materia} · ${priority.label}`;
   }
   if (dom["modal-node-title"]) dom["modal-node-title"].textContent = skill.nombre;
   if (dom["modal-node-xp"]) dom["modal-node-xp"].textContent = `⚡ +${skill.xp} XP`;
@@ -845,6 +880,10 @@ export function checkStep1() {
   if (isCorrect) {
     modalSession.step1Passed = true;
     modalSession.maxUnlockedStep = Math.max(modalSession.maxUnlockedStep, 2);
+    if (modalSession.mode === "lesson" && modalSession.skill) {
+      registrarPasoNodo(modalSession.skill.id, 1);
+      refreshActiveSectionHandler();
+    }
     dom["btn-step1-check"]?.classList.add("d-none");
     dom["btn-step1-next"]?.classList.remove("d-none");
     updateModalStepperUI();
@@ -915,6 +954,10 @@ export function checkStep2() {
   if (isCorrect) {
     modalSession.step2Passed = true;
     modalSession.maxUnlockedStep = Math.max(modalSession.maxUnlockedStep, 3);
+    if (modalSession.mode === "lesson" && modalSession.skill) {
+      registrarPasoNodo(modalSession.skill.id, 2);
+      refreshActiveSectionHandler();
+    }
     if (dom["step2-answer-input"]) dom["step2-answer-input"].disabled = true;
     dom["btn-step2-check"]?.classList.add("d-none");
     dom["btn-step2-next"]?.classList.remove("d-none");
@@ -1587,6 +1630,7 @@ function processAuditResponse(data) {
       }
 
       state.nodos_estado[skill.id] = "unlocked";
+      registrarPasoNodo(skill.id, 3);
       unlockNextSkillAfter(skill.id);
 
       const returnNodeId =
@@ -1616,6 +1660,7 @@ function processAuditResponse(data) {
       }
     }
 
+    registrarIntentoIA(resolveCurrentAuditMateriaId(), true);
     renderXpBonusesBanner(bonusChips);
     saveState();
     updateTopbar();
@@ -1635,6 +1680,7 @@ function processAuditResponse(data) {
     dom["btn-upload-correction"]?.classList.remove("d-none");
     dom["btn-complete-node"]?.classList.add("d-none");
 
+    registrarIntentoIA(resolveCurrentAuditMateriaId(), false);
     modalSession.failedAttemptsCount += 1;
     if (modalSession.failedAttemptsCount >= 2) {
       dom["analogous-scaffold-card"]?.classList.remove("d-none");
@@ -1647,6 +1693,7 @@ function processAuditResponse(data) {
         resumen,
         tema: skill.nombre,
         materia: skill.materia,
+        materia_id: resolveCurrentAuditMateriaId(),
         tipo_error: errorType,
       });
     } else {
@@ -1657,6 +1704,10 @@ function processAuditResponse(data) {
       const prereqId = skill.prerrequisito_id;
       const prereqFound = findSkillGlobal(prereqId);
       state.nodos_estado[prereqId] = "blocker";
+      if (!state.nodos_pasos || typeof state.nodos_pasos !== "object") {
+        state.nodos_pasos = {};
+      }
+      state.nodos_pasos[prereqId] = 0;
       state.nodo_retorno = skill.id;
 
       if (prereqBadge) {

@@ -49,6 +49,8 @@ def _estado_inicial_base(nombre: str, etapa: str) -> dict[str, Any]:
         "xp": 0,
         "racha": 0,
         "nodos_estado": {},
+        "nodos_pasos": {},
+        "metricas_ia_materia": {},
         "historial_errores": [],
         "diagnostico_completado": False,
         "diagnostico_resultados": None,
@@ -106,6 +108,18 @@ def _estado_demo_jurados() -> dict[str, Any]:
             "fac_fis_03b_poleas_circular": "locked",
             "fac_fis_04_energia": "locked",
         },
+        "nodos_pasos": {
+            "fac_cal_01_inecuaciones_func": 3,
+            "fac_cal_01b_funciones_dominios": 3,
+            "fac_cal_02_limites_alg": 3,
+            "fac_cal_03_limites_trig": 1,
+        },
+        "metricas_ia_materia": {
+            "fac_calculo1": {
+                "intentos_ia": 4,
+                "aprobados_ia": 3,
+            },
+        },
         "xp_otorgado_nodos": {
             "fac_cal_01_inecuaciones_func": True,
             "fac_cal_01b_funciones_dominios": True,
@@ -125,6 +139,7 @@ def _estado_demo_jurados() -> dict[str, Any]:
                 "resumen": "Olvidó restringir argumento positivo en logaritmo",
                 "tema": "Inecuaciones y Dominios",
                 "materia": "Cálculo I",
+                "materia_id": "fac_calculo1",
                 "tipo_error": "fallo_prerrequisito",
                 "fecha": hoy,
                 "superado": False,
@@ -134,6 +149,7 @@ def _estado_demo_jurados() -> dict[str, Any]:
                 "resumen": "Error de signo al multiplicar por conjugado",
                 "tema": "Límites Algebraicos",
                 "materia": "Cálculo I",
+                "materia_id": "fac_calculo1",
                 "tipo_error": "error_operativo",
                 "fecha": hoy,
                 "superado": False,

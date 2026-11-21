@@ -45,10 +45,12 @@ import {
   configureSkilltreeHandlers,
   renderCaminoSection,
   renderErrorVault,
+  renderGlobalSubjectsProgress,
   renderMateriasSection,
   renderMedalsGrid,
   renderRankCard,
   renderSkillsSection,
+  setVaultFilterScope,
 } from "./skilltree.js";
 import {
   appContext,
@@ -64,6 +66,7 @@ import {
   hideBootstrapModal,
   hydrateStateFromUser,
   isMateriaIniciada,
+  obtenerRangoFNI,
   renderMath,
   renderSkillsLoadError,
   saveState,
@@ -92,7 +95,11 @@ export function enterAppSection(sectionName) {
   }
 
   ensureConsistentNodeStatesForStage(state.etapa);
-  getActiveMateria();
+  const activeMat = getActiveMateria();
+
+  if (target === "skills" && activeMat) {
+    appContext.skillsSelectedMateriaId = activeMat.id;
+  }
 
   document.querySelectorAll(".nav-section-btn[data-section]").forEach((btn) => {
     btn.classList.toggle("active", btn.dataset.section === target);
@@ -114,7 +121,7 @@ export function enterAppSection(sectionName) {
 }
 
 /* ========================================================================
-   Sección D: Perfil (Editar Nombre, Cambiar Etapa, Demo Profile)
+   Sección D: Perfil (Identidad, Rango, Medallas, Avance Global y Demo)
    ======================================================================== */
 
 function renderPerfilSection() {
@@ -124,8 +131,16 @@ function renderPerfilSection() {
   const doneTotal = stageSkills.filter(
     (s) => state.nodos_estado[s.id] === "unlocked"
   ).length;
+  const rank = obtenerRangoFNI(state.xp);
+  const username = appContext.currentUser?.username || "estudiante";
 
   if (dom["profile-name-input"]) dom["profile-name-input"].value = state.nombre || "";
+  if (dom["profile-username-handle"]) {
+    dom["profile-username-handle"].textContent = `@${username}`;
+  }
+  if (dom["profile-rank-badge"]) {
+    dom["profile-rank-badge"].textContent = `🏅 ${rank.titulo}`;
+  }
   if (dom["profile-xp"]) dom["profile-xp"].textContent = String(state.xp || 0);
   if (dom["profile-streak"]) dom["profile-streak"].textContent = String(state.racha || 0);
   if (dom["profile-completed"]) {
@@ -152,6 +167,10 @@ function renderPerfilSection() {
     dom["profile-medals-grid"],
     dom["profile-medals-unlocked-count"]
   );
+  renderGlobalSubjectsProgress(
+    dom["profile-subjects-progress-list"],
+    dom["profile-global-summary-badge"]
+  );
 }
 
 function handleProfileNameSave(event) {
@@ -175,6 +194,7 @@ function switchStageFromProfile(targetStage) {
     const initiatedMat = materias.find((m) => isMateriaIniciada(m.id));
     state.materia_activa = (initiatedMat || materias[0])?.id || null;
   }
+  appContext.skillsSelectedMateriaId = state.materia_activa || null;
   ensureConsistentNodeStatesForStage(targetStage);
   saveState();
 
@@ -192,6 +212,7 @@ function loadDemoProfile() {
   state.nombre = state.nombre || "Alex FNI";
   state.etapa = targetStage;
   state.materia_activa = primaryMat?.id || null;
+  appContext.skillsSelectedMateriaId = primaryMat?.id || null;
   if (!state.materias_iniciadas || typeof state.materias_iniciadas !== "object") {
     state.materias_iniciadas = {};
   }
@@ -216,8 +237,13 @@ function loadDemoProfile() {
     totalCount: 6,
   };
 
+  if (!state.nodos_pasos || typeof state.nodos_pasos !== "object") {
+    state.nodos_pasos = {};
+  }
+
   getAllStageSkills(targetStage).forEach((s) => {
     state.nodos_estado[s.id] = "locked";
+    delete state.nodos_pasos[s.id];
     delete state.xp_otorgado_nodos[s.id];
   });
 
@@ -226,14 +252,25 @@ function loadDemoProfile() {
     mSkills.forEach((s, idx) => {
       if (matIdx === 0 && idx < 2) {
         state.nodos_estado[s.id] = "unlocked";
+        state.nodos_pasos[s.id] = 3;
         state.xp_otorgado_nodos[s.id] = true;
       } else if (matIdx === 0 && idx === 2) {
         state.nodos_estado[s.id] = "active";
+        state.nodos_pasos[s.id] = 1;
       } else {
         state.nodos_estado[s.id] = "locked";
       }
     });
   });
+
+  state.metricas_ia_materia = primaryMat
+    ? {
+        [primaryMat.id]: {
+          intentos_ia: 4,
+          aprobados_ia: 3,
+        },
+      }
+    : {};
 
   const hoy = new Date().toLocaleDateString("es-ES", {
     day: "2-digit",
@@ -257,6 +294,7 @@ function loadDemoProfile() {
             resumen: "Olvidó restringir argumento positivo en logaritmo",
             tema: primarySkills[0]?.nombre || "Inecuaciones y Dominios",
             materia: primaryMat?.nombre || "Cálculo I",
+            materia_id: primaryMat?.id || "fac_calculo1",
             tipo_error: "fallo_prerrequisito",
             fecha: hoy,
             superado: false,
@@ -266,6 +304,7 @@ function loadDemoProfile() {
             resumen: "Error de signo al multiplicar por conjugado",
             tema: primarySkills[1]?.nombre || "Límites Algebraicos",
             materia: primaryMat?.nombre || "Cálculo I",
+            materia_id: primaryMat?.id || "fac_calculo1",
             tipo_error: "error_operativo",
             fecha: hoy,
             superado: false,
@@ -277,6 +316,7 @@ function loadDemoProfile() {
             resumen: "Error de signo al factorizar trinomio cuadrático",
             tema: primarySkills[0]?.nombre || "Factorización",
             materia: primaryMat?.nombre || "Álgebra Pre-U",
+            materia_id: primaryMat?.id || "pre_algebra",
             tipo_error: "error_operativo",
             fecha: hoy,
             superado: false,
@@ -286,6 +326,7 @@ function loadDemoProfile() {
             resumen: "No excluyó raíces del denominador al simplificar",
             tema: primarySkills[1]?.nombre || "Fracciones Algebraicas",
             materia: primaryMat?.nombre || "Álgebra Pre-U",
+            materia_id: primaryMat?.id || "pre_algebra",
             tipo_error: "fallo_prerrequisito",
             fecha: hoy,
             superado: false,
@@ -536,7 +577,13 @@ function bindEvents() {
   });
   dom["btn-go-to-path"]?.addEventListener("click", () => enterAppSection("camino"));
 
-  // Baúl de Errores Activo
+  // Baúl de Errores Activo (filtros + limpieza)
+  dom["btn-vault-scope-subject"]?.addEventListener("click", () =>
+    setVaultFilterScope("subject")
+  );
+  dom["btn-vault-scope-all"]?.addEventListener("click", () =>
+    setVaultFilterScope("all")
+  );
   dom["btn-clear-vault"]?.addEventListener("click", () => {
     state.historial_errores = [];
     saveState();

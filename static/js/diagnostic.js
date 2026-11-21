@@ -759,10 +759,13 @@ function finishPlacementExam() {
     if (idx < unlockedCount) {
       state.nodos_estado[skill.id] = "unlocked";
       state.xp_otorgado_nodos[skill.id] = true;
+      state.nodos_pasos[skill.id] = 3;
     } else if (idx === unlockedCount) {
       state.nodos_estado[skill.id] = "active";
+      state.nodos_pasos[skill.id] = 0;
     } else {
       state.nodos_estado[skill.id] = "locked";
+      state.nodos_pasos[skill.id] = 0;
     }
   });
 
@@ -910,12 +913,17 @@ function finishSkipExam() {
   state.materias_iniciadas[materia.id] = true;
 
   if (passed && targetIdx > 0 && targetSkill) {
+    if (!state.nodos_pasos || typeof state.nodos_pasos !== "object") {
+      state.nodos_pasos = {};
+    }
     skills.forEach((s, idx) => {
       if (idx < targetIdx) {
         state.nodos_estado[s.id] = "unlocked";
         state.xp_otorgado_nodos[s.id] = true;
+        state.nodos_pasos[s.id] = 3;
       } else if (idx === targetIdx) {
         state.nodos_estado[s.id] = "active";
+        state.nodos_pasos[s.id] = 0;
       }
     });
     state.xp += 60;
@@ -1202,13 +1210,28 @@ function renderSkipResults({
   );
 }
 
-export function renderRadarOnCanvas(canvas, previousInstance, labels, scoreMap) {
+export function renderRadarOnCanvas(
+  canvas,
+  previousInstance,
+  labels,
+  scoreMap,
+  options = {}
+) {
   if (!canvas || typeof window.Chart !== "function") return null;
-  if (previousInstance) {
+  if (previousInstance && typeof previousInstance.destroy === "function") {
     previousInstance.destroy();
   }
+  const existingChart = window.Chart.getChart?.(canvas);
+  if (existingChart && existingChart !== previousInstance) {
+    existingChart.destroy();
+  }
 
-  const values = labels.map((area) => Number(scoreMap[area] || 0));
+  const values = labels.map((label) => Number(scoreMap[label] || 0));
+  const fullLabels =
+    options && options.fullLabels && typeof options.fullLabels === "object"
+      ? options.fullLabels
+      : null;
+  const labelFontSize = labels.length >= 8 ? 10 : 11;
 
   return new window.Chart(canvas.getContext("2d"), {
     type: "radar",
@@ -1241,13 +1264,14 @@ export function renderRadarOnCanvas(canvas, previousInstance, labels, scoreMap) 
             stepSize: 20,
             backdropColor: "transparent",
             color: "#64748b",
-            font: { size: 11, weight: "600" },
+            font: { size: 10, weight: "600" },
           },
           grid: { color: "#cbd5e1" },
           angleLines: { color: "#cbd5e1" },
           pointLabels: {
             color: "#0f172a",
-            font: { family: "Nunito, sans-serif", size: 12, weight: "800" },
+            padding: 6,
+            font: { family: "Nunito, sans-serif", size: labelFontSize, weight: "800" },
           },
         },
       },
@@ -1255,7 +1279,11 @@ export function renderRadarOnCanvas(canvas, previousInstance, labels, scoreMap) 
         legend: { display: false },
         tooltip: {
           callbacks: {
-            label: (ctx) => ` ${ctx.parsed.r}% de dominio`,
+            title: (items) => {
+              const raw = items?.[0]?.label || "";
+              return fullLabels && fullLabels[raw] ? fullLabels[raw] : raw;
+            },
+            label: (ctx) => ` ${ctx.parsed.r}% de progreso real`,
           },
         },
       },

@@ -10,6 +10,35 @@ export const OPTION_LETTERS = ["A", "B", "C", "D"];
 
 let cloudSyncTimerId = null;
 
+const SHORT_SKILL_LABELS = {
+  pre_alg_01_factorizacion: "Factorización",
+  pre_alg_02_fracciones: "Fracciones Alg.",
+  pre_alg_02b_ecuaciones_log: "Exp. y Log.",
+  pre_alg_03_inecuaciones: "Inecuaciones",
+  pre_alg_04_funciones: "Funciones",
+  pre_alg_05_limites_alg: "Límites Alg.",
+  pre_trig_01_razones: "Razones Trig.",
+  pre_trig_02_identidades: "Identidades",
+  pre_trig_03_angulo_doble: "Áng. Doble",
+  pre_trig_03b_ley_senos_cosenos: "Senos/Cosenos",
+  pre_trig_04_ecuaciones: "Ec. y Límites",
+  fac_cal_01_inecuaciones_func: "Inecuaciones",
+  fac_cal_01b_funciones_dominios: "Dominios/Func.",
+  fac_cal_02_limites_alg: "Lím. Alg.",
+  fac_cal_03_limites_trig: "Lím. Trig.",
+  fac_cal_03b_continuidad: "Continuidad",
+  fac_cal_04_derivadas: "Derivadas",
+  fac_cal_04b_deriv_implicita_log: "Der. Implícita",
+  fac_cal_05_optimizacion: "Optimización",
+  fac_cal_06_integrales_basicas: "Integrales",
+  fac_fis_01_vectores: "Vectores",
+  fac_fis_01b_cinematica_1d: "Cinemática 1D",
+  fac_fis_02_cinematica: "Tiro Paraból.",
+  fac_fis_03_dinamica: "Newton",
+  fac_fis_03b_poleas_circular: "Poleas/Circ.",
+  fac_fis_04_energia: "Energía",
+};
+
 function createDefaultMedalCounters() {
   return {
     resiliencia: 0,
@@ -29,6 +58,8 @@ export function createDefaultState() {
     xp: 0,
     racha: 0,
     nodos_estado: {},
+    nodos_pasos: {},
+    metricas_ia_materia: {},
     historial_errores: [],
     diagnostico_completado: false,
     diagnostico_resultados: null,
@@ -48,6 +79,7 @@ function normalizeErrorEntry(entry, idx = 0) {
       resumen,
       tema: "Refuerzo General",
       materia: "",
+      materia_id: "",
       tipo_error: "error_operativo",
       fecha: "",
       superado: false,
@@ -63,6 +95,7 @@ function normalizeErrorEntry(entry, idx = 0) {
     resumen,
     tema: String(entry.tema || "Refuerzo General").trim(),
     materia: String(entry.materia || "").trim(),
+    materia_id: String(entry.materia_id || "").trim(),
     tipo_error: String(entry.tipo_error || "error_operativo").trim(),
     fecha: String(entry.fecha || "").trim(),
     superado: Boolean(entry.superado),
@@ -105,6 +138,31 @@ function normalizeStateObject(parsed) {
     }
   });
 
+  const rawNodeSteps =
+    parsed.nodos_pasos && typeof parsed.nodos_pasos === "object" ? parsed.nodos_pasos : {};
+  const cleanNodeSteps = {};
+  Object.entries(rawNodeSteps).forEach(([skillId, stepsVal]) => {
+    const n = Math.round(Number(stepsVal));
+    if (Number.isFinite(n) && n >= 0) {
+      cleanNodeSteps[skillId] = Math.min(3, Math.max(0, n));
+    }
+  });
+
+  const rawAiMetrics =
+    parsed.metricas_ia_materia && typeof parsed.metricas_ia_materia === "object"
+      ? parsed.metricas_ia_materia
+      : {};
+  const cleanAiMetrics = {};
+  Object.entries(rawAiMetrics).forEach(([matId, mObj]) => {
+    if (!mObj || typeof mObj !== "object") return;
+    const intentos = Math.max(0, Math.round(Number(mObj.intentos_ia || 0)) || 0);
+    const aprobados = Math.max(
+      0,
+      Math.min(intentos, Math.round(Number(mObj.aprobados_ia || 0)) || 0)
+    );
+    cleanAiMetrics[matId] = { intentos_ia: intentos, aprobados_ia: aprobados };
+  });
+
   const cleanState = {
     ...defaults,
     ...parsed,
@@ -119,6 +177,8 @@ function normalizeStateObject(parsed) {
       parsed.nodos_estado && typeof parsed.nodos_estado === "object"
         ? { ...parsed.nodos_estado }
         : {},
+    nodos_pasos: cleanNodeSteps,
+    metricas_ia_materia: cleanAiMetrics,
     historial_errores: cleanHistory,
     xp_otorgado_nodos:
       parsed.xp_otorgado_nodos && typeof parsed.xp_otorgado_nodos === "object"
@@ -156,6 +216,8 @@ export const dom = {};
 export const appContext = {
   skillsDB: null,
   activeSection: "materias",
+  skillsSelectedMateriaId: null,
+  vaultFilterScope: "subject", // "subject" | "all"
   diagRadarChartInstance: null,
   skillsRadarChartInstance: null,
   skillsLoadFailed: false,
@@ -243,6 +305,7 @@ export function hydrateStateFromUser(userData) {
     }
 
     Object.assign(state, hydrated);
+    appContext.skillsSelectedMateriaId = state.materia_activa || null;
     inferInitiatedMateriasFromNodes();
     persistLocalOnly();
   } finally {
@@ -256,6 +319,8 @@ export function clearSessionLocalState() {
     cloudSyncTimerId = null;
   }
   appContext.currentUser = null;
+  appContext.skillsSelectedMateriaId = null;
+  appContext.vaultFilterScope = "subject";
   resetState("");
   try {
     window.localStorage.removeItem(STORAGE_KEY);
@@ -291,6 +356,7 @@ export function addErrorToVault({
   resumen,
   tema = "Refuerzo General",
   materia = "",
+  materia_id = "",
   tipo_error = "error_operativo",
 } = {}) {
   const cleanResumen = String(resumen || "Revisar aplicación de regla").trim();
@@ -309,12 +375,188 @@ export function addErrorToVault({
     resumen: cleanResumen,
     tema: String(tema || "Refuerzo General").trim(),
     materia: String(materia || "").trim(),
+    materia_id: String(materia_id || "").trim(),
     tipo_error: String(tipo_error || "error_operativo").trim(),
     fecha: fechaHoy,
     superado: false,
   };
   state.historial_errores.push(entry);
   return entry;
+}
+
+export function obtenerPrioridadTema(skill) {
+  if (skill && typeof skill.prioridad === "string" && skill.prioridad.trim()) {
+    return { label: skill.prioridad.trim(), badgeClass: "priority-custom" };
+  }
+  const rawFreq = parseInt(String(skill?.frecuencia_examen || "85"), 10);
+  const freq = Number.isFinite(rawFreq) ? rawFreq : 85;
+  if (freq >= 94) {
+    return { label: "🔥 Fijo en Parcial", badgeClass: "priority-fijo" };
+  }
+  if (freq >= 90) {
+    return { label: "⭐ Muy frecuente", badgeClass: "priority-frecuente" };
+  }
+  return { label: "📌 Base clave", badgeClass: "priority-base" };
+}
+
+export function obtenerProgresoNodo(skillId, estado = state) {
+  const est = estado && typeof estado === "object" ? estado : state;
+  const status = est.nodos_estado?.[skillId] || "locked";
+  const stepsRaw = Number(est.nodos_pasos?.[skillId] || 0);
+  const steps = Math.max(0, Math.min(3, Number.isFinite(stepsRaw) ? Math.round(stepsRaw) : 0));
+
+  if (status === "unlocked") {
+    return {
+      status: "unlocked",
+      steps: 3,
+      percent: 100,
+      barWidth: 100,
+      barClass: "is-unlocked",
+      label: "100%",
+      badgeText: "Dominado",
+      badgeClass: "text-bg-success",
+    };
+  }
+
+  if (status === "active") {
+    const pct = steps >= 3 ? 100 : steps === 2 ? 66 : steps === 1 ? 33 : 0;
+    return {
+      status: "active",
+      steps,
+      percent: pct,
+      barWidth: pct,
+      barClass: "is-active",
+      label: `${pct}%`,
+      badgeText: "Activo",
+      badgeClass: "text-bg-warning text-dark",
+    };
+  }
+
+  if (status === "blocker") {
+    const pct = steps === 2 ? 66 : steps === 1 ? 33 : 0;
+    return {
+      status: "blocker",
+      steps,
+      percent: pct,
+      barWidth: Math.max(30, pct),
+      barClass: "is-blocker",
+      label: "Refuerzo pendiente",
+      badgeText: "Crítico",
+      badgeClass: "text-bg-danger",
+    };
+  }
+
+  return {
+    status: "locked",
+    steps: 0,
+    percent: 0,
+    barWidth: 0,
+    barClass: "is-locked",
+    label: "0%",
+    badgeText: "Pendiente",
+    badgeClass: "text-bg-secondary",
+  };
+}
+
+export function registrarPasoNodo(skillId, pasoNum) {
+  if (!skillId) return;
+  if (!state.nodos_pasos || typeof state.nodos_pasos !== "object") {
+    state.nodos_pasos = {};
+  }
+  const prev = Number(state.nodos_pasos[skillId] || 0);
+  const target = Math.max(prev, Math.min(3, Math.round(Number(pasoNum) || 0)));
+  if (target !== prev || state.nodos_pasos[skillId] === undefined) {
+    state.nodos_pasos[skillId] = target;
+    saveState();
+  }
+}
+
+export function registrarIntentoIA(materiaId, aprobado) {
+  if (!materiaId) return;
+  if (!state.metricas_ia_materia || typeof state.metricas_ia_materia !== "object") {
+    state.metricas_ia_materia = {};
+  }
+  const prev =
+    state.metricas_ia_materia[materiaId] &&
+    typeof state.metricas_ia_materia[materiaId] === "object"
+      ? state.metricas_ia_materia[materiaId]
+      : { intentos_ia: 0, aprobados_ia: 0 };
+
+  const intentos = Math.max(0, Number(prev.intentos_ia || 0)) + 1;
+  const aprobados = Math.max(0, Number(prev.aprobados_ia || 0)) + (aprobado ? 1 : 0);
+  state.metricas_ia_materia[materiaId] = {
+    intentos_ia: intentos,
+    aprobados_ia: Math.min(intentos, aprobados),
+  };
+}
+
+export function obtenerMetricasIAMateria(materiaId, estado = state) {
+  const est = estado && typeof estado === "object" ? estado : state;
+  const mObj = est.metricas_ia_materia?.[materiaId];
+  const intentos = Math.max(0, Number(mObj?.intentos_ia || 0));
+  const aprobados = Math.max(0, Math.min(intentos, Number(mObj?.aprobados_ia || 0)));
+  const precisionPct =
+    intentos > 0 ? Math.round((aprobados / intentos) * 100) : null;
+  return { intentos, aprobados, precisionPct };
+}
+
+export function calcularDominioMateria(materia, estado = state) {
+  const est = estado && typeof estado === "object" ? estado : state;
+  const matObj =
+    typeof materia === "string" ? findMateriaById(materia)?.materia : materia;
+  const skills = getMateriaSkills(matObj);
+  if (!skills.length) return 0;
+
+  const totalPct = skills.reduce(
+    (acc, skill) => acc + obtenerProgresoNodo(skill.id, est).percent,
+    0
+  );
+  return Math.max(0, Math.min(100, Math.round(totalPct / skills.length)));
+}
+
+function normalizeLabelCompare(text) {
+  return String(text || "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .trim();
+}
+
+export function errorMatchesMateria(entry, materia) {
+  if (!entry || !materia) return false;
+  if (entry.materia_id && entry.materia_id === materia.id) return true;
+
+  const matNameNorm = normalizeLabelCompare(materia.nombre);
+  const entryMatNorm = normalizeLabelCompare(entry.materia);
+  if (entryMatNorm && matNameNorm && entryMatNorm === matNameNorm) {
+    return true;
+  }
+
+  const entryTemaNorm = normalizeLabelCompare(entry.tema);
+  if (entryTemaNorm) {
+    const skills = getMateriaSkills(materia);
+    if (
+      skills.some((s) => {
+        const sNorm = normalizeLabelCompare(s.nombre);
+        return sNorm === entryTemaNorm || sNorm.includes(entryTemaNorm) || entryTemaNorm.includes(sNorm);
+      })
+    ) {
+      return true;
+    }
+  }
+  return false;
+}
+
+export function getShortSkillLabel(skill) {
+  if (!skill) return "Tema";
+  if (SHORT_SKILL_LABELS[skill.id]) return SHORT_SKILL_LABELS[skill.id];
+
+  const base = String(skill.nombre || "Tema")
+    .replace(/\([^)]*\)/g, "")
+    .split(" y ")[0]
+    .trim();
+  if (base.length <= 15) return base;
+  return `${base.slice(0, 14).trim()}…`;
 }
 
 export function obtenerRangoFNI(xp = state.xp) {
@@ -433,7 +675,7 @@ export function calcularPreparacionExamen(materia, estado = state) {
   return Math.max(0, Math.min(100, Math.round((unlockedWeight / totalWeight) * 100)));
 }
 
-export function obtenerFallosRepetitivos(estado = state) {
+export function obtenerFallosRepetitivos(estado = state, materiaFilter = null) {
   const est = estado && typeof estado === "object" ? estado : state;
   const history = Array.isArray(est.historial_errores) ? est.historial_errores : [];
   if (history.length === 0) return [];
@@ -443,6 +685,8 @@ export function obtenerFallosRepetitivos(estado = state) {
   history.forEach((rawEntry, index) => {
     const entry = normalizeErrorEntry(rawEntry, index);
     if (!entry) return;
+    if (materiaFilter && !errorMatchesMateria(entry, materiaFilter)) return;
+
     const key = `${entry.tema.toLowerCase()}||${entry.tipo_error.toLowerCase()}`;
     if (!groups.has(key)) {
       groups.set(key, {
@@ -599,11 +843,15 @@ export function startMateriaFromScratch(materiaId) {
   if (!state.materias_iniciadas || typeof state.materias_iniciadas !== "object") {
     state.materias_iniciadas = {};
   }
+  if (!state.nodos_pasos || typeof state.nodos_pasos !== "object") {
+    state.nodos_pasos = {};
+  }
   state.materias_iniciadas[materia.id] = true;
   state.diagnostico_completado = true;
 
   skills.forEach((s, idx) => {
     state.nodos_estado[s.id] = idx === 0 ? "active" : "locked";
+    delete state.nodos_pasos[s.id];
   });
 
   saveState();
@@ -787,6 +1035,7 @@ export function cacheDom() {
     "btn-start-from-scratch",
     "btn-start-placement-exam",
     "camino-main-row",
+    "camino-ranking-aside",
     "path-user-greeting",
     "path-route-title",
     "path-route-desc",
@@ -801,28 +1050,38 @@ export function cacheDom() {
     "materias-stage-pill",
     "subjects-catalog-container",
     "view-skills",
-    "skills-rank-level",
-    "skills-rank-title",
-    "skills-rank-xp",
-    "skills-rank-next-label",
-    "skills-rank-bar",
-    "skills-readiness-subject",
-    "skills-readiness-pct",
-    "skills-readiness-bar",
-    "skills-medals-unlocked-count",
-    "skills-medals-grid",
+    "skills-selected-badge",
+    "skills-subject-selector",
+    "skills-kpi-mastery",
+    "skills-kpi-mastery-bar",
+    "skills-kpi-mastery-sub",
+    "skills-kpi-completed",
+    "skills-kpi-completed-sub",
+    "skills-kpi-ai-accuracy",
+    "skills-kpi-ai-detail",
+    "skills-kpi-alerts",
+    "skills-kpi-alerts-sub",
+    "pre-exam-warnings-badge",
     "pre-exam-warnings-empty",
     "pre-exam-warnings-list",
+    "skills-radar-title",
     "skills-radar-chart",
-    "skills-mastery-list",
+    "skills-topics-heading",
+    "skills-topics-count",
+    "skills-topics-breakdown",
     "error-vault-count",
+    "btn-vault-scope-subject",
+    "btn-vault-scope-all",
     "error-vault-empty",
+    "error-vault-empty-text",
     "error-vault-list",
     "btn-clear-vault",
     "view-perfil",
     "profile-avatar",
     "profile-stage-badge",
+    "profile-rank-badge",
     "profile-display-name",
+    "profile-username-handle",
     "profile-xp",
     "profile-streak",
     "profile-completed",
@@ -834,6 +1093,8 @@ export function cacheDom() {
     "profile-rank-bar",
     "profile-medals-unlocked-count",
     "profile-medals-grid",
+    "profile-global-summary-badge",
+    "profile-subjects-progress-list",
     "profile-name-form",
     "profile-name-input",
     "profile-name-saved-msg",
@@ -1012,6 +1273,9 @@ export function updateGreetingUI() {
   }
   if (dom["profile-display-name"]) {
     dom["profile-display-name"].textContent = nombre;
+  }
+  if (dom["profile-username-handle"]) {
+    dom["profile-username-handle"].textContent = `@${username}`;
   }
   if (dom["profile-avatar"]) {
     dom["profile-avatar"].textContent = inicial;

@@ -61,7 +61,7 @@
         <!-- Camino vertical + Ranking (visible cuando la materia ya fue iniciada) -->
         <div id="camino-main-row" class="row g-4 align-items-start">
           <!-- Columna izquierda (8 cols): Árbol vertical de la materia activa -->
-          <div class="col-12 col-xl-8">
+          <div class="col-12 col-lg-8">
             <div class="duo-card p-3 p-sm-4">
               <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-3">
                 <div>
@@ -119,8 +119,8 @@
             </div>
           </div>
 
-          <!-- Columna derecha (4 cols): Ranking de criticidad de la materia activa -->
-          <aside class="col-12 col-xl-4">
+          <!-- Columna derecha (4 cols): Ranking de criticidad de la materia activa (oculta en móvil <= 991px) -->
+          <aside id="camino-ranking-aside" class="col-12 col-lg-4 d-none d-lg-block camino-ranking-aside">
             <div class="sidebar-sticky d-flex flex-column gap-4">
               <div id="card-critical-ranking" class="duo-card panel-card p-4">
                 <div class="d-flex align-items-center justify-content-between mb-3">
@@ -128,12 +128,12 @@
                     <span class="panel-icon panel-icon-amber">
                       <i class="bi bi-trophy-fill"></i>
                     </span>
-                    Ranking de Temas Críticos en Examen
+                    Temas Críticos de la Materia
                   </h3>
                   <span id="ranking-materia-code" class="badge rounded-pill text-bg-light border">Top</span>
                 </div>
                 <p class="small text-secondary mb-3">
-                  Temas de la materia activa ordenados por frecuencia en exámenes.
+                  Prioridad en parcial y tu progreso real por tema. Toca uno para ubicarlo o practicar.
                 </p>
                 <div id="critical-ranking-list" class="d-flex flex-column gap-2">
                   <div class="small text-secondary">Elige una materia para ver sus temas críticos.</div>
