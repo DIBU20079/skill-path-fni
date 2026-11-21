@@ -19,13 +19,19 @@ import {
   goToModalStep,
   handleAuditWithAI,
   handleGenerateDynamicExercise,
+  handleGenerateGuidedExample,
   handleReinforcePrerequisiteClick,
   handleReturnToOriginalNodeClick,
   handleShowAnalogousExample,
   modalSession,
   openNodeModal,
   resetStep3ForCorrection,
+  revealAllGuidedSteps,
+  revealNextGuidedStep,
+  selectPracticeDifficulty,
   setupPhotoDropzoneEvents,
+  switchModalTab,
+  toggleStep3FormulasDrawer,
 } from "./challenge.js";
 import {
   handleDiagnosticNext,
@@ -552,8 +558,26 @@ function bindEvents() {
     }
   });
 
-  // Modal de 3 pasos + Generación IA + Baúl Activo
-  dom["btn-generate-ai-exercise"]?.addEventListener("click", handleGenerateDynamicExercise);
+  // Modal de 2 pestañas (Aprender / Practicar) + Generación IA + Baúl Activo
+  dom["tab-modal-learn"]?.addEventListener("click", () => switchModalTab("learn"));
+  dom["tab-modal-practice"]?.addEventListener("click", () => switchModalTab("practice"));
+  dom["btn-learn-go-practice"]?.addEventListener("click", () => switchModalTab("practice"));
+  dom["btn-reveal-next-step"]?.addEventListener("click", revealNextGuidedStep);
+  dom["btn-reveal-all-steps"]?.addEventListener("click", revealAllGuidedSteps);
+  dom["btn-gen-guided-example"]?.addEventListener("click", handleGenerateGuidedExample);
+
+  dom["btn-generate-ai-exercise"]?.addEventListener("click", () =>
+    handleGenerateDynamicExercise({ stayOnCurrentStep: false })
+  );
+  dom["btn-toggle-step3-formulas"]?.addEventListener("click", toggleStep3FormulasDrawer);
+  dom["btn-diff-base"]?.addEventListener("click", () => selectPracticeDifficulty("base"));
+  dom["btn-diff-parcial"]?.addEventListener("click", () =>
+    selectPracticeDifficulty("parcial_fni")
+  );
+  dom["btn-step3-generate-ai"]?.addEventListener("click", () =>
+    handleGenerateDynamicExercise({ stayOnCurrentStep: true })
+  );
+
   dom["stepper-step-1"]?.addEventListener("click", () => goToModalStep(1));
   dom["stepper-step-2"]?.addEventListener("click", () => {
     if (modalSession.maxUnlockedStep >= 2) goToModalStep(2);

@@ -39,13 +39,13 @@ Guía de arquitectura, restricciones técnicas, reglas pedagógicas y contratos 
 │   ├── __init__.py               # Exporta los 4 Blueprints
 │   ├── views.py                  # GET / -> renderiza index.html
 │   ├── api_skills.py             # GET /api/skills (combina pre_u.json + facultad.json)
-│   ├── api_ai.py                 # POST /api/{evaluar,generar-ejercicio,ejemplo-analogo,generar-ejercicio-error}
+│   ├── api_ai.py                 # POST /api/{evaluar,generar-ejercicio,ejemplo-analogo,generar-ejercicio-error,explicar-paso,generar-ejemplo-guiado}
 │   └── api_auth.py               # POST /api/{register,login,demo-login,logout,progreso} y GET /api/me
 ├── services/
 │   ├── __init__.py
 │   ├── ai_client.py              # Cliente Gemini compartido, timeout y fallback de modelos
 │   ├── ai_auditor.py             # Auditoría socrática por foto/texto (8 claves)
-│   ├── ai_generator.py           # Ejercicios 3 pasos, ejemplo análogo y reto focalizado de error
+│   ├── ai_generator.py           # Ejercicios 3 pasos (base/parcial_fni), ejemplo análogo, reto de error y guía paso a paso
 │   └── db_cloud.py               # Cliente HTTPS Supabase REST (`usuarios`) + respaldo data/usuarios_fallback.json
 ├── data/
 │   ├── pre_u.json                # Materias, preguntas_examen y skills de la etapa Pre-U
@@ -126,16 +126,20 @@ La función `auditar_resolucion(enunciado, prerrequisito, texto_usuario, imagen_
   - Llama a `auditar_resolucion(...)` (`services/ai_auditor.py`) y devuelve HTTP `200` con el JSON de 8 claves.
   - Errores devuelven JSON claro (`400` validación, `413` imagen > 10 MB, `502` fallo de proveedor IA, `500` error interno).
 - **`POST /api/generar-ejercicio` (`routes/api_ai.py`)**:
-  - Acepta JSON (o `form-data`) con `materia` (obligatorio), `tema` (obligatorio) e `historial_errores` (opcional).
-  - Llama a `generar_ejercicio_dinamico(...)` (`services/ai_generator.py`, `temperature=0.8`, `response_mime_type="application/json"`) y devuelve HTTP `200` con un ejercicio inédito de 3 pasos (`paso1_concepto`, `paso2_practica`, `paso3_reto_foto`) en LaTeX.
+  - Acepta JSON (o `form-data`) con `materia` (obligatorio), `tema` (obligatorio), `historial_errores` (opcional) y `dificultad` (`"base"` por defecto o `"parcial_fni"`).
+  - Llama a `generar_ejercicio_dinamico(...)` (`services/ai_generator.py`, `response_mime_type="application/json"`) y devuelve HTTP `200` con un ejercicio inédito de 3 pasos (`paso1_concepto`, `paso2_practica`, `paso3_reto_foto`) + `"dificultad"` en LaTeX.
   - Si falla la IA, el frontend conserva el respaldo estático del currículo sin errores rotos.
 - **`POST /api/ejemplo-analogo` (`routes/api_ai.py`)**:
   - Acepta `{materia, tema, ejercicio_actual}` (todos obligatorios) y llama a `generar_ejemplo_analogo(...)` (`services/ai_generator.py`) devolviendo HTTP `200` con `{"enunciado", "pasos", "conclusion"}` en LaTeX para un ejercicio distinto y resuelto paso a paso (andamiaje gratuito tras 2 fallos sin gastar XP).
 - **`POST /api/generar-ejercicio-error` (`routes/api_ai.py`)**:
   - Acepta `{materia, tema, tipo_error, detalle_error}` (obligatorios `tema` y `detalle_error`) y llama a `generar_ejercicio_error(...)` (`services/ai_generator.py`) devolviendo HTTP `200` con `{"enunciado", "pista_inicial", "objetivo"}` en LaTeX para el **Baúl de Errores Activo**.
+- **`POST /api/explicar-paso` (`routes/api_ai.py`)**:
+  - Acepta `{materia, tema, paso_anterior, paso_actual, explicacion_actual}` (`paso_actual` obligatorio) y llama a `explicar_paso_algebraico(...)` devolviendo HTTP `200` con `{"aclaracion": "..."}` (2–3 líneas en LaTeX explicando la transformación entre pasos).
+- **`POST /api/generar-ejemplo-guiado` (`routes/api_ai.py`)**:
+  - Acepta `{materia, tema, enunciado_previo}` (`materia` y `tema` obligatorios) y llama a `generar_ejemplo_guiado(...)` devolviendo HTTP `200` con `{"enunciado", "pasos": [{"titulo", "expresion", "explicacion"}], "resultado_final"}` en LaTeX.
 - **`POST /api/register`, `POST /api/login`, `POST /api/demo-login`, `POST /api/logout`, `GET /api/me`, `POST /api/progreso`, `GET /api/auth/status` (`routes/api_auth.py`)**:
   - Gestión real de cuentas, contraseñas con `werkzeug.security`, sesión persistente Flask (`session["username"]`) y sincronización automática con Supabase (`services/db_cloud.py`) o respaldo JSON local (`data/usuarios_fallback.json`).
-  - `/api/demo-login` inicia sesión en `"jurado_demo"` con progreso precargado (320 XP, racha de 4 días, 2 nodos dominados y 2 errores en el Baúl).
+  - `/api/demo-login` inicia sesión en `"jurado_demo"` con progreso precargado (320 XP, racha de 4 días, 3 nodos dominados en Cálculo I y 2 errores en el Baúl).
   - `/api/me` responde `401` si no existe sesión activa.
 
 ---
@@ -143,20 +147,33 @@ La función `auditar_resolucion(enunciado, prerrequisito, texto_usuario, imagen_
 ## 5. Contrato Curricular (`data/{pre_u,facultad}.json`) y Flujo UI
 
 - Dos etapas de primer nivel: `pre_u` y `facultad`.
-- Cada etapa contiene `materias`: catálogo multi-materia por etapa (`pre_u`: **Álgebra Pre-U** y **Trigonometría**; `facultad`: **Cálculo I** y **Física I**).
-- Cada materia contiene `id`, `nombre`, `codigo`, `icono`, `color`, `descripcion`, `preguntas_examen` (5 preguntas de opción múltiple en LaTeX vinculadas por `skill_id` y `nivel_nodo` de básico a avanzado) y `skills` (4 a 5 temas ordenados por `ranking_criticidad` y encadenados por `prerrequisito_id`).
-- Campos de cada skill: `id`, `ranking_criticidad`, `frecuencia_examen`, `materia`, `nombre`, `area`, `prerrequisito_id`, `xp`, `tip_auxiliar`, `paso1_concepto` (`titulo`, `enunciado_latex`, `opciones`, `respuesta_correcta`, `explicacion`), `paso2_practica` (`titulo`, `enunciado_latex`, `respuesta_correcta`, `respuestas_aceptadas`, `pista`), `paso3_reto_foto` (`titulo`, `enunciado_latex`, `prerrequisito_evaluado`, `instrucciones`).
-- **Navegación estilo Duolingo**: barra lateral izquierda en escritorio y barra inferior fija (grid de 4 columnas) en móvil con 4 secciones: **Camino**, **Materias**, **Mis Skills** (Rango FNI, Medallas FNI, Preparación para Examen, Resumen Pre-Examen Top 3, radar Chart.js, nivel Bronce/Plata/Oro y **Baúl de Errores Activo**) y **Perfil** (Rango FNI, Medallas, nombre, etapa, repetir ubicación, **Cargar Perfil Demo**, **Cerrar Sesión (Salir)** y acordeón cerrado de reinicio). Se eliminó por completo la función de "Registrar Nota Parcial".
-- **Inicio por materia (`materias_iniciadas`)**: Al iniciar sesión o registrarse no existe diagnóstico global obligatorio; el usuario va a **Materias** (o a su última materia activa iniciada). Al elegir una materia no iniciada, elige entre **"🚀 Empezar desde cero"** (Nodo 1 en `active`, demás en `locked`) o **"🎯 Hacer Examen de Ubicación"**.
-- **Motor de examen reutilizable (`static/js/diagnostic.js` + `templates/partials/diagnostic.html`)**:
-  - **Modo 1 — Examen de Ubicación**: Evalúa las preguntas de básico a avanzado de esa materia, desbloquea en `unlocked` (verde) los nodos dominados, deja el siguiente en `active` (amarillo) y los posteriores en `locked` (gris), suma XP y guarda en Supabase.
-  - **Modo 2 — Salto de Nivel ("⚡ Saltar aquí")**: En nodos bloqueados (`locked`) a partir del Nodo 3 en adelante, el botón **"⚡ Saltar aquí"** evalúa 3 a 4 preguntas de los nodos anteriores. Con `>= 75%` desbloquea los nodos previos en verde, activa el nodo destino en amarillo, otorga `+60 XP` y desbloquea la medalla **Salto de Nivel**; con `< 75%` indica qué temas reforzar.
-  - **Modo 3 — Nodo Final "🏆 Simulacro de Parcial"**: Al final del camino vertical de cada materia; se desbloquea con `>= 60%` de nodos en `unlocked` (Verde). Evalúa 4–5 preguntas mezcladas con temporizador global visible de `05:00` y entrega automática al llegar a `00:00`. Calcula nota sobre `100`: con `>= 51` aprueba, suma `+100 XP`, desbloquea **Simulacro Aprobado** y guarda la mejor nota en `simulacros_mejor_nota`.
-- **XP Permanente, Rangos FNI, Medallas, Preparación y Baúl Activo (`static/js/state.js` + `static/js/challenge.js`)**:
-  - **XP Permanente**: `state.xp` nunca se resta ni se gasta. `obtenerRangoFNI(xp)` asigna 5 niveles: *Postulante* (`0–199`), *Ingresante FNI* (`200–499`), *Estudiante Nivelado* (`500–999`), *Aspirante a Auxiliar* (`1000–1999`) y *Auxiliar de Ciencias Básicas* (`2000+`).
-  - **6 Medallas FNI (`obtenerMedallas`)**: *Resiliencia*, *Rescate Crítico*, *Salto de Nivel*, *Error Superado*, *Simulacro Aprobado* y *Constancia FNI* (`racha >= 3`).
-  - **Preparación para Examen (`calcularPreparacionExamen`)**: Pondera los nodos `unlocked` por su peso (`frecuencia_examen`) sobre el total de la materia; se muestra en la cabecera de la materia activa y en **Mis Skills**.
-  - **Compresión, Carga Animada, Ejemplo Análogo y Bonos XP**: Antes de enviar a `/api/evaluar`, las fotos se redimensionan en `<canvas>` oculto a máx. `1280px` (`image/jpeg`, `0.78`). Mientras espera respuesta, rota mensajes cada `~1.8s`. Tras `>= 2` intentos fallidos aparece **"💡 Ver ejemplo parecido resuelto (Gratis)"**. Al aprobar en intento `>= 2` suma **+25 XP (Bono de Resiliencia)**; si el nodo estaba en `blocker` (Rojo) suma **+50 XP (Bono de Rescate)**.
-  - **Baúl de Errores Activo y Resumen Pre-Examen**: Cada falla tiene `id` y `superado`. Los fallos pendientes ofrecen **"🔁 Superar este error"** (`abrirRetoSuperarError`), que al aprobar con Gemini llama `marcarErrorSuperado(id)` (**+30 XP**). `obtenerFallosRepetitivos` alimenta el Top 3 de advertencias pre-parcial en **Mis Skills**.
-- **Estado Rojo (`blocker`)**: Cuando la auditoría IA por foto detecta `requiere_repetir_modulo: true` (`fallo_prerrequisito`), el nodo prerrequisito se marca en rojo (`blocker`) para refuerzo guiado con retorno automático.
-- **KaTeX**: Ejecutar `renderMathInElement` tras cada renderizado dinámico con fórmulas matemáticas.
+- Cada etapa contiene `materias`: catálogo multi-materia por etapa (`pre_u`: **Álgebra Pre-U** [6 temas, 3 unidades] y **Trigonometría** [5 temas, 3 unidades]; `facultad`: **Cálculo I** [9 temas, 4 unidades] y **Física I** [6 temas, 3 unidades]).
+- Cada materia contiene `id`, `nombre`, `codigo`, `icono`, `color`, `descripcion`, `preguntas_examen` (preguntas de opción múltiple en LaTeX vinculadas por `skill_id` y `nivel_nodo` de básico a avanzado) y `skills` ordenados por `ranking_criticidad` y encadenados por `prerrequisito_id`.
+- Campos obligatorios de cada skill (especialmente para colaboradores de `feat/datos`):
+  - `id`, `ranking_criticidad`, `frecuencia_examen`, `materia`, **`unidad`** (ej. `"Unidad 1: Funciones y Dominios"`), `nombre`, `area`, `prerrequisito_id`, `xp`, `tip_auxiliar`.
+  - **`guia_aprendizaje`**:
+    ```json
+    {
+      "idea_clave": "Explicación directa en 2-3 líneas con $...$",
+      "formulas": [{"nombre": "Regla", "latex": "$$...$$"}],
+      "receta": ["Paso estratégico 1", "Paso 2..."],
+      "ejemplo_guiado": {
+        "enunciado": "Enunciado completo en LaTeX",
+        "pasos": [
+          {"titulo": "Paso 1: ...", "expresion": "$$...$$", "explicacion": "Por qué se realiza"}
+        ],
+        "resultado_final": "$$...$$"
+      },
+      "trampas_examen": ["Error típico #1 y cómo evitarlo"]
+    }
+    ```
+  - `paso1_concepto` (`titulo`, `enunciado_latex`, `opciones`, `respuesta_correcta`, `explicacion`), `paso2_practica` (`titulo`, `enunciado_latex`, `respuesta_correcta`, `respuestas_aceptadas`, `pista`), `paso3_reto_foto` (`titulo`, `enunciado_latex`, `prerrequisito_evaluado`, `instrucciones`).
+- **Camino Agrupado por Unidades**: `renderCaminoSection()` agrupa los nodos por `unidad`, inserta cabeceras `.unit-divider-banner` (`X/Y dominados`) y mantiene **"⚡ Saltar aquí"** desde el 3.º nodo y **"🏆 Simulacro de Parcial"** al final.
+- **Modal de Tema en Dos Pestañas (`📖 Aprender` / `✍️ Practicar`)**:
+  - **`📖 Aprender`**: Idea Clave, Formulario Esencial, Receta Rápida, Ejemplo Guiado interactivo paso a paso (`👁️ Ver Paso N`, `Mostrar todos`, botón **"❓ ¿Por qué pasó esto?"** vía `/api/explicar-paso` y **"🤖 Ver otro ejemplo guiado con IA"** vía `/api/generar-ejemplo-guiado`), Trampas Típicas de Examen y CTA **"Listo, ir a Practicar →"**. Se abre aquí por defecto para nodos `active` o `blocker`; desde el Baúl Activo (`abrirRetoSuperarError`) abre directo en **`✍️ Practicar`**.
+  - **`✍️ Practicar`**: Paso 1, Paso 2 y Paso 3 con botón desplegable **"🧾 Formulario del tema"**, selector de dificultad (**"🟢 Nivel Base"** / **"🔥 Nivel Parcial FNI"** que suma **+35 XP extra** al aprobar), compresión de imagen (`1280px`, JPEG `0.78`), carga animada, ejemplo análogo gratuito tras 2 fallos y bonos XP.
+- **Navegación estilo Duolingo**: barra lateral izquierda en escritorio y barra inferior fija (grid de 4 columnas) en móvil con 4 secciones: **Camino**, **Materias**, **Mis Skills** (Rango FNI, Medallas FNI, Preparación para Examen, Resumen Pre-Examen Top 3, radar Chart.js, nivel Bronce/Plata/Oro y **Baúl de Errores Activo**) y **Perfil** (Rango FNI, Medallas, nombre, etapa, repetir ubicación, **Cargar Perfil Demo**, **Cerrar Sesión (Salir)** y acordeón cerrado de reinicio).
+- **Motor de examen reutilizable (`static/js/diagnostic.js`)**: Ubicación por materia, Salto de Nivel (`>= 75%`, `+60 XP`) y Simulacro de Parcial (`>= 60%` de nodos verdes, reloj global `05:00`, aprueba con `>= 51/100`, `+100 XP`).
+- **XP Permanente, Rangos FNI, Medallas y Baúl Activo**: `state.xp` nunca se resta; 5 Rangos FNI; 6 Medallas FNI; Baúl Activo con `id` y `superado` (**+30 XP**).
+- **Estado Rojo (`blocker`)**: Cuando `/api/evaluar` detecta `requiere_repetir_modulo: true`, el prerrequisito pasa a rojo para refuerzo guiado con retorno automático.
+- **KaTeX**: Ejecutar `renderMathInElement` tras cada cambio de pestaña, paso revelado, formulario desplegable o respuesta IA; `.katex-display` mantiene `overflow-x: auto; max-width: 100%;`.

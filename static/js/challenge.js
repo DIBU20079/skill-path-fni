@@ -4,6 +4,8 @@
 
 import {
   apiEjemploAnalogo,
+  apiExplicarPaso,
+  apiGenerarEjemploGuiado,
   apiGenerarEjercicioError,
   evaluateResolution,
   generateDynamicExercise,
@@ -40,11 +42,16 @@ const AUDIT_LOADING_MESSAGES = [
 
 export const modalSession = {
   mode: "lesson", // "lesson" | "error_drill"
+  activeTab: "learn", // "learn" | "practice"
+  difficulty: "base", // "base" | "parcial_fni" (selector actual)
+  activeDifficulty: "base", // dificultad del ejercicio activo actual
   skill: null,
   errorTarget: null,
   errorDrillData: null,
   wasBlockerOnOpen: false,
   activeExercise: null,
+  guidedExample: null,
+  revealedStepsCount: 0,
   isGeneratedAI: false,
   currentStep: 1,
   maxUnlockedStep: 1,
@@ -56,6 +63,7 @@ export const modalSession = {
   isAuditing: false,
   isGenerating: false,
   isLoadingAnalogous: false,
+  isLoadingGuided: false,
   attempts: [],
   failedAttemptsCount: 0,
   analogousExample: null,
@@ -87,6 +95,317 @@ function cloneExerciseFromSkill(skill) {
   };
 }
 
+export function switchModalTab(tabName = "learn") {
+  const target =
+    modalSession.mode === "error_drill"
+      ? "practice"
+      : tabName === "practice"
+        ? "practice"
+        : "learn";
+  modalSession.activeTab = target;
+
+  const isLearn = target === "learn";
+  dom["tab-modal-learn"]?.classList.toggle("active", isLearn);
+  dom["tab-modal-practice"]?.classList.toggle("active", !isLearn);
+  dom["tab-modal-learn"]?.setAttribute("aria-selected", String(isLearn));
+  dom["tab-modal-practice"]?.setAttribute("aria-selected", String(!isLearn));
+
+  dom["modal-pane-learn"]?.classList.toggle("d-none", !isLearn);
+  dom["modal-pane-practice"]?.classList.toggle("d-none", isLearn);
+
+  if (modalSession.mode === "lesson") {
+    dom["lesson-stepper-wrap"]?.classList.toggle("d-none", isLearn);
+  } else {
+    dom["lesson-stepper-wrap"]?.classList.add("d-none");
+  }
+
+  renderMath(isLearn ? dom["modal-pane-learn"] : dom["modal-pane-practice"]);
+}
+
+export function selectPracticeDifficulty(diff = "base") {
+  const cleanDiff = diff === "parcial_fni" ? "parcial_fni" : "base";
+  modalSession.difficulty = cleanDiff;
+  dom["btn-diff-base"]?.classList.toggle("active", cleanDiff === "base");
+  dom["btn-diff-parcial"]?.classList.toggle("active", cleanDiff === "parcial_fni");
+}
+
+function renderFormulasCardsInto(containerEl, formulas) {
+  if (!containerEl) return;
+  const list = Array.isArray(formulas) ? formulas : [];
+  containerEl.innerHTML = "";
+  if (list.length === 0) {
+    containerEl.innerHTML =
+      '<div class="small text-secondary">Revisa la idea clave y la receta paso a paso para este tema.</div>';
+    return;
+  }
+
+  list.forEach((f) => {
+    const card = document.createElement("div");
+    card.className = "formula-card";
+    card.innerHTML = `
+      <div class="formula-card-name">${escapeHtml(f.nombre || "Regla clave")}</div>
+      <div class="formula-card-math">${escapeHtml(f.latex || "")}</div>
+    `;
+    containerEl.appendChild(card);
+  });
+  renderMath(containerEl);
+}
+
+function updateGuidedStepRevealButtons() {
+  const steps = modalSession.guidedExample?.pasos || [];
+  const total = steps.length;
+  const revealed = modalSession.revealedStepsCount;
+  const nextBtn = dom["btn-reveal-next-step"];
+  const allBtn = dom["btn-reveal-all-steps"];
+
+  if (nextBtn) {
+    if (total === 0 || revealed >= total) {
+      nextBtn.disabled = true;
+      nextBtn.textContent = "✅ Todos los pasos visibles";
+    } else {
+      nextBtn.disabled = false;
+      nextBtn.textContent = `👁️ Ver Paso ${revealed + 1}`;
+    }
+  }
+  if (allBtn) {
+    allBtn.classList.toggle("d-none", total === 0 || revealed >= total);
+  }
+  if (dom["learn-guided-final"]) {
+    const showFinal = total > 0 && revealed >= total;
+    dom["learn-guided-final"].classList.toggle("d-none", !showFinal);
+    if (showFinal) {
+      renderMath(dom["learn-guided-final"]);
+    }
+  }
+}
+
+async function handleExplainGuidedStep(stepIdx, stepCard, whyBtn) {
+  const steps = modalSession.guidedExample?.pasos || [];
+  const currentStep = steps[stepIdx];
+  const prevStep = stepIdx > 0 ? steps[stepIdx - 1] : null;
+  if (!currentStep || !stepCard) return;
+
+  const existingClarification = stepCard.querySelector(".step-ai-clarification");
+  if (existingClarification && !existingClarification.dataset.errorState) {
+    existingClarification.classList.toggle("d-none");
+    renderMath(existingClarification);
+    return;
+  }
+
+  if (whyBtn) {
+    whyBtn.disabled = true;
+    whyBtn.textContent = "Pensando...";
+  }
+
+  const box =
+    existingClarification ||
+    (() => {
+      const div = document.createElement("div");
+      div.className = "step-ai-clarification";
+      stepCard.appendChild(div);
+      return div;
+    })();
+  delete box.dataset.errorState;
+  box.classList.remove("d-none");
+  box.textContent = "Analizando transformación algebraica...";
+
+  const pasoAnteriorTexto = prevStep
+    ? `${prevStep.titulo}: ${prevStep.expresion}`
+    : modalSession.guidedExample?.enunciado || "Enunciado inicial";
+  const pasoActualTexto = `${currentStep.titulo}: ${currentStep.expresion}`;
+
+  try {
+    const data = await apiExplicarPaso({
+      materia: modalSession.skill?.materia || "Ciencias Básicas FNI",
+      tema: modalSession.skill?.nombre || "Tema",
+      paso_anterior: pasoAnteriorTexto,
+      paso_actual: pasoActualTexto,
+      explicacion_actual: currentStep.explicacion || "",
+    });
+    box.textContent = data.aclaracion || "";
+    renderMath(box);
+  } catch (error) {
+    box.dataset.errorState = "1";
+    box.textContent = `No se pudo cargar la aclaración en este instante (${error.message || "error de red"}). Intenta nuevamente.`;
+  } finally {
+    if (whyBtn) {
+      whyBtn.disabled = false;
+      whyBtn.textContent = "❓ ¿Por qué pasó esto?";
+    }
+  }
+}
+
+function renderGuidedExample(exampleObj) {
+  modalSession.guidedExample = exampleObj || null;
+  modalSession.revealedStepsCount = 0;
+
+  dom["learn-guided-error"]?.classList.add("d-none");
+  const enunEl = dom["learn-guided-enunciado"];
+  const listEl = dom["learn-guided-steps-list"];
+  const finalEl = dom["learn-guided-final"];
+
+  if (!exampleObj || !Array.isArray(exampleObj.pasos) || exampleObj.pasos.length === 0) {
+    if (enunEl) enunEl.textContent = "Cargando ejemplo guiado paso a paso...";
+    if (listEl) listEl.innerHTML = "";
+    if (finalEl) {
+      finalEl.classList.add("d-none");
+      finalEl.textContent = "";
+    }
+    updateGuidedStepRevealButtons();
+    return;
+  }
+
+  if (enunEl) {
+    enunEl.textContent = exampleObj.enunciado || "";
+    renderMath(enunEl);
+  }
+
+  if (finalEl) {
+    finalEl.innerHTML = `<strong>Resultado final:</strong> ${escapeHtml(exampleObj.resultado_final || "")}`;
+    finalEl.classList.add("d-none");
+  }
+
+  if (listEl) {
+    listEl.innerHTML = "";
+    exampleObj.pasos.forEach((step, idx) => {
+      const card = document.createElement("div");
+      card.className = "guided-step-card d-none";
+      card.dataset.stepIndex = String(idx);
+
+      card.innerHTML = `
+        <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
+          <span class="guided-step-title">${escapeHtml(step.titulo || `Paso ${idx + 1}`)}</span>
+          <button type="button" class="btn btn-outline-primary btn-sm btn-why-step">
+            ❓ ¿Por qué pasó esto?
+          </button>
+        </div>
+        <div class="guided-step-expr">${escapeHtml(step.expresion || "")}</div>
+        <div class="guided-step-expl">${escapeHtml(step.explicacion || "")}</div>
+      `;
+
+      const whyBtn = card.querySelector(".btn-why-step");
+      whyBtn?.addEventListener("click", () => handleExplainGuidedStep(idx, card, whyBtn));
+      listEl.appendChild(card);
+    });
+  }
+
+  updateGuidedStepRevealButtons();
+}
+
+export function revealNextGuidedStep() {
+  const listEl = dom["learn-guided-steps-list"];
+  const steps = modalSession.guidedExample?.pasos || [];
+  if (!listEl || modalSession.revealedStepsCount >= steps.length) return;
+
+  const targetCard = listEl.children[modalSession.revealedStepsCount];
+  if (targetCard) {
+    targetCard.classList.remove("d-none");
+    renderMath(targetCard);
+    targetCard.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  }
+  modalSession.revealedStepsCount += 1;
+  updateGuidedStepRevealButtons();
+}
+
+export function revealAllGuidedSteps() {
+  const listEl = dom["learn-guided-steps-list"];
+  const steps = modalSession.guidedExample?.pasos || [];
+  if (!listEl || steps.length === 0) return;
+
+  Array.from(listEl.children).forEach((card) => {
+    card.classList.remove("d-none");
+  });
+  modalSession.revealedStepsCount = steps.length;
+  renderMath(listEl);
+  updateGuidedStepRevealButtons();
+}
+
+function setGuidedExampleLoading(isLoading) {
+  modalSession.isLoadingGuided = isLoading;
+  if (dom["btn-gen-guided-example"]) {
+    dom["btn-gen-guided-example"].disabled = isLoading;
+  }
+  dom["btn-guided-label"]?.classList.toggle("d-none", isLoading);
+  dom["btn-guided-spinner"]?.classList.toggle("d-none", !isLoading);
+}
+
+export async function handleGenerateGuidedExample() {
+  if (modalSession.isLoadingGuided || !modalSession.skill) return;
+
+  dom["learn-guided-error"]?.classList.add("d-none");
+  setGuidedExampleLoading(true);
+
+  try {
+    const prevEnun = modalSession.guidedExample?.enunciado || "";
+    const data = await apiGenerarEjemploGuiado({
+      materia: modalSession.skill.materia,
+      tema: modalSession.skill.nombre,
+      enunciado_previo: prevEnun,
+    });
+    renderGuidedExample(data);
+  } catch (error) {
+    if (dom["learn-guided-error"]) {
+      dom["learn-guided-error"].textContent =
+        error.message || "No se pudo generar un nuevo ejemplo guiado en este instante.";
+      dom["learn-guided-error"].classList.remove("d-none");
+    }
+  } finally {
+    setGuidedExampleLoading(false);
+  }
+}
+
+function populateLearnAndFormulas(skill) {
+  const guia = skill?.guia_aprendizaje || {};
+
+  if (dom["learn-idea-clave"]) {
+    dom["learn-idea-clave"].textContent =
+      guia.idea_clave || skill.tip_auxiliar || "Domina las propiedades fundamentales de este tema paso a paso.";
+  }
+
+  renderFormulasCardsInto(dom["learn-formulas-grid"], guia.formulas);
+  renderFormulasCardsInto(dom["step3-formulas-list"], guia.formulas);
+
+  if (dom["learn-receta-list"]) {
+    const receta = Array.isArray(guia.receta) ? guia.receta : [];
+    dom["learn-receta-list"].innerHTML = "";
+    receta.forEach((stepTxt) => {
+      const li = document.createElement("li");
+      li.textContent = stepTxt;
+      dom["learn-receta-list"].appendChild(li);
+    });
+  }
+
+  if (dom["learn-traps-list"]) {
+    const trampas = Array.isArray(guia.trampas_examen) ? guia.trampas_examen : [];
+    dom["learn-traps-list"].innerHTML = "";
+    trampas.forEach((trapTxt) => {
+      const li = document.createElement("li");
+      li.textContent = trapTxt;
+      dom["learn-traps-list"].appendChild(li);
+    });
+  }
+
+  dom["step3-formulas-drawer"]?.classList.add("d-none");
+
+  if (guia.ejemplo_guiado && Array.isArray(guia.ejemplo_guiado.pasos)) {
+    renderGuidedExample(guia.ejemplo_guiado);
+  } else {
+    renderGuidedExample(null);
+    handleGenerateGuidedExample();
+  }
+
+  renderMath(dom["modal-pane-learn"]);
+}
+
+export function toggleStep3FormulasDrawer() {
+  const drawer = dom["step3-formulas-drawer"];
+  if (!drawer) return;
+  drawer.classList.toggle("d-none");
+  if (!drawer.classList.contains("d-none")) {
+    renderMath(drawer);
+  }
+}
+
 export function openNodeModal(skillId, options = {}) {
   const found = findSkillGlobal(skillId);
   if (!found) return;
@@ -95,15 +414,22 @@ export function openNodeModal(skillId, options = {}) {
   cleanupModalResources();
   const exercise = cloneExerciseFromSkill(skill);
   const isReinforcement = Boolean(state.nodo_retorno && state.nodo_retorno !== skill.id);
-  const wasBlocker = state.nodos_estado[skill.id] === "blocker";
+  const nodeStatus = state.nodos_estado[skill.id] || "active";
+  const wasBlocker = nodeStatus === "blocker";
+  const openInLearn = !options.autoGenerateAI && (nodeStatus === "active" || nodeStatus === "blocker");
 
   Object.assign(modalSession, {
     mode: "lesson",
+    activeTab: openInLearn ? "learn" : "practice",
+    difficulty: "base",
+    activeDifficulty: "base",
     skill,
     errorTarget: null,
     errorDrillData: null,
     wasBlockerOnOpen: wasBlocker,
     activeExercise: exercise,
+    guidedExample: null,
+    revealedStepsCount: 0,
     isGeneratedAI: false,
     currentStep: 1,
     maxUnlockedStep: 1,
@@ -115,6 +441,7 @@ export function openNodeModal(skillId, options = {}) {
     isAuditing: false,
     isGenerating: false,
     isLoadingAnalogous: false,
+    isLoadingGuided: false,
     attempts: [],
     failedAttemptsCount: 0,
     analogousExample: null,
@@ -124,14 +451,21 @@ export function openNodeModal(skillId, options = {}) {
   });
 
   if (dom["modal-node-meta"]) {
+    const unitBadge = skill.unidad ? `${skill.unidad} · ` : "";
     dom["modal-node-meta"].textContent =
-      `#${skill.ranking_criticidad} · ${skill.materia} · ${skill.frecuencia_examen} en examen`;
+      `#${skill.ranking_criticidad} · ${unitBadge}${skill.materia} · ${skill.frecuencia_examen} en examen`;
   }
   if (dom["modal-node-title"]) dom["modal-node-title"].textContent = skill.nombre;
   if (dom["modal-node-xp"]) dom["modal-node-xp"].textContent = `⚡ +${skill.xp} XP`;
 
-  dom["lesson-stepper-wrap"]?.classList.remove("d-none");
+  dom["modal-mode-tabs"]?.classList.remove("d-none");
   dom["btn-generate-ai-exercise"]?.classList.remove("d-none");
+  dom["step3-tools-bar"]?.classList.remove("d-none");
+  dom["btn-toggle-step3-formulas"]?.classList.remove("d-none");
+  dom["step3-difficulty-wrap"]?.classList.remove("d-none");
+  dom["modal-difficulty-badge"]?.classList.add("d-none");
+
+  selectPracticeDifficulty("base");
 
   if (dom["step3-header-badge"]) {
     dom["step3-header-badge"].innerHTML =
@@ -156,9 +490,13 @@ export function openNodeModal(skillId, options = {}) {
   dom["modal-ai-gen-badge"]?.classList.add("d-none");
   dom["modal-gen-feedback"]?.classList.add("d-none");
   setGenerateLoading(false);
+  setGuidedExampleLoading(false);
   resetAnalogousScaffold();
 
+  populateLearnAndFormulas(skill);
   renderActiveExerciseInModal();
+  switchModalTab(modalSession.activeTab);
+
   if (!dom["nodeLessonModal"]?.classList.contains("show")) {
     showBootstrapModal(dom["nodeLessonModal"]);
   }
@@ -181,11 +519,16 @@ export async function abrirRetoSuperarError(errorObj) {
 
   Object.assign(modalSession, {
     mode: "error_drill",
+    activeTab: "practice",
+    difficulty: "base",
+    activeDifficulty: "base",
     skill: null,
     errorTarget: errorObj,
     errorDrillData: null,
     wasBlockerOnOpen: false,
     activeExercise: null,
+    guidedExample: null,
+    revealedStepsCount: 0,
     isGeneratedAI: true,
     currentStep: 3,
     maxUnlockedStep: 3,
@@ -197,6 +540,7 @@ export async function abrirRetoSuperarError(errorObj) {
     isAuditing: false,
     isGenerating: true,
     isLoadingAnalogous: false,
+    isLoadingGuided: false,
     attempts: [],
     failedAttemptsCount: 0,
     analogousExample: null,
@@ -216,8 +560,12 @@ export async function abrirRetoSuperarError(errorObj) {
     dom["modal-node-xp"].textContent = "⚡ +30 XP";
   }
 
+  dom["modal-mode-tabs"]?.classList.add("d-none");
   dom["lesson-stepper-wrap"]?.classList.add("d-none");
   dom["btn-generate-ai-exercise"]?.classList.add("d-none");
+  dom["step3-tools-bar"]?.classList.add("d-none");
+  dom["step3-formulas-drawer"]?.classList.add("d-none");
+  dom["modal-difficulty-badge"]?.classList.add("d-none");
   dom["modal-ai-gen-badge"]?.classList.remove("d-none");
   dom["modal-gen-feedback"]?.classList.add("d-none");
 
@@ -258,6 +606,7 @@ export async function abrirRetoSuperarError(errorObj) {
   renderStep3AttemptsHistory();
   updateAuditButtonLabel();
   setAuditLoading(false);
+  switchModalTab("practice");
   goToModalStep(3);
 
   if (!dom["nodeLessonModal"]?.classList.contains("show")) {
@@ -318,20 +667,20 @@ export async function abrirRetoSuperarError(errorObj) {
   }
 }
 
-function renderActiveExerciseInModal() {
+function renderActiveExerciseInModal(targetStep = 1) {
   const ex = modalSession.activeExercise;
   if (!ex) return;
 
-  modalSession.currentStep = 1;
-  modalSession.maxUnlockedStep = 1;
+  modalSession.currentStep = targetStep;
+  modalSession.maxUnlockedStep = Math.max(1, targetStep);
   modalSession.step1Selected = null;
-  modalSession.step1Passed = false;
-  modalSession.step2Passed = false;
+  modalSession.step1Passed = targetStep > 1;
+  modalSession.step2Passed = targetStep > 2;
 
   populateStep1(ex.paso1_concepto);
   populateStep2(ex.paso2_practica);
   populateStep3(ex.paso3_reto_foto);
-  goToModalStep(1);
+  goToModalStep(targetStep);
 }
 
 function setGenerateLoading(isLoading) {
@@ -339,28 +688,40 @@ function setGenerateLoading(isLoading) {
   if (dom["btn-generate-ai-exercise"]) {
     dom["btn-generate-ai-exercise"].disabled = isLoading;
   }
+  if (dom["btn-step3-generate-ai"]) {
+    dom["btn-step3-generate-ai"].disabled = isLoading;
+  }
   dom["btn-gen-label"]?.classList.toggle("d-none", isLoading);
   dom["btn-gen-spinner"]?.classList.toggle("d-none", !isLoading);
+  dom["btn-step3-gen-label"]?.classList.toggle("d-none", isLoading);
+  dom["btn-step3-gen-spinner"]?.classList.toggle("d-none", !isLoading);
 }
 
-export async function handleGenerateDynamicExercise() {
+export async function handleGenerateDynamicExercise({ stayOnCurrentStep = false } = {}) {
   if (modalSession.isGenerating || modalSession.isAuditing || !modalSession.skill) {
     return;
   }
 
   const skill = modalSession.skill;
+  const requestedDifficulty = modalSession.difficulty || "base";
   const feedbackEl = dom["modal-gen-feedback"];
   feedbackEl?.classList.add("d-none");
   setGenerateLoading(true);
+
+  if (modalSession.activeTab !== "practice") {
+    switchModalTab("practice");
+  }
 
   try {
     const data = await generateDynamicExercise({
       materia: skill.materia,
       tema: skill.nombre,
       historial_errores: getHistorialResumenes(),
+      dificultad: requestedDifficulty,
     });
 
     modalSession.activeExercise = data;
+    modalSession.activeDifficulty = data.dificultad || requestedDifficulty;
     modalSession.isGeneratedAI = true;
     modalSession.attempts = [];
     modalSession.failedAttemptsCount = 0;
@@ -368,20 +729,28 @@ export async function handleGenerateDynamicExercise() {
     modalSession.exerciseApprovedAwarded = false;
     resetAnalogousScaffold();
     dom["modal-ai-gen-badge"]?.classList.remove("d-none");
+    dom["modal-difficulty-badge"]?.classList.toggle(
+      "d-none",
+      modalSession.activeDifficulty !== "parcial_fni"
+    );
 
     if (feedbackEl) {
       feedbackEl.className = "small text-success fw-semibold mb-2";
       feedbackEl.textContent =
-        "✨ Nuevo ejercicio inédito generado por Gemini adaptado a tu historial.";
+        modalSession.activeDifficulty === "parcial_fni"
+          ? "🔥 Nuevo ejercicio Nivel Parcial FNI generado (+35 XP extra al aprobar)."
+          : "✨ Nuevo ejercicio inédito generado por Gemini adaptado a tu historial.";
+      feedbackEl.classList.remove("d-none");
     }
 
-    renderActiveExerciseInModal();
+    const nextStep = stayOnCurrentStep ? Math.max(1, modalSession.currentStep) : 1;
+    renderActiveExerciseInModal(nextStep);
   } catch (_error) {
-    // Respaldo estático garantizado si la API falla o está saturada
     if (feedbackEl) {
       feedbackEl.className = "small text-secondary mb-2";
       feedbackEl.textContent =
         "La IA está saturada en este instante; conservamos el ejercicio oficial de respaldo.";
+      feedbackEl.classList.remove("d-none");
     }
   } finally {
     setGenerateLoading(false);
@@ -555,8 +924,14 @@ export function checkStep2() {
 
 function populateStep3(paso3) {
   if (!paso3) return;
-  if (dom["step3-title"]) dom["step3-title"].textContent = paso3.titulo || "Reto de Foto";
-  if (dom["step3-instructions"]) dom["step3-instructions"].textContent = paso3.instrucciones || "";
+  if (dom["step3-title"]) {
+    dom["step3-title"].textContent = paso3.titulo || "Reto de Foto";
+    renderMath(dom["step3-title"]);
+  }
+  if (dom["step3-instructions"]) {
+    dom["step3-instructions"].textContent = paso3.instrucciones || "";
+    renderMath(dom["step3-instructions"]);
+  }
   if (dom["step3-enunciado-latex"]) {
     dom["step3-enunciado-latex"].textContent = paso3.enunciado_latex || "";
     renderMath(dom["step3-enunciado-latex"]);
@@ -1203,6 +1578,10 @@ function processAuditResponse(data) {
           state.xp += 50;
           incrementMedallaCounter("rescate_critico", 1);
           bonusChips.push("🛟 +50 XP Bono de Rescate");
+        }
+        if (modalSession.activeDifficulty === "parcial_fni") {
+          state.xp += 35;
+          bonusChips.push("🔥 +35 XP Dominio Parcial FNI");
         }
         modalSession.exerciseApprovedAwarded = true;
       }

@@ -34,6 +34,28 @@ def _construir_banco_etapa(materias: list[dict[str, Any]]) -> list[dict[str, Any
     return preguntas
 
 
+def _normalizar_materias(materias: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Asegura campos opcionales de unidad y guia_aprendizaje sin alterar los existentes."""
+    normalizadas: list[dict[str, Any]] = []
+    for mat in materias:
+        if not isinstance(mat, dict):
+            continue
+        mat_copy = dict(mat)
+        skills_norm: list[dict[str, Any]] = []
+        for skill in mat.get("skills") or []:
+            if not isinstance(skill, dict):
+                continue
+            skill_copy = dict(skill)
+            if not str(skill_copy.get("unidad") or "").strip():
+                skill_copy["unidad"] = "Unidad 1: Fundamentos"
+            if not isinstance(skill_copy.get("guia_aprendizaje"), dict):
+                skill_copy["guia_aprendizaje"] = {}
+            skills_norm.append(skill_copy)
+        mat_copy["skills"] = skills_norm
+        normalizadas.append(mat_copy)
+    return normalizadas
+
+
 def cargar_skills_combinados() -> dict[str, Any]:
     """Lee pre_u.json y facultad.json manteniendo la estructura esperada por el frontend."""
     etapas_archivos = (
@@ -44,7 +66,7 @@ def cargar_skills_combinados() -> dict[str, Any]:
     combinado: dict[str, Any] = {}
     for stage_key, stage_path, default_time in etapas_archivos:
         stage_info = _leer_json(stage_path)
-        materias = stage_info["materias"]
+        materias = _normalizar_materias(stage_info["materias"])
         combinado[stage_key] = {
             "id": stage_info["id"],
             "nombre": stage_info["nombre"],

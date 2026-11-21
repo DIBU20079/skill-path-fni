@@ -68,7 +68,20 @@ function buildPlacementQuestionsForMateria(materia) {
   const bank = Array.isArray(materia?.preguntas_examen) ? materia.preguntas_examen : [];
 
   if (bank.length >= 4) {
-    return bank.slice(0, 6).map((q, idx) => ({
+    let selectedBank = bank;
+    if (bank.length > 6) {
+      // Seleccionar 6 preguntas espaciadas uniformemente desde el inicio hasta la última unidad
+      const indices = new Set();
+      for (let k = 0; k < 6; k += 1) {
+        const idx = Math.round((k * (bank.length - 1)) / 5);
+        indices.add(idx);
+      }
+      selectedBank = Array.from(indices)
+        .sort((a, b) => a - b)
+        .map((i) => bank[i]);
+    }
+
+    return selectedBank.map((q, idx) => ({
       id: q.id || `placement_${materia.id}_${idx + 1}`,
       skill_id: q.skill_id || skills[Math.min(idx, skills.length - 1)]?.id || "",
       nivel_nodo: Number(q.nivel_nodo || idx + 1),

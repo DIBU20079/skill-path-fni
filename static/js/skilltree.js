@@ -118,91 +118,131 @@ export function renderCaminoSection() {
 
   container.innerHTML = "";
 
-  skills.forEach((skill, idx) => {
-    const status = state.nodos_estado[skill.id] || "locked";
-    const wrapper = document.createElement("div");
-    wrapper.className = "path-node-wrapper";
-
-    if (idx > 0) {
-      const prevSkill = skills[idx - 1];
-      const prevDone = state.nodos_estado[prevSkill.id] === "unlocked";
-      const connector = document.createElement("div");
-      connector.className = `path-connector${prevDone ? " is-completed" : ""}`;
-      wrapper.appendChild(connector);
+  // Agrupar temas secuencialmente por Unidad manteniendo su índice global
+  const unitGroups = [];
+  const groupByName = new Map();
+  skills.forEach((skill, globalIdx) => {
+    const unitTitle = String(skill.unidad || "Unidad 1: Fundamentos").trim();
+    if (!groupByName.has(unitTitle)) {
+      const group = { title: unitTitle, entries: [] };
+      groupByName.set(unitTitle, group);
+      unitGroups.push(group);
     }
+    groupByName.get(unitTitle).entries.push({ skill, globalIdx });
+  });
 
-    const ring = document.createElement("div");
-    ring.className = "path-node-ring";
+  unitGroups.forEach((group, groupIdx) => {
+    const totalInUnit = group.entries.length;
+    const doneInUnit = group.entries.filter(
+      ({ skill }) => state.nodos_estado[skill.id] === "unlocked"
+    ).length;
+    const unitPct =
+      totalInUnit > 0 ? Math.round((doneInUnit / totalInUnit) * 100) : 0;
 
-    if (status === "active" || status === "blocker") {
-      const floatTag = document.createElement("span");
-      floatTag.className = `node-floating-tag${status === "blocker" ? " is-blocker" : ""}`;
-      floatTag.textContent = status === "blocker" ? "¡REFUERZO!" : "¡EMPEZAR!";
-      ring.appendChild(floatTag);
-    }
-
-    const btn = document.createElement("button");
-    btn.type = "button";
-    btn.className = `path-node-btn node-${status}`;
-    btn.disabled = status === "locked";
-    btn.setAttribute(
-      "aria-label",
-      `Tema #${skill.ranking_criticidad}: ${skill.nombre} (${status})`
-    );
-
-    let iconClass = "bi-lock-fill";
-    if (status === "unlocked") iconClass = "bi-check-lg";
-    else if (status === "active") iconClass = "bi-star-fill";
-    else if (status === "blocker") iconClass = "bi-exclamation-triangle-fill";
-
-    btn.innerHTML = `
-      <i class="bi ${iconClass}"></i>
-      <span class="node-rank-badge">#${escapeHtml(skill.ranking_criticidad)}</span>
-    `;
-
-    if (status !== "locked") {
-      btn.addEventListener("click", () => openNodeHandler(skill.id));
-    }
-
-    ring.appendChild(btn);
-    wrapper.appendChild(ring);
-
-    const labelCard = document.createElement("div");
-    labelCard.className = "node-label-card";
-
-    const dotStates =
-      status === "unlocked"
-        ? ["done", "done", "done"]
-        : status === "active" || status === "blocker"
-          ? ["current", "", ""]
-          : ["", "", ""];
-
-    labelCard.innerHTML = `
-      <div class="node-label-title">#${escapeHtml(skill.ranking_criticidad)} · ${escapeHtml(skill.nombre)}</div>
-      <div class="node-label-meta">${escapeHtml(skill.area || materia.nombre)} · ${escapeHtml(skill.frecuencia_examen)} examen · +${escapeHtml(skill.xp)} XP</div>
-      <div class="node-substeps-dots" aria-hidden="true">
-        <span class="substep-dot ${dotStates[0]}"></span>
-        <span class="substep-dot ${dotStates[1]}"></span>
-        <span class="substep-dot ${dotStates[2]}"></span>
+    const unitBanner = document.createElement("div");
+    unitBanner.className = `unit-divider-banner unit-theme-${groupIdx % 4}`;
+    unitBanner.innerHTML = `
+      <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
+        <div class="unit-divider-title">${escapeHtml(group.title)}</div>
+        <span class="unit-progress-pill">${doneInUnit}/${totalInUnit} dominados</span>
+      </div>
+      <div class="unit-divider-track mt-2" aria-hidden="true">
+        <div class="unit-divider-fill" style="width: ${unitPct}%;"></div>
       </div>
     `;
+    container.appendChild(unitBanner);
 
-    // Nodos bloqueados a partir del Nodo 3 (idx >= 2) ofrecen "⚡ Saltar aquí"
-    if (status === "locked" && idx >= 2) {
-      const skipBtn = document.createElement("button");
-      skipBtn.type = "button";
-      skipBtn.className = "btn btn-duo btn-duo-amber btn-skip-level mt-2";
-      skipBtn.textContent = "⚡ Saltar aquí";
-      skipBtn.setAttribute(
+    const nodesGroup = document.createElement("div");
+    nodesGroup.className = "unit-nodes-group";
+
+    group.entries.forEach(({ skill, globalIdx }, idxInUnit) => {
+      const status = state.nodos_estado[skill.id] || "locked";
+      const wrapper = document.createElement("div");
+      wrapper.className = "path-node-wrapper";
+
+      if (idxInUnit > 0) {
+        const prevSkill = group.entries[idxInUnit - 1].skill;
+        const prevDone = state.nodos_estado[prevSkill.id] === "unlocked";
+        const connector = document.createElement("div");
+        connector.className = `path-connector${prevDone ? " is-completed" : ""}`;
+        wrapper.appendChild(connector);
+      }
+
+      const ring = document.createElement("div");
+      ring.className = "path-node-ring";
+
+      if (status === "active" || status === "blocker") {
+        const floatTag = document.createElement("span");
+        floatTag.className = `node-floating-tag${status === "blocker" ? " is-blocker" : ""}`;
+        floatTag.textContent = status === "blocker" ? "¡REFUERZO!" : "¡EMPEZAR!";
+        ring.appendChild(floatTag);
+      }
+
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = `path-node-btn node-${status}`;
+      btn.disabled = status === "locked";
+      btn.setAttribute(
         "aria-label",
-        `Hacer examen de salto de nivel hacia ${skill.nombre}`
+        `Tema #${skill.ranking_criticidad}: ${skill.nombre} (${status})`
       );
-      skipBtn.addEventListener("click", () => skipToNodeHandler(skill.id));
-      labelCard.appendChild(skipBtn);
-    }
 
-    wrapper.appendChild(labelCard);
-    container.appendChild(wrapper);
+      let iconClass = "bi-lock-fill";
+      if (status === "unlocked") iconClass = "bi-check-lg";
+      else if (status === "active") iconClass = "bi-star-fill";
+      else if (status === "blocker") iconClass = "bi-exclamation-triangle-fill";
+
+      btn.innerHTML = `
+        <i class="bi ${iconClass}"></i>
+        <span class="node-rank-badge">#${escapeHtml(skill.ranking_criticidad)}</span>
+      `;
+
+      if (status !== "locked") {
+        btn.addEventListener("click", () => openNodeHandler(skill.id));
+      }
+
+      ring.appendChild(btn);
+      wrapper.appendChild(ring);
+
+      const labelCard = document.createElement("div");
+      labelCard.className = "node-label-card";
+
+      const dotStates =
+        status === "unlocked"
+          ? ["done", "done", "done"]
+          : status === "active" || status === "blocker"
+            ? ["current", "", ""]
+            : ["", "", ""];
+
+      labelCard.innerHTML = `
+        <div class="node-label-title">#${escapeHtml(skill.ranking_criticidad)} · ${escapeHtml(skill.nombre)}</div>
+        <div class="node-label-meta">${escapeHtml(skill.area || materia.nombre)} · ${escapeHtml(skill.frecuencia_examen)} examen · +${escapeHtml(skill.xp)} XP</div>
+        <div class="node-substeps-dots" aria-hidden="true">
+          <span class="substep-dot ${dotStates[0]}"></span>
+          <span class="substep-dot ${dotStates[1]}"></span>
+          <span class="substep-dot ${dotStates[2]}"></span>
+        </div>
+      `;
+
+      // Nodos bloqueados a partir del Nodo 3 de la materia (globalIdx >= 2) ofrecen "⚡ Saltar aquí"
+      if (status === "locked" && globalIdx >= 2) {
+        const skipBtn = document.createElement("button");
+        skipBtn.type = "button";
+        skipBtn.className = "btn btn-duo btn-duo-amber btn-skip-level mt-2";
+        skipBtn.textContent = "⚡ Saltar aquí";
+        skipBtn.setAttribute(
+          "aria-label",
+          `Hacer examen de salto de nivel hacia ${skill.nombre}`
+        );
+        skipBtn.addEventListener("click", () => skipToNodeHandler(skill.id));
+        labelCard.appendChild(skipBtn);
+      }
+
+      wrapper.appendChild(labelCard);
+      nodesGroup.appendChild(wrapper);
+    });
+
+    container.appendChild(nodesGroup);
   });
 
   renderSimulacroPathNode(container, materia, skills);

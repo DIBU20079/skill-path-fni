@@ -34,7 +34,12 @@ export async function evaluateResolution(formData) {
   return data;
 }
 
-export async function generateDynamicExercise({ materia, tema, historial_errores }) {
+export async function generateDynamicExercise({
+  materia,
+  tema,
+  historial_errores,
+  dificultad = "base",
+}) {
   const { response, data } = await requestJson("/api/generar-ejercicio", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -42,6 +47,7 @@ export async function generateDynamicExercise({ materia, tema, historial_errores
       materia,
       tema,
       historial_errores,
+      dificultad,
     }),
   });
   if (
@@ -52,6 +58,60 @@ export async function generateDynamicExercise({ materia, tema, historial_errores
     !data.paso3_reto_foto
   ) {
     throw new Error(data?.detalle || data?.error || "Respuesta incompleta");
+  }
+  return data;
+}
+
+export const apiGenerarEjercicio = generateDynamicExercise;
+
+export async function apiExplicarPaso({
+  materia,
+  tema,
+  paso_anterior,
+  paso_actual,
+  explicacion_actual = "",
+}) {
+  const { response, data } = await requestJson("/api/explicar-paso", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      materia,
+      tema,
+      paso_anterior,
+      paso_actual,
+      explicacion_actual,
+    }),
+  });
+  if (!response.ok || !data || !data.aclaracion) {
+    const detail = data?.detalle || data?.error || `HTTP ${response.status}`;
+    throw new Error(detail);
+  }
+  return data;
+}
+
+export async function apiGenerarEjemploGuiado({
+  materia,
+  tema,
+  enunciado_previo = "",
+}) {
+  const { response, data } = await requestJson("/api/generar-ejemplo-guiado", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      materia,
+      tema,
+      enunciado_previo,
+    }),
+  });
+  if (
+    !response.ok ||
+    !data ||
+    !data.enunciado ||
+    !Array.isArray(data.pasos) ||
+    !data.resultado_final
+  ) {
+    const detail = data?.detalle || data?.error || `HTTP ${response.status}`;
+    throw new Error(detail);
   }
   return data;
 }

@@ -9,18 +9,68 @@
       "codigo": "MAT-1101",
       "icono": "bi-infinity",
       "color": "blue",
-      "descripcion": "Domina los temas de mayor reprobación en MAT-1101: inecuaciones, límites, derivación implícita y optimización.",
+      "descripcion": "Domina MAT-1101 por Unidades: inecuaciones, dominios, límites, derivación, optimización e integrales.",
       "skills": [
         {
           "id": "fac_cal_01_inecuaciones_func",
           "ranking_criticidad": 1,
           "frecuencia_examen": "97%",
           "materia": "Cálculo I",
-          "nombre": "Inecuaciones y Dominios",
+          "unidad": "Unidad 1: Funciones y Dominios",
+          "nombre": "Inecuaciones y Valor Absoluto",
           "area": "Álgebra y Trig.",
           "prerrequisito_id": null,
           "xp": 120,
-          "tip_auxiliar": "Un factor con potencia par como $(x - 2)^2$ no cambia de signo al cruzar $x = 2$, y en logaritmos dentro de un denominador nunca olvides que $\\ln(1) = 0$.",
+          "tip_auxiliar": "Un factor con potencia par como $(x - 2)^2$ no cambia de signo al cruzar $x = 2$, y nunca pases multiplicando un denominador con $x$ en una inecuación.",
+          "guia_aprendizaje": {
+            "idea_clave": "Las inecuaciones racionales y con valor absoluto determinan intervalos de validez en $\\mathbb{R}$. En MAT-1101 son la base obligatoria para hallar dominios, signos de derivadas y asíntotas sin perder restricciones.",
+            "formulas": [
+              {
+                "nombre": "Valor absoluto menor",
+                "latex": "$$|u| \\le a \\iff -a \\le u \\le a \\quad (a \\ge 0)$$"
+              },
+              {
+                "nombre": "Valor absoluto mayor",
+                "latex": "$$|u| \\ge a \\iff u \\le -a \\;\\lor\\; u \\ge a$$"
+              },
+              {
+                "nombre": "Raíz cuadrada real",
+                "latex": "$$\\sqrt{u^2} = |u|$$"
+              }
+            ],
+            "receta": [
+              "Lleva todos los términos al lado izquierdo dejando $0$ a la derecha y expresa todo en una sola fracción factorizada.",
+              "Halla los puntos críticos igualando a cero cada factor del numerador y del denominador (los del denominador siempre son abiertos).",
+              "Arma la tabla de signos considerando que factores de potencia par no cambian el signo al cruzar su raíz.",
+              "Para $|P(x)| < a$ usa doble desigualdad; si aparece $|x - c|$ en ecuaciones mixtas, analiza por casos según $x \\ge c$ y $x < c$."
+            ],
+            "ejemplo_guiado": {
+              "enunciado": "Halla el conjunto solución real de la inecuación racional: $$\\frac{x^2 - 4}{x - 1} \\ge 0$$",
+              "pasos": [
+                {
+                  "titulo": "Paso 1: Factorizar completamente",
+                  "expresion": "$$\\frac{(x - 2)(x + 2)}{x - 1} \\ge 0, \\quad x \\neq 1$$",
+                  "explicacion": "Aplicamos diferencia de cuadrados al numerador para identificar todas las raíces lineales y excluimos el cero del denominador."
+                },
+                {
+                  "titulo": "Paso 2: Ubicar puntos críticos en la recta real",
+                  "expresion": "$$x_1 = -2 \\;(\\text{cerrado}), \\quad x_2 = 1 \\;(\\text{abierto}), \\quad x_3 = 2 \\;(\\text{cerrado})$$",
+                  "explicacion": "Los ceros del numerador se incluyen por el signo $\\ge$, mientras que $x = 1$ permanece abierto porque anula el denominador."
+                },
+                {
+                  "titulo": "Paso 3: Evaluar signos en cada subintervalo",
+                  "expresion": "$$(-\\infty,-2): - \\;\\big|\\; [-2,1): + \\;\\big|\\; (1,2): - \\;\\big|\\; [2,\\infty): +$$",
+                  "explicacion": "Al tener tres factores impares distintos, el signo alterna desde la derecha ($+$ para $x > 2$)."
+                }
+              ],
+              "resultado_final": "$$x \\in [-2, 1) \\cup [2, +\\infty)$$"
+            },
+            "trampas_examen": [
+              "Pasar multiplicando $(x - 1)$ al otro lado borra el cambio de sentido cuando $x - 1 < 0$.",
+              "Incluir $x = 1$ con corchete por ver el signo $\\ge$: todo cero del denominador siempre va abierto.",
+              "Olvidar excluir puntos aislados con multiplicidad par como $(x - 2)^2$ cuando la desigualdad es estricta ($>$ o $<$)."
+            ]
+          },
           "paso1_concepto": {
             "titulo": "Multiplicidad par en inecuaciones",
             "enunciado_latex": "Al analizar los signos de $\\frac{(x - 2)^2(x + 1)}{x - 4} > 0$, ¿qué ocurre en $x = 2$?",
@@ -41,7 +91,100 @@
               "5",
               "5.0"
             ],
-            "pista": "Reescribe como $-2 \\le x - 3 \\le 2$, despeja $x$ y cuenta los enteros del intervalo cerrado."
+            "pista": "Reescribe como $-2 \\le x - 3 \\le 2$, despeja $x$ y cuenta los enteros del intervalo cerrado $[1, 5]$."
+          },
+          "paso3_reto_foto": {
+            "titulo": "Reto de examen: Inecuación racional con multiplicidad par",
+            "enunciado_latex": "Halla analíticamente el conjunto solución en intervalos de: $$\\frac{(x - 1)^2 (x + 3)}{x^2 - 4} \\le 0$$",
+            "prerrequisito_evaluado": "Factorización de diferencia de cuadrados, regla de multiplicidad par y exclusión de raíces del denominador.",
+            "instrucciones": "Factoriza $x^2 - 4$, marca qué puntos van cerrados y cuáles abiertos, elabora la tabla de signos en tu cuaderno y revisa si $x = 1$ satisface $\\le 0$."
+          }
+        },
+        {
+          "id": "fac_cal_01b_funciones_dominios",
+          "ranking_criticidad": 2,
+          "frecuencia_examen": "95%",
+          "materia": "Cálculo I",
+          "unidad": "Unidad 1: Funciones y Dominios",
+          "nombre": "Funciones, Composición y Dominios",
+          "area": "Álgebra y Trig.",
+          "prerrequisito_id": "fac_cal_01_inecuaciones_func",
+          "xp": 130,
+          "tip_auxiliar": "En logaritmos dentro de un denominador, además de pedir argumento $> 0$, recuerda excluir el valor donde $\\ln(u) = 0$ (es decir, $u = 1$).",
+          "guia_aprendizaje": {
+            "idea_clave": "El dominio máximo real $\\text{Dom}(f)$ es el conjunto de valores de $x$ donde todas las operaciones de $f(x)$ están definidas simultáneamente. La composición $(f \\circ g)(x) = f(g(x))$ exige además que $g(x)$ caiga dentro del dominio de $f$.",
+            "formulas": [
+              {
+                "nombre": "Cociente real",
+                "latex": "$$\\frac{P(x)}{Q(x)} \\implies Q(x) \\neq 0$$"
+              },
+              {
+                "nombre": "Radical de índice par",
+                "latex": "$$\\sqrt[2n]{A(x)} \\implies A(x) \\ge 0$$"
+              },
+              {
+                "nombre": "Logaritmo real",
+                "latex": "$$\\ln(B(x)) \\implies B(x) > 0$$"
+              },
+              {
+                "nombre": "Arcoseno / Arcocoseno",
+                "latex": "$$\\arcsin(u), \\arccos(u) \\implies -1 \\le u \\le 1$$"
+              }
+            ],
+            "receta": [
+              "Identifica cada restricción presente en la expresión: denominadores, raíces pares, logaritmos y funciones trigonométricas inversas.",
+              "Plantea la inecuación o condición correspondiente a cada candado por separado.",
+              "Si una raíz par o un logaritmo está en el denominador, combina las condiciones ($A(x) > 0$ o $B(x) > 0 \\land B(x) \\neq 1$).",
+              "Intersecta todos los intervalos solución en la recta real para obtener $\\text{Dom}(f)$."
+            ],
+            "ejemplo_guiado": {
+              "enunciado": "Determina el dominio máximo real de: $$f(x) = \\frac{\\sqrt{x + 3}}{\\ln(5 - x)}$$",
+              "pasos": [
+                {
+                  "titulo": "Paso 1: Restricción del radical en el numerador",
+                  "expresion": "$$x + 3 \\ge 0 \\implies x \\in [-3, +\\infty)$$",
+                  "explicacion": "La raíz cuadrada permite que el radicando sea cero o positivo."
+                },
+                {
+                  "titulo": "Paso 2: Existencia del logaritmo y denominador distinto de cero",
+                  "expresion": "$$5 - x > 0 \\implies x < 5; \\qquad \\ln(5 - x) \\neq 0 \\implies 5 - x \\neq 1 \\implies x \\neq 4$$",
+                  "explicacion": "El argumento del logaritmo debe ser estrictamente positivo y no puede valer $1$ porque $\\ln(1) = 0$ anularía el denominador."
+                },
+                {
+                  "titulo": "Paso 3: Intersectar los conjuntos obtenidos",
+                  "expresion": "$$[-3, +\\infty) \\cap (-\\infty, 5) \\setminus \\{4\\} = [-3, 4) \\cup (4, 5)$$",
+                  "explicacion": "Unimos todas las condiciones simultáneas sobre la recta real."
+                }
+              ],
+              "resultado_final": "$$\\text{Dom}(f) = [-3, 4) \\cup (4, 5)$$"
+            },
+            "trampas_examen": [
+              "Olvidar que $\\ln(1) = 0$ cuando el logaritmo divide en el denominador.",
+              "Escribir $B(x) \\ge 0$ para un logaritmo: $\\ln(0)$ no existe en $\\mathbb{R}$, siempre es estricto $> 0$.",
+              "En funciones compuestas $(f \\circ g)(x)$, evaluar el dominio solo en la fórmula simplificada sin respetar el dominio interno de $g(x)$."
+            ]
+          },
+          "paso1_concepto": {
+            "titulo": "Logaritmo en el denominador",
+            "enunciado_latex": "Para que $f(x) = \\frac{1}{\\ln(x - 1)}$ esté definida en los reales, ¿qué condiciones debe cumplir $x$?",
+            "opciones": [
+              "$x > 1$ y $x \\neq 2$",
+              "$x \\ge 1$ y $x \\neq 2$",
+              "$x > 1$ únicamente",
+              "$x \\neq 2$ únicamente"
+            ],
+            "respuesta_correcta": "$x > 1$ y $x \\neq 2$",
+            "explicacion": "El argumento exige $x - 1 > 0$ ($x > 1$), y como está en el denominador, $\\ln(x - 1) \\neq 0 \\implies x \\neq 2$."
+          },
+          "paso2_practica": {
+            "titulo": "Suma de enteros en un dominio",
+            "enunciado_latex": "Si $f(x) = \\sqrt{4 - x^2}$, ¿cuántos números enteros pertenecen a $\\text{Dom}(f)$?",
+            "respuesta_correcta": "5",
+            "respuestas_aceptadas": [
+              "5",
+              "5.0"
+            ],
+            "pista": "Resuelve $4 - x^2 \\ge 0 \\implies x \\in [-2, 2]$ y cuenta $-2, -1, 0, 1, 2$."
           },
           "paso3_reto_foto": {
             "titulo": "Reto de examen: Dominio con radical y logaritmo",
@@ -52,14 +195,64 @@
         },
         {
           "id": "fac_cal_02_limites_alg",
-          "ranking_criticidad": 2,
-          "frecuencia_examen": "95%",
+          "ranking_criticidad": 3,
+          "frecuencia_examen": "96%",
           "materia": "Cálculo I",
-          "nombre": "Límites Algebraicos",
+          "unidad": "Unidad 2: Límites y Continuidad",
+          "nombre": "Límites Algebraicos e Infinitos",
           "area": "Cálculo I",
-          "prerrequisito_id": "fac_cal_01_inecuaciones_func",
+          "prerrequisito_id": "fac_cal_01b_funciones_dominios",
           "xp": 140,
           "tip_auxiliar": "Ante límites $\\frac{0}{0}$ con raíces y polinomios mixtos, racionaliza la raíz y factoriza el polinomio por separado antes de cancelar.",
+          "guia_aprendizaje": {
+            "idea_clave": "Los límites algebraicos eliminan formas indeterminadas como $\\frac{0}{0}$, $\\frac{\\infty}{\\infty}$ o $\\infty - \\infty$ mediante transformaciones algebraicas válidas fuera del punto límite (factorización, racionalización y división por la mayor potencia).",
+            "formulas": [
+              {
+                "nombre": "Conjugado cuadrático",
+                "latex": "$$(\\sqrt{A} - \\sqrt{B})(\\sqrt{A} + \\sqrt{B}) = A - B$$"
+              },
+              {
+                "nombre": "Conjugado cúbico",
+                "latex": "$$(a - b)(a^2 + ab + b^2) = a^3 - b^3$$"
+              },
+              {
+                "nombre": "Límite al infinito",
+                "latex": "$$\\lim_{x \\to \\infty} \\frac{c}{x^n} = 0 \\quad (n > 0)$$"
+              }
+            ],
+            "receta": [
+              "Evalúa directamente el valor al que tiende $x$ para identificar el tipo de indeterminación.",
+              "Si es $\\frac{0}{0}$ con polinomios, factoriza buscando $(x - a)$; si hay raíces, multiplica y divide por el conjugado adecuado.",
+              "Si es $\\infty - \\infty$ con radicales, racionaliza primero para convertirla en $\\frac{\\infty}{\\infty}$.",
+              "En $\\frac{\\infty}{\\infty}$, divide numerador y denominador por la mayor potencia de $x$, cuidando que $\\sqrt{x^2} = |x| = -x$ cuando $x \\to -\\infty$."
+            ],
+            "ejemplo_guiado": {
+              "enunciado": "Calcula el valor exacto del límite: $$\\lim_{x \\to 3} \\frac{\\sqrt{x + 1} - 2}{x^2 - 9}$$",
+              "pasos": [
+                {
+                  "titulo": "Paso 1: Verificar la indeterminación 0/0",
+                  "expresion": "$$\\frac{\\sqrt{3 + 1} - 2}{3^2 - 9} = \\frac{0}{0}$$",
+                  "explicacion": "Al sustituir $x = 3$ numerador y denominador se anulan, por lo que debemos racionalizar y factorizar."
+                },
+                {
+                  "titulo": "Paso 2: Racionalizar el numerador y factorizar el denominador",
+                  "expresion": "$$\\lim_{x \\to 3} \\frac{(\\sqrt{x + 1} - 2)(\\sqrt{x + 1} + 2)}{(x - 3)(x + 3)(\\sqrt{x + 1} + 2)} = \\lim_{x \\to 3} \\frac{x - 3}{(x - 3)(x + 3)(\\sqrt{x + 1} + 2)}$$",
+                  "explicacion": "La suma por diferencia elimina la raíz: $(\\sqrt{x+1})^2 - 4 = x - 3$, dejando listo el factor común."
+                },
+                {
+                  "titulo": "Paso 3: Simplificar (x - 3) y evaluar",
+                  "expresion": "$$\\lim_{x \\to 3} \\frac{1}{(x + 3)(\\sqrt{x + 1} + 2)} = \\frac{1}{(6)(2 + 2)} = \\frac{1}{24}$$",
+                  "explicacion": "Como $x \\to 3$ implica $x \\neq 3$, cancelamos $(x - 3)$ y evaluamos sin indeterminación."
+                }
+              ],
+              "resultado_final": "$$\\frac{1}{24}$$"
+            },
+            "trampas_examen": [
+              "Expandir el producto $(x-3)(\\sqrt{x+1}+2)$ en el denominador impide ver la simplificación de $(x-3)$.",
+              "Cuando $x \\to -\\infty$, reemplazar $\\sqrt{x^2}$ por $x$ en vez de $-x$ cambia el signo de toda la respuesta.",
+              "Aplicar conjugado con signo incorrecto dentro del radicando."
+            ]
+          },
           "paso1_concepto": {
             "titulo": "Indeterminación infinito menos infinito",
             "enunciado_latex": "Para resolver $\\lim_{x \\to \\infty} \\left(\\sqrt{x^2 + bx} - x\\right)$ (forma $\\infty - \\infty$), ¿cuál es el paso estándar?",
@@ -91,14 +284,64 @@
         },
         {
           "id": "fac_cal_03_limites_trig",
-          "ranking_criticidad": 3,
+          "ranking_criticidad": 4,
           "frecuencia_examen": "93%",
           "materia": "Cálculo I",
-          "nombre": "Límites Trigonométricos y Continuidad",
+          "unidad": "Unidad 2: Límites y Continuidad",
+          "nombre": "Límites Trigonométricos y Exponenciales",
           "area": "Cálculo I",
           "prerrequisito_id": "fac_cal_02_limites_alg",
           "xp": 160,
-          "tip_auxiliar": "Cuando veas $1 - \\cos(kx)$ en un límite cuando $x \\to 0$, usa $1 - \\cos(kx) = 2\\sin^2(kx/2)$ o multiplica por su conjugado $1 + \\cos(kx)$.",
+          "tip_auxiliar": "Cuando veas $1 - \\cos(kx)$ cuando $x \\to 0$, usa $1 - \\cos(kx) = 2\\sin^2(kx/2)$ o multiplica por su conjugado $1 + \\cos(kx)$; en $1^\\infty$ pasa a base $e$.",
+          "guia_aprendizaje": {
+            "idea_clave": "Los límites trascendentes combinan razones trigonométricas con formas $\\frac{0}{0}$ y potencias exponenciales con forma $1^\\infty$. Se resuelven reduciendo cada factor a límites notables estándar mediante identidades y cambios de variable.",
+            "formulas": [
+              {
+                "nombre": "Límite notable del seno",
+                "latex": "$$\\lim_{u \\to 0} \\frac{\\sin(u)}{u} = 1, \\qquad \\lim_{u \\to 0} \\frac{\\tan(u)}{u} = 1$$"
+              },
+              {
+                "nombre": "Límite notable del coseno",
+                "latex": "$$\\lim_{u \\to 0} \\frac{1 - \\cos(u)}{u} = 0, \\qquad \\lim_{u \\to 0} \\frac{1 - \\cos(u)}{u^2} = \\frac{1}{2}$$"
+              },
+              {
+                "nombre": "Definición de e",
+                "latex": "$$\\lim_{u \\to 0} (1 + u)^{1/u} = e, \\qquad \\lim_{u \\to 0} \\frac{e^u - 1}{u} = 1$$"
+              }
+            ],
+            "receta": [
+              "Si $x \\to a \\neq 0$ en un límite trigonométrico, aplica primero el cambio $u = x - a$ para que $u \\to 0$.",
+              "Reescribe $\\tan$, $\\cot$, $\\sec$ en términos de $\\sin$ y $\\cos$ y usa $1 - \\cos(kx)$ con su conjugado o ángulo mitad.",
+              "Agrupa fracciones buscando $\\frac{\\sin(kx)}{kx} \\to 1$ compensando con constantes fuera.",
+              "Para formas $1^\\infty$ del tipo $f(x)^{g(x)}$, aplica $\\exp\\left(\\lim g(x)[f(x) - 1]\\right)$."
+            ],
+            "ejemplo_guiado": {
+              "enunciado": "Calcula paso a paso: $$\\lim_{x \\to 0} \\frac{1 - \\cos(4x)}{x^2}$$",
+              "pasos": [
+                {
+                  "titulo": "Paso 1: Multiplicar por el conjugado trigonométrico",
+                  "expresion": "$$\\lim_{x \\to 0} \\frac{(1 - \\cos(4x))(1 + \\cos(4x))}{x^2 (1 + \\cos(4x))} = \\lim_{x \\to 0} \\frac{\\sin^2(4x)}{x^2 (1 + \\cos(4x))}$$",
+                  "explicacion": "Usamos $1 - \\cos^2(4x) = \\sin^2(4x)$ para obtener potencias de seno."
+                },
+                {
+                  "titulo": "Paso 2: Ajustar el argumento dentro del cuadrado",
+                  "expresion": "$$\\lim_{x \\to 0} 16 \\left(\\frac{\\sin(4x)}{4x}\\right)^2 \\cdot \\frac{1}{1 + \\cos(4x)}$$",
+                  "explicacion": "Para formar $(4x)^2 = 16x^2$ en el denominador multiplicamos y dividimos por $16$."
+                },
+                {
+                  "titulo": "Paso 3: Evaluar los límites notables",
+                  "expresion": "$$16 \\cdot (1)^2 \\cdot \\frac{1}{1 + \\cos(0)} = 16 \\cdot \\frac{1}{2} = 8$$",
+                  "explicacion": "Como $\\frac{\\sin(4x)}{4x} \\to 1$ y $\\cos(0) = 1$, evaluamos directamente."
+                }
+              ],
+              "resultado_final": "$$8$$"
+            },
+            "trampas_examen": [
+              "Asumir que $\\lim_{x \\to \\infty} \\frac{\\sin(x)}{x} = 1$: ese notable SOLO vale cuando $x \\to 0$ (al infinito da $0$).",
+              "Olvidar elevar al cuadrado la constante $k$ al ajustar $\\frac{\\sin^2(kx)}{x^2} = k^2 \\left(\\frac{\\sin(kx)}{kx}\\right)^2$.",
+              "Evaluar formas $1^\\infty$ directamente como $1$ sin pasar a base $e$."
+            ]
+          },
           "paso1_concepto": {
             "titulo": "Límite notable con coseno cuadrático",
             "enunciado_latex": "¿Cuál es el valor exacto del límite trigonométrico notable $$\\lim_{x \\to 0} \\frac{1 - \\cos(x)}{x^2}$$",
@@ -129,15 +372,242 @@
           }
         },
         {
-          "id": "fac_cal_04_derivadas",
-          "ranking_criticidad": 4,
-          "frecuencia_examen": "96%",
+          "id": "fac_cal_03b_continuidad",
+          "ranking_criticidad": 5,
+          "frecuencia_examen": "89%",
           "materia": "Cálculo I",
-          "nombre": "Derivación y Regla de la Cadena",
+          "unidad": "Unidad 2: Límites y Continuidad",
+          "nombre": "Continuidad y Asíntotas",
           "area": "Cálculo I",
           "prerrequisito_id": "fac_cal_03_limites_trig",
+          "xp": 160,
+          "tip_auxiliar": "Para probar continuidad en $x = c$ SIEMPRE verifica las 3 condiciones en orden: 1) $f(c)$ existe, 2) $\\lim_{x \\to c^-} f = \\lim_{x \\to c^+} f$, 3) el límite iguala a $f(c)$.",
+          "guia_aprendizaje": {
+            "idea_clave": "Una función es continua en $x = c$ si su gráfica no tiene saltos, huecos ni asíntotas en ese punto. En funciones por tramos de examen suelen pedir hallar parámetros $a, b$ para garantizar continuidad en todo $\\mathbb{R}$ y clasificar discontinuidades.",
+            "formulas": [
+              {
+                "nombre": "Condición de continuidad",
+                "latex": "$$\\lim_{x \\to c^-} f(x) = \\lim_{x \\to c^+} f(x) = f(c)$$"
+              },
+              {
+                "nombre": "Asíntota vertical",
+                "latex": "$$\\lim_{x \\to a^\\pm} f(x) = \\pm\\infty$$"
+              },
+              {
+                "nombre": "Asíntota oblicua y = mx + b",
+                "latex": "$$m = \\lim_{x \\to \\pm\\infty} \\frac{f(x)}{x}, \\qquad b = \\lim_{x \\to \\pm\\infty} [f(x) - mx]$$"
+              }
+            ],
+            "receta": [
+              "Verifica $f(c)$ evaluando exactamente en el tramo que contiene la igualdad ($\\le$, $=$ o $\\ge$).",
+              "Calcula los límites laterales izquierdo ($x \\to c^-$) y derecho ($x \\to c^+$) usando las fórmulas de cada tramo.",
+              "Iguala ambos laterales con $f(c)$ para construir el sistema lineal de ecuaciones para $a, b$.",
+              "En funciones racionales simplificadas, ceros del denominador que no se cancelan producen asíntotas verticales; si $\\deg(P) = \\deg(Q)+1$, existe asíntota oblicua."
+            ],
+            "ejemplo_guiado": {
+              "enunciado": "Halla el valor de $k$ para que $f(x)$ sea continua en $x = 2$: $$f(x) = \\begin{cases} \\dfrac{x^2 - 4}{x - 2}, & x < 2 \\\\ kx - 1, & x \\ge 2 \\end{cases}$$",
+              "pasos": [
+                {
+                  "titulo": "Paso 1: Evaluar la función y el límite derecho",
+                  "expresion": "$$f(2) = \\lim_{x \\to 2^+} (kx - 1) = 2k - 1$$",
+                  "explicacion": "El segundo tramo incluye $x = 2$ y valores mayores que $2$."
+                },
+                {
+                  "titulo": "Paso 2: Calcular el límite lateral izquierdo",
+                  "expresion": "$$\\lim_{x \\to 2^-} \\frac{(x - 2)(x + 2)}{x - 2} = \\lim_{x \\to 2^-} (x + 2) = 4$$",
+                  "explicacion": "Para $x < 2$ tenemos $x \\neq 2$, por lo que podemos factorizar y cancelar $(x - 2)$."
+                },
+                {
+                  "titulo": "Paso 3: Igualar laterales y despejar k",
+                  "expresion": "$$2k - 1 = 4 \\implies 2k = 5 \\implies k = \\frac{5}{2}$$",
+                  "explicacion": "La existencia del límite exige igualdad de ambos límites laterales y de $f(2)$."
+                }
+              ],
+              "resultado_final": "$$k = \\frac{5}{2}$$"
+            },
+            "trampas_examen": [
+              "Creer que todo cero del denominador es asíntota vertical: si el factor $(x - c)$ se simplifica con el numerador, es discontinuidad evitable (hueco).",
+              "Usar la misma rama para ambos límites laterales cuando hay valor absoluto $|x - c|$ en un cociente."
+            ]
+          },
+          "paso1_concepto": {
+            "titulo": "Tipos de discontinuidad",
+            "enunciado_latex": "Si $\\lim_{x \\to 3} f(x) = 7$ existe y es finito, pero $f(3) = 1$, ¿qué tipo de discontinuidad presenta $f$ en $x = 3$?",
+            "opciones": [
+              "Discontinuidad evitable (o removible)",
+              "Discontinuidad esencial de salto finito",
+              "Asíntota vertical en $x = 3$",
+              "La función es continua en $x = 3$"
+            ],
+            "respuesta_correcta": "Discontinuidad evitable (o removible)",
+            "explicacion": "Existe el límite bilateral finito pero no coincide con $f(3)$; basta redefinir $f(3) = 7$ para hacerla continua."
+          },
+          "paso2_practica": {
+            "titulo": "Parámetro de continuidad en función por tramos",
+            "enunciado_latex": "Halla el valor numérico de $a$ para que sea continua en $x = 1$: $$f(x) = \\begin{cases} 3x^2 + a, & x < 1 \\\\ 7x - 2, & x \\ge 1 \\end{cases}$$",
+            "respuesta_correcta": "2",
+            "respuestas_aceptadas": [
+              "2",
+              "2.0"
+            ],
+            "pista": "Iguala el lateral izquierdo $3(1)^2 + a$ con el valor derecho $7(1) - 2$."
+          },
+          "paso3_reto_foto": {
+            "titulo": "Reto de examen: Continuidad con doble parámetro",
+            "enunciado_latex": "Determina los valores exactos de $a$ y $b$ para que la función sea continua en todo $\\mathbb{R}$: $$f(x) = \\begin{cases} x + 2, & x \\le -1 \\\\ ax + b, & -1 < x < 3 \\\\ x^2 - 5, & x \\ge 3 \\end{cases}$$",
+            "prerrequisito_evaluado": "Límites laterales en múltiples empalmes y resolución de sistemas $2 \\times 2$.",
+            "instrucciones": "Plantea la igualdad de límites laterales y valor de la función en $x = -1$ y en $x = 3$, resuelve el sistema lineal paso a paso y sube tu foto."
+          }
+        },
+        {
+          "id": "fac_cal_04_derivadas",
+          "ranking_criticidad": 6,
+          "frecuencia_examen": "96%",
+          "materia": "Cálculo I",
+          "unidad": "Unidad 3: Derivadas y Aplicaciones",
+          "nombre": "Derivadas por Regla de la Cadena",
+          "area": "Cálculo I",
+          "prerrequisito_id": "fac_cal_03b_continuidad",
           "xp": 180,
-          "tip_auxiliar": "Cada vez que derives un término con $y$ respecto a $x$, multiplica por $\\frac{dy}{dx}$ (regla de la cadena) y no olvides la regla del producto en términos mixtos como $x^2 y$.",
+          "tip_auxiliar": "Deriva de afuera hacia adentro como capas de cebolla: primero la función exterior evaluada en lo de adentro, luego multiplica por la derivada de lo de adentro.",
+          "guia_aprendizaje": {
+            "idea_clave": "La derivada mide la razón de cambio instantánea y la pendiente de la recta tangente. La regla de la cadena permite derivar funciones compuestas multiplicando sucesivamente las derivadas desde la capa externa hasta la variable $x$.",
+            "formulas": [
+              {
+                "nombre": "Regla del producto y cociente",
+                "latex": "$$(uv)' = u'v + uv', \\qquad \\left(\\frac{u}{v}\\right)' = \\frac{u'v - uv'}{v^2}$$"
+              },
+              {
+                "nombre": "Regla de la cadena",
+                "latex": "$$\\frac{d}{dx}\\big[f(g(x))\\big] = f'(g(x)) \\cdot g'(x)$$"
+              },
+              {
+                "nombre": "Compuestas clásicas",
+                "latex": "$$(e^u)' = e^u u', \\quad (\\ln u)' = \\frac{u'}{u}, \\quad (\\sin u)' = \\cos(u)\\,u'$$"
+              }
+            ],
+            "receta": [
+              "Identifica la operación principal externa (producto, cociente o composición) antes de derivar.",
+              "Aplica la fórmula de la capa exterior dejando INTACTO el argumento interno $u$.",
+              "Multiplica por $u'$ y repite el proceso si $u$ contiene otra función compuesta.",
+              "Factoriza potencias comunes para dejar la derivada simplificada y evaluar pendientes fácilmente."
+            ],
+            "ejemplo_guiado": {
+              "enunciado": "Deriva respecto a $x$ la función compuesta: $$f(x) = \\ln\\big(\\cos(3x^2 + 1)\\big)$$",
+              "pasos": [
+                {
+                  "titulo": "Paso 1: Derivar la capa externa (logaritmo)",
+                  "expresion": "$$f'(x) = \\frac{1}{\\cos(3x^2 + 1)} \\cdot \\frac{d}{dx}\\big[\\cos(3x^2 + 1)\\big]$$",
+                  "explicacion": "La derivada de $\\ln(u)$ es $1/u$ multiplicado por la derivada del argumento interno."
+                },
+                {
+                  "titulo": "Paso 2: Derivar las capas intermedias e interna",
+                  "expresion": "$$f'(x) = \\frac{1}{\\cos(3x^2 + 1)} \\cdot \\big(-\\sin(3x^2 + 1)\\big) \\cdot (6x)$$",
+                  "explicacion": "La derivada de $\\cos(v)$ es $-\\sin(v)\\,v'$, con $v' = 6x$."
+                },
+                {
+                  "titulo": "Paso 3: Reordenar usando tangente",
+                  "expresion": "$$f'(x) = -6x \\tan(3x^2 + 1)$$",
+                  "explicacion": "Agrupamos $-\\sin/\\cos = -\\tan$ manteniendo el ángulo intacto."
+                }
+              ],
+              "resultado_final": "$$f'(x) = -6x \\tan(3x^2 + 1)$$"
+            },
+            "trampas_examen": [
+              "Derivar dentro del argumento antes de sacar la derivada externa, por ejemplo escribir $(\\cos(x^2))' = -\\sin(2x)$ olvidando multiplicar por $2x$ fuera.",
+              "Invertir el orden de la resta en la regla del cociente: siempre es $u'v - uv'$.",
+              "Confundir $(a^x)' = a^x \\ln(a)$ con la regla de potencias $x^a$."
+            ]
+          },
+          "paso1_concepto": {
+            "titulo": "Cadena en potencia trigonométrica",
+            "enunciado_latex": "Al derivar $y = \\sin^3(2x)$ respecto a $x$, ¿cuál es el resultado correcto?",
+            "opciones": [
+              "$6\\sin^2(2x)\\cos(2x)$",
+              "$3\\sin^2(2x)$",
+              "$3\\cos^2(2x)$",
+              "$2\\sin^2(2x)\\cos(2x)$"
+            ],
+            "respuesta_correcta": "$6\\sin^2(2x)\\cos(2x)$",
+            "explicacion": "Son tres capas: potencia $3\\sin^2(2x)$, seno $\\cos(2x)$ y argumento $2$, resultando $6\\sin^2(2x)\\cos(2x)$."
+          },
+          "paso2_practica": {
+            "titulo": "Regla de la cadena exponencial",
+            "enunciado_latex": "Si $f(x) = e^{3x^2 - 3}$, calcula el valor exacto de $f'(1)$.",
+            "respuesta_correcta": "6",
+            "respuestas_aceptadas": [
+              "6",
+              "6.0"
+            ],
+            "pista": "Deriva como $e^u \\cdot u'$ con $u = 3x^2 - 3$ y sustituye $x = 1$."
+          },
+          "paso3_reto_foto": {
+            "titulo": "Reto de examen: Producto con radical y recta tangente",
+            "enunciado_latex": "Calcula la derivada simplificada $f'(x)$ de $$f(x) = x\\sqrt{5 - x^2}$$ y encuentra la ecuación de la recta tangente en el punto donde $x = 1$.",
+            "prerrequisito_evaluado": "Regla del producto, regla de la cadena para potencias fraccionarias y suma de fracciones algebraicas.",
+            "instrucciones": "Deriva aplicando producto + cadena, unifica en un solo cociente simplificado, halla la pendiente $m = f'(1)$ y escribe la recta tangente $y - y_0 = m(x - x_0)$."
+          }
+        },
+        {
+          "id": "fac_cal_04b_deriv_implicita_log",
+          "ranking_criticidad": 7,
+          "frecuencia_examen": "92%",
+          "materia": "Cálculo I",
+          "unidad": "Unidad 3: Derivadas y Aplicaciones",
+          "nombre": "Derivación Implícita y Logarítmica",
+          "area": "Cálculo I",
+          "prerrequisito_id": "fac_cal_04_derivadas",
+          "xp": 190,
+          "tip_auxiliar": "Cada vez que derives un término con $y$ respecto a $x$, multiplica por $y' = \\frac{dy}{dx}$. Si tienes una variable elevada a otra variable ($x^x$), aplica $\\ln$ primero.",
+          "guia_aprendizaje": {
+            "idea_clave": "La derivación implícita permite hallar $\\frac{dy}{dx}$ en ecuaciones donde $y$ no está despejada (como $x^2 y + y^3 = 10$). La derivación logarítmica transforma productos complejos y potencias $f(x)^{g(x)}$ en sumas y productos simples usando $\\ln$.",
+            "formulas": [
+              {
+                "nombre": "Cadena sobre y(x)",
+                "latex": "$$\\frac{d}{dx}\\big[h(y)\\big] = h'(y)\\,\\frac{dy}{dx}$$"
+              },
+              {
+                "nombre": "Derivación logarítmica",
+                "latex": "$$y = u(x)^{v(x)} \\implies \\ln(y) = v(x)\\ln(u(x))$$"
+              },
+              {
+                "nombre": "Resultado despejado",
+                "latex": "$$\\frac{y'}{y} = \\frac{d}{dx}\\big[\\ln(y)\\big] \\implies y' = y \\cdot \\frac{d}{dx}\\big[\\ln(y)\\big]$$"
+              }
+            ],
+            "receta": [
+              "En implícita: deriva ambos miembros término a término respecto a $x$, multiplicando por $\\frac{dy}{dx}$ cada término derivado en $y$.",
+              "Agrupa todos los términos con $\\frac{dy}{dx}$ en el lado izquierdo y pasa el resto a la derecha.",
+              "Factoriza $\\frac{dy}{dx}$ y despeja; si piden la pendiente en $(x_0, y_0)$, evalúa directamente.",
+              "En potencias $u(x)^{v(x)}$: aplica $\\ln$ en ambos lados, baja el exponente $v(x)$, deriva implícitamente y multiplica al final por $y = u(x)^{v(x)}$."
+            ],
+            "ejemplo_guiado": {
+              "enunciado": "Halla $\\frac{dy}{dx}$ para la función exponencial variable: $$y = x^{\\sin(x)} \\quad (x > 0)$$",
+              "pasos": [
+                {
+                  "titulo": "Paso 1: Aplicar logaritmo natural en ambos miembros",
+                  "expresion": "$$\\ln(y) = \\ln\\big(x^{\\sin(x)}\\big) = \\sin(x)\\ln(x)$$",
+                  "explicacion": "Usamos la propiedad $\\ln(a^b) = b\\ln(a)$ para transformar la potencia en un producto."
+                },
+                {
+                  "titulo": "Paso 2: Derivar implícitamente ambos lados respecto a x",
+                  "expresion": "$$\\frac{1}{y}\\frac{dy}{dx} = \\cos(x)\\ln(x) + \\sin(x)\\cdot\\frac{1}{x}$$",
+                  "explicacion": "A la izquierda derivamos $\\ln(y)$ con regla de la cadena; a la derecha aplicamos regla del producto."
+                },
+                {
+                  "titulo": "Paso 3: Despejar dy/dx sustituyendo y",
+                  "expresion": "$$\\frac{dy}{dx} = x^{\\sin(x)}\\left(\\cos(x)\\ln(x) + \\frac{\\sin(x)}{x}\\right)$$",
+                  "explicacion": "Multiplicamos ambos miembros por $y$ para dejar la derivada expresada solo en $x$."
+                }
+              ],
+              "resultado_final": "$$\\frac{dy}{dx} = x^{\\sin(x)}\\left(\\cos(x)\\ln(x) + \\frac{\\sin(x)}{x}\\right)$$"
+            },
+            "trampas_examen": [
+              "Tratar la derivada de una constante al otro lado del igual (ej. $10$) como $10$ en vez de $0$.",
+              "Olvidar la regla del producto en términos mixtos como $x^2 y$ o $\\sin(xy)$.",
+              "En $y = x^x$, aplicar $x \\cdot x^{x-1} = x^x$ como si el exponente fuera constante."
+            ]
+          },
           "paso1_concepto": {
             "titulo": "Derivada implícita de un producto",
             "enunciado_latex": "Si $y = y(x)$ es derivable respecto a $x$, ¿cuál es la derivada correcta de $\\frac{d}{dx}(x^2 y^3)$?",
@@ -151,14 +621,14 @@
             "explicacion": "Por regla del producto y cadena: $(x^2)'y^3 + x^2(y^3)' = 2xy^3 + 3x^2 y^2 \\frac{dy}{dx}$."
           },
           "paso2_practica": {
-            "titulo": "Regla de la cadena exponencial",
-            "enunciado_latex": "Si $f(x) = e^{3x^2 - 3}$, calcula el valor exacto de $f'(1)$.",
-            "respuesta_correcta": "6",
+            "titulo": "Evaluación de derivada logarítmica",
+            "enunciado_latex": "Si $y = x^{2x}$ ($x > 0$), calcula el valor numérico exacto de $y'(1)$.",
+            "respuesta_correcta": "2",
             "respuestas_aceptadas": [
-              "6",
-              "6.0"
+              "2",
+              "2.0"
             ],
-            "pista": "Deriva como $e^u \\cdot u'$ con $u = 3x^2 - 3$ y sustituye $x = 1$."
+            "pista": "Usa $\\ln(y) = 2x\\ln(x)$, deriva $\\frac{y'}{y} = 2\\ln(x) + 2$, multiplica por $y$ y evalúa en $x = 1$."
           },
           "paso3_reto_foto": {
             "titulo": "Reto de examen: Recta tangente por derivación implícita",
@@ -169,14 +639,60 @@
         },
         {
           "id": "fac_cal_05_optimizacion",
-          "ranking_criticidad": 5,
+          "ranking_criticidad": 8,
           "frecuencia_examen": "91%",
           "materia": "Cálculo I",
-          "nombre": "Optimización de Funciones",
+          "unidad": "Unidad 3: Derivadas y Aplicaciones",
+          "nombre": "Optimización y Máximos/Mínimos",
           "area": "Cálculo I",
-          "prerrequisito_id": "fac_cal_04_derivadas",
+          "prerrequisito_id": "fac_cal_04b_deriv_implicita_log",
           "xp": 200,
-          "tip_auxiliar": "Todo problema de optimización usa dos ecuaciones: restricción (para dejar una variable) y objetivo (la que derivas). Justifica siempre con $f''(c)$.",
+          "tip_auxiliar": "Todo problema de optimización usa dos ecuaciones: restricción (para despejar una variable) y objetivo (la que derivas). Justifica siempre con $f''(c)$.",
+          "guia_aprendizaje": {
+            "idea_clave": "La optimización busca el valor máximo o mínimo de una magnitud (área, costo, volumen, distancia) sujeta a una restricción geométrica o física. Los puntos críticos donde $f'(c) = 0$ se clasifican mediante el criterio de la primera o segunda derivada.",
+            "formulas": [
+              {
+                "nombre": "Puntos críticos",
+                "latex": "$$f'(c) = 0 \\quad \\text{ó} \\quad \\nexists f'(c)$$"
+              },
+              {
+                "nombre": "Criterio de la 2.ª derivada",
+                "latex": "$$f'(c)=0 \\land f''(c)<0 \\implies \\text{Máx}; \\qquad f'(c)=0 \\land f''(c)>0 \\implies \\text{Mín}$$"
+              }
+            ],
+            "receta": [
+              "Haz un esquema con variables y escribe la ecuación objetivo (lo que deseas maximizar o minimizar).",
+              "Identifica la ecuación de restricción con el dato numérico fijo y despeja una variable para dejar la función objetivo con una sola incógnita.",
+              "Determina el dominio físico del problema (ej. $x > 0$), deriva $f'(x) = 0$ y resuelve los puntos críticos.",
+              "Verifica mediante $f''(c)$ o cambio de signo de $f'$ que sea efectivamente máximo o mínimo y responde las dimensiones pedidas."
+            ],
+            "ejemplo_guiado": {
+              "enunciado": "Un granjero tiene $120\\text{ m}$ de malla para cercar un terreno rectangular pegado a un río recto (el río no necesita malla). Halla las dimensiones para obtener el área máxima.",
+              "pasos": [
+                {
+                  "titulo": "Paso 1: Plantear objetivo y restricción",
+                  "expresion": "$$A = x \\cdot y, \\qquad 2x + y = 120 \\implies y = 120 - 2x$$",
+                  "explicacion": "Solo se cercan dos anchos $x$ y un largo $y$; despejamos $y$ para expresar $A(x)$ en una variable."
+                },
+                {
+                  "titulo": "Paso 2: Expresar A(x) y hallar el punto crítico",
+                  "expresion": "$$A(x) = x(120 - 2x) = 120x - 2x^2 \\implies A'(x) = 120 - 4x = 0 \\implies x = 30\\text{ m}$$",
+                  "explicacion": "Derivamos respecto a $x$ e igualamos a cero dentro del intervalo útil $x \\in (0, 60)$."
+                },
+                {
+                  "titulo": "Paso 3: Verificar máximo y hallar y",
+                  "expresion": "$$A''(30) = -4 < 0 \\implies \\text{Máximo}; \\qquad y = 120 - 2(30) = 60\\text{ m}$$",
+                  "explicacion": "Como $A''(30)$ es negativa, aseguramos área máxima de $30 \\times 60 = 1800\\text{ m}^2$."
+                }
+              ],
+              "resultado_final": "$$x = 30\\text{ m}, \\quad y = 60\\text{ m} \\quad (A_{\\max} = 1800\\text{ m}^2)$$"
+            },
+            "trampas_examen": [
+              "Derivar la ecuación de restricción en lugar de la función objetivo.",
+              "Olvidar demostrar con $f''(c)$ que el punto crítico corresponde a máximo o mínimo.",
+              "Entregar solo $x$ cuando el enunciado pide ambas dimensiones o el valor óptimo de la función."
+            ]
+          },
           "paso1_concepto": {
             "titulo": "Criterio de la segunda derivada",
             "enunciado_latex": "Si $f'(c) = 0$ y $f''(c) < 0$, ¿qué garantiza el criterio de la segunda derivada en $x = c$?",
@@ -205,6 +721,95 @@
             "prerrequisito_evaluado": "Modelado geométrico, derivación de potencias negativas y criterio de la segunda derivada.",
             "instrucciones": "Despeja $h = 32/x^2$, sustituye en $A = x^2 + 4xh$, deriva $A(x)$, iguala a cero y verifica $A''(x) > 0$ en tu hoja."
           }
+        },
+        {
+          "id": "fac_cal_06_integrales_basicas",
+          "ranking_criticidad": 9,
+          "frecuencia_examen": "88%",
+          "materia": "Cálculo I",
+          "unidad": "Unidad 4: Integrales Básicas",
+          "nombre": "Integrales Indefinidas y Sustitución",
+          "area": "Cálculo I",
+          "prerrequisito_id": "fac_cal_05_optimizacion",
+          "xp": 220,
+          "tip_auxiliar": "Nunca olvides la constante de integración $+C$ ni regresar a la variable original $x$ después de integrar por sustitución $u$.",
+          "guia_aprendizaje": {
+            "idea_clave": "La integración indefinida busca la familia de antiderivadas $F(x) + C$ cuya derivada es el integrando $f(x)$. El método de sustitución (cambio de variable $u = g(x)$) revierte la regla de la cadena.",
+            "formulas": [
+              {
+                "nombre": "Potencia y logaritmo",
+                "latex": "$$\\int x^n\\,dx = \\frac{x^{n+1}}{n+1} + C \\;(n \\neq -1), \\qquad \\int \\frac{dx}{x} = \\ln|x| + C$$"
+              },
+              {
+                "nombre": "Exponencial y trigonométricas",
+                "latex": "$$\\int e^u\\,du = e^u + C, \\qquad \\int \\sin(u)\\,du = -\\cos(u) + C, \\qquad \\int \\cos(u)\\,du = \\sin(u) + C$$"
+              },
+              {
+                "nombre": "Cambio de variable",
+                "latex": "$$\\int f(g(x))\\,g'(x)\\,dx = \\int f(u)\\,du$$"
+              }
+            ],
+            "receta": [
+              "Reescribe raíces y potencias en el denominador como exponentes fraccionarios o negativos antes de integrar (ej. $1/\\sqrt{x} = x^{-1/2}$).",
+              "No existe regla del cociente ni del producto para integrales: distribuye multiplicaciones o busca $u = g(x)$ tal que $du = g'(x)\\,dx$ aparezca multiplicando.",
+              "Despeja los factores constantes entre $dx$ y $du$, integra en $u$ usando tablas inmediatas y suma $+C$.",
+              "Vuelve obligatoriamente a la variable $x$ y comprueba mentalmente derivando tu resultado."
+            ],
+            "ejemplo_guiado": {
+              "enunciado": "Resuelve la integral indefinida por sustitución: $$\\int x\\sqrt{x^2 + 5}\\,dx$$",
+              "pasos": [
+                {
+                  "titulo": "Paso 1: Elegir el cambio de variable y hallar du",
+                  "expresion": "$$u = x^2 + 5 \\implies du = 2x\\,dx \\implies x\\,dx = \\frac{du}{2}$$",
+                  "explicacion": "La derivada de lo que está dentro de la raíz ($2x$) coincide con el factor $x\\,dx$ salvo la constante $2$."
+                },
+                {
+                  "titulo": "Paso 2: Reescribir toda la integral en u e integrar",
+                  "expresion": "$$\\int u^{1/2}\\,\\frac{du}{2} = \\frac{1}{2} \\cdot \\frac{u^{3/2}}{3/2} + C = \\frac{1}{3}u^{3/2} + C$$",
+                  "explicacion": "Aplicamos la regla de la potencia sumando $1$ al exponente ($1/2 + 1 = 3/2$)."
+                },
+                {
+                  "titulo": "Paso 3: Retornar a la variable original x",
+                  "expresion": "$$\\frac{1}{3}(x^2 + 5)^{3/2} + C$$",
+                  "explicacion": "Reemplazamos $u = x^2 + 5$ manteniendo la constante arbitraria $+C$."
+                }
+              ],
+              "resultado_final": "$$\\frac{1}{3}(x^2 + 5)^{3/2} + C$$"
+            },
+            "trampas_examen": [
+              "Integrar numerador y denominador por separado como si $\\int (u/v) = (\\int u)/(\\int v)$.",
+              "Confundir $\\int \\cos(x)\\,dx = \\sin(x) + C$ con $-\\sin(x)$ o $\\int \\sin(x)\\,dx = -\\cos(x)$.",
+              "Olvidar devolver la sustitución en términos de $x$ u omitir $+C$."
+            ]
+          },
+          "paso1_concepto": {
+            "titulo": "Caso especial n = -1 y potencias",
+            "enunciado_latex": "¿Por qué la fórmula $\\int x^n\\,dx = \\frac{x^{n+1}}{n+1} + C$ no aplica cuando $n = -1$, y cuál es entonces $\\int \\frac{1}{x}\\,dx$?",
+            "opciones": [
+              "Porque dividiría entre cero; su antiderivada es $\\ln|x| + C$",
+              "Sí aplica y da $\\frac{x^0}{0} + C = 1$",
+              "Su antiderivada es $-\\frac{1}{x^2} + C$",
+              "Su antiderivada es $e^{-x} + C$"
+            ],
+            "respuesta_correcta": "Porque dividiría entre cero; su antiderivada es $\\ln|x| + C$",
+            "explicacion": "Para $x \\neq 0$, la derivada de $\\ln|x|$ es $\\frac{1}{x}$, cubriendo tanto $x > 0$ como $x < 0$."
+          },
+          "paso2_practica": {
+            "titulo": "Constante de integración con condición inicial",
+            "enunciado_latex": "Si $F'(x) = 6x^2 + 2x$ y se sabe que $F(1) = 8$, calcula el valor numérico exacto de $F(0)$.",
+            "respuesta_correcta": "5",
+            "respuestas_aceptadas": [
+              "5",
+              "5.0"
+            ],
+            "pista": "Integra para obtener $F(x) = 2x^3 + x^2 + C$, halla $C$ con $F(1) = 8$ y luego evalúa en $x = 0$."
+          },
+          "paso3_reto_foto": {
+            "titulo": "Reto de examen: Integral por sustitución",
+            "enunciado_latex": "Calcula paso a paso la siguiente integral indefinida mediante cambio de variable: $$\\int \\frac{4x + 2}{\\sqrt{x^2 + x + 3}}\\,dx$$",
+            "prerrequisito_evaluado": "Reescritura de exponentes negativos fraccionarios, diferencial $du$ y retorno a la variable $x$.",
+            "instrucciones": "Define $u = x^2 + x + 3$, calcula $du$, factoriza el $2$ en el numerador, integra la potencia $u^{-1/2}$ en tu cuaderno y devuelve el resultado en función de $x$."
+          }
         }
       ],
       "preguntas_examen": [
@@ -212,7 +817,24 @@
           "id": "exam_fac_cal_1",
           "skill_id": "fac_cal_01_inecuaciones_func",
           "nivel_nodo": 1,
-          "tema": "Inecuaciones y Dominios",
+          "tema": "Inecuaciones y Valor Absoluto",
+          "area": "Álgebra y Trig.",
+          "tiempo_segundos": 60,
+          "enunciado_latex": "Determina el conjunto solución real de la inecuación con valor absoluto $$|2x - 1| < 5$$",
+          "opciones": [
+            "$(-2, 3)$",
+            "$[-2, 3]$",
+            "$(-\\infty, -2) \\cup (3, \\infty)$",
+            "$(-3, 2)$"
+          ],
+          "respuesta_correcta": "$(-2, 3)$",
+          "explicacion_breve": "Reescribimos $-5 < 2x - 1 < 5 \\implies -4 < 2x < 6 \\implies -2 < x < 3$."
+        },
+        {
+          "id": "exam_fac_cal_2",
+          "skill_id": "fac_cal_01b_funciones_dominios",
+          "nivel_nodo": 2,
+          "tema": "Funciones, Composición y Dominios",
           "area": "Álgebra y Trig.",
           "tiempo_segundos": 60,
           "enunciado_latex": "Halla el dominio real de la función logarítmica $$f(x) = \\ln(9 - x^2)$$",
@@ -223,13 +845,13 @@
             "$(0, 3)$"
           ],
           "respuesta_correcta": "$(-3, 3)$",
-          "explicacion_breve": "El argumento del logaritmo natural debe ser estrictamente positivo: $9 - x^2 > 0 \\iff x^2 < 9 \\iff x \\in (-3, 3)$."
+          "explicacion_breve": "El argumento del logaritmo natural debe ser estrictamente positivo: $9 - x^2 > 0 \\iff x \\in (-3, 3)$."
         },
         {
-          "id": "exam_fac_cal_2",
+          "id": "exam_fac_cal_3",
           "skill_id": "fac_cal_02_limites_alg",
-          "nivel_nodo": 2,
-          "tema": "Límites Algebraicos",
+          "nivel_nodo": 3,
+          "tema": "Límites Algebraicos e Infinitos",
           "area": "Cálculo I",
           "tiempo_segundos": 60,
           "enunciado_latex": "Evalúa el límite con radicales $$\\lim_{x \\to 4} \\frac{\\sqrt{x} - 2}{x - 4}$$",
@@ -240,13 +862,13 @@
             "$0$"
           ],
           "respuesta_correcta": "$\\frac{1}{4}$",
-          "explicacion_breve": "Racionalizando o factorizando $x - 4 = (\\sqrt{x} - 2)(\\sqrt{x} + 2)$, queda $\\lim_{x \\to 4} \\frac{1}{\\sqrt{x} + 2} = \\frac{1}{4}$."
+          "explicacion_breve": "Factorizando $x - 4 = (\\sqrt{x} - 2)(\\sqrt{x} + 2)$, queda $\\lim_{x \\to 4} \\frac{1}{\\sqrt{x} + 2} = \\frac{1}{4}$."
         },
         {
-          "id": "exam_fac_cal_3",
+          "id": "exam_fac_cal_4",
           "skill_id": "fac_cal_03_limites_trig",
-          "nivel_nodo": 3,
-          "tema": "Límites Trigonométricos y Continuidad",
+          "nivel_nodo": 4,
+          "tema": "Límites Trigonométricos y Exponenciales",
           "area": "Cálculo I",
           "tiempo_segundos": 60,
           "enunciado_latex": "Calcula el límite trigonométrico fundamental $$\\lim_{x \\to 0} \\frac{\\sin(5x)}{2x}$$",
@@ -257,13 +879,30 @@
             "$0$"
           ],
           "respuesta_correcta": "$\\frac{5}{2}$",
-          "explicacion_breve": "Reescribiendo $\\frac{5}{2} \\cdot \\frac{\\sin(5x)}{5x}$ y aplicando $\\lim_{u \\to 0} \\frac{\\sin(u)}{u} = 1$, se obtiene $\\frac{5}{2}$."
+          "explicacion_breve": "Reescribiendo $\\frac{5}{2} \\cdot \\frac{\\sin(5x)}{5x}$ se obtiene $\\frac{5}{2}$."
         },
         {
-          "id": "exam_fac_cal_4",
+          "id": "exam_fac_cal_5",
+          "skill_id": "fac_cal_03b_continuidad",
+          "nivel_nodo": 5,
+          "tema": "Continuidad y Asíntotas",
+          "area": "Cálculo I",
+          "tiempo_segundos": 60,
+          "enunciado_latex": "¿Qué valor debe tomar $k$ para que $f(x) = \\begin{cases} x^2 + 3, & x \\le 1 \\\\ kx - 1, & x > 1 \\end{cases}$ sea continua en $x = 1$?",
+          "opciones": [
+            "$5$",
+            "$4$",
+            "$3$",
+            "$-3$"
+          ],
+          "respuesta_correcta": "$5$",
+          "explicacion_breve": "Igualando el lateral izquierdo $1^2 + 3 = 4$ con el derecho $k(1) - 1 = 4 \\implies k = 5$."
+        },
+        {
+          "id": "exam_fac_cal_6",
           "skill_id": "fac_cal_04_derivadas",
-          "nivel_nodo": 4,
-          "tema": "Derivación y Regla de la Cadena",
+          "nivel_nodo": 6,
+          "tema": "Derivadas por Regla de la Cadena",
           "area": "Cálculo I",
           "tiempo_segundos": 60,
           "enunciado_latex": "Aplica la regla de la cadena para hallar $f'(x)$ de $$f(x) = \\ln(3x^2 + 1)$$",
@@ -277,10 +916,27 @@
           "explicacion_breve": "La derivada de $\\ln(u)$ es $\\frac{u'}{u}$, por lo tanto $f'(x) = \\frac{6x}{3x^2 + 1}$."
         },
         {
-          "id": "exam_fac_cal_5",
+          "id": "exam_fac_cal_7",
+          "skill_id": "fac_cal_04b_deriv_implicita_log",
+          "nivel_nodo": 7,
+          "tema": "Derivación Implícita y Logarítmica",
+          "area": "Cálculo I",
+          "tiempo_segundos": 60,
+          "enunciado_latex": "Dada la circunferencia $x^2 + y^2 = 25$, ¿cuál es la expresión de $\\frac{dy}{dx}$ ($y \\neq 0$)?",
+          "opciones": [
+            "$-\\frac{x}{y}$",
+            "$\\frac{x}{y}$",
+            "$-\\frac{y}{x}$",
+            "$\\frac{25 - x}{y}$"
+          ],
+          "respuesta_correcta": "$-\\frac{x}{y}$",
+          "explicacion_breve": "Derivando implícitamente: $2x + 2y\\frac{dy}{dx} = 0 \\implies \\frac{dy}{dx} = -\\frac{x}{y}$."
+        },
+        {
+          "id": "exam_fac_cal_8",
           "skill_id": "fac_cal_05_optimizacion",
-          "nivel_nodo": 5,
-          "tema": "Optimización de Funciones",
+          "nivel_nodo": 8,
+          "tema": "Optimización y Máximos/Mínimos",
           "area": "Cálculo I",
           "tiempo_segundos": 60,
           "enunciado_latex": "¿En qué valor de $x$ alcanza su máximo absoluto la función cuadrática $$f(x) = -2x^2 + 12x - 7$$?",
@@ -291,7 +947,24 @@
             "$x = 11$"
           ],
           "respuesta_correcta": "$x = 3$",
-          "explicacion_breve": "Derivando e igualando a cero: $f'(x) = -4x + 12 = 0 \\implies x = 3$, con $f''(x) = -4 < 0$ (máximo)."
+          "explicacion_breve": "$f'(x) = -4x + 12 = 0 \\implies x = 3$, con $f''(x) = -4 < 0$ (máximo)."
+        },
+        {
+          "id": "exam_fac_cal_9",
+          "skill_id": "fac_cal_06_integrales_basicas",
+          "nivel_nodo": 9,
+          "tema": "Integrales Indefinidas y Sustitución",
+          "area": "Cálculo I",
+          "tiempo_segundos": 60,
+          "enunciado_latex": "Halla la antiderivada general de $$\\int (6x^2 + e^{2x})\\,dx$$",
+          "opciones": [
+            "$2x^3 + \\frac{1}{2}e^{2x} + C$",
+            "$2x^3 + 2e^{2x} + C$",
+            "$12x + \\frac{1}{2}e^{2x} + C$",
+            "$3x^3 + e^{2x} + C$"
+          ],
+          "respuesta_correcta": "$2x^3 + \\frac{1}{2}e^{2x} + C$",
+          "explicacion_breve": "$\\int 6x^2\\,dx = 2x^3$ y con $u = 2x$, $\\int e^{2x}\\,dx = \\frac{1}{2}e^{2x}$, más $+C$."
         }
       ]
     },
@@ -301,18 +974,67 @@
       "codigo": "FIS-1100",
       "icono": "bi-rocket-takeoff-fill",
       "color": "green",
-      "descripcion": "Asegura la base de Física Universitaria: vectores, cinemática 2D, leyes de Newton con fricción y energía mecánica.",
+      "descripcion": "Domina FIS-1100 por Unidades: vectores, cinemática 1D/2D, dinámica con fricción y poleas, y energía mecánica.",
       "skills": [
         {
           "id": "fac_fis_01_vectores",
           "ranking_criticidad": 1,
           "frecuencia_examen": "96%",
           "materia": "Física I",
-          "nombre": "Vectores y Descomposición",
+          "unidad": "Unidad 1: Vectores y Cinemática 1D/2D",
+          "nombre": "Vectores y Descomposición 2D/3D",
           "area": "Álgebra y Trig.",
           "prerrequisito_id": null,
           "xp": 120,
           "tip_auxiliar": "Dibuja siempre el ángulo respecto al eje elegido antes de asignar $\\cos(\\theta)$ y $\\sin(\\theta)$: no siempre $x$ lleva coseno si el ángulo se mide desde la vertical.",
+          "guia_aprendizaje": {
+            "idea_clave": "Los vectores representan magnitudes con dirección y sentido (fuerzas, velocidades, desplazamientos). Descomponer en ejes ortogonales permite sumar cualquier sistema vectorial mediante álgebra escalar por componentes.",
+            "formulas": [
+              {
+                "nombre": "Descomposición cartesiana",
+                "latex": "$$A_x = A\\cos\\theta, \\qquad A_y = A\\sin\\theta$$"
+              },
+              {
+                "nombre": "Módulo en 3D",
+                "latex": "$$\\|\\vec{A}\\| = \\sqrt{A_x^2 + A_y^2 + A_z^2}$$"
+              },
+              {
+                "nombre": "Producto escalar",
+                "latex": "$$\\vec{A}\\cdot\\vec{B} = A_x B_x + A_y B_y + A_z B_z = \\|\\vec{A}\\|\\|\\vec{B}\\|\\cos\\theta$$"
+              }
+            ],
+            "receta": [
+              "Traza el sistema de coordenadas y mide el ángulo de cada vector respecto al eje elegido.",
+              "Descompón cada vector aplicando el signo ($+$ o $-$) según el cuadrante al que apunta.",
+              "Suma independientemente las componentes en $x$, $y$ y $z$ para hallar $\\vec{R} = (R_x, R_y, R_z)$.",
+              "Calcula el módulo con Pitágoras y verifica el cuadrante antes de tomar $\\arctan(|R_y|/|R_x|)$."
+            ],
+            "ejemplo_guiado": {
+              "enunciado": "Dados $\\vec{F}_1 = 10\\text{ N}$ a $37^\\circ$ sobre $+x$ ($\\cos 37^\\circ \\approx 0.8$, $\\sin 37^\\circ \\approx 0.6$) y $\\vec{F}_2 = (-2, 0)\\text{ N}$, halla la resultante $\\vec{R} = \\vec{F}_1 + \\vec{F}_2$ y su módulo.",
+              "pasos": [
+                {
+                  "titulo": "Paso 1: Descomponer F1 en componentes",
+                  "expresion": "$$F_{1x} = 10(0.8) = 8\\text{ N}, \\qquad F_{1y} = 10(0.6) = 6\\text{ N}$$",
+                  "explicacion": "Proyectamos la magnitud de $\\vec{F}_1$ sobre los ejes $x$ e $y$ en el primer cuadrante."
+                },
+                {
+                  "titulo": "Paso 2: Sumar componente a componente",
+                  "expresion": "$$R_x = 8 + (-2) = 6\\text{ N}, \\qquad R_y = 6 + 0 = 6\\text{ N}$$",
+                  "explicacion": "Cada eje se suma de manera independiente respetando los signos."
+                },
+                {
+                  "titulo": "Paso 3: Calcular el módulo resultante",
+                  "expresion": "$$\\|\\vec{R}\\| = \\sqrt{6^2 + 6^2} = \\sqrt{72} = 6\\sqrt{2}\\text{ N}$$",
+                  "explicacion": "Aplicamos el teorema de Pitágoras sobre el vector resultante $\\vec{R} = (6, 6)\\text{ N}$."
+                }
+              ],
+              "resultado_final": "$$\\vec{R} = (6, 6)\\text{ N}, \\quad \\|\\vec{R}\\| = 6\\sqrt{2}\\text{ N}$$"
+            },
+            "trampas_examen": [
+              "Usar $\\cos\\theta$ automáticamente para $x$ cuando el problema da el ángulo medido respecto al eje vertical $y$.",
+              "Sumar magnitudes escalarmente ($A + B$) sin tener en cuenta que apuntan en direcciones distintas."
+            ]
+          },
           "paso1_concepto": {
             "titulo": "Condición de perpendicularidad",
             "enunciado_latex": "Si dos vectores no nulos $\\vec{A}$ y $\\vec{B}$ cumplen que su producto escalar es $\\vec{A} \\cdot \\vec{B} = 0$, ¿qué ángulo forman entre sí?",
@@ -323,7 +1045,7 @@
               "$45^\\circ$"
             ],
             "respuesta_correcta": "$90^\\circ$ (son perpendiculares)",
-            "explicacion": "Como $\\vec{A} \\cdot \\vec{B} = \\|\\vec{A}\\|\\|\\vec{B}\\|\\cos(\\theta) = 0$ con módulos no nulos, necesariamente $\\cos(\\theta) = 0 \\implies \\theta = 90^\\circ$."
+            "explicacion": "Como $\\vec{A} \\cdot \\vec{B} = \\|\\vec{A}\\|\\|\\vec{B}\\|\\cos(\\theta) = 0$ con módulos no nulos, necesariamente $\\theta = 90^\\circ$."
           },
           "paso2_practica": {
             "titulo": "Módulo en 3D",
@@ -343,15 +1065,152 @@
           }
         },
         {
-          "id": "fac_fis_02_cinematica",
+          "id": "fac_fis_01b_cinematica_1d",
           "ranking_criticidad": 2,
-          "frecuencia_examen": "94%",
+          "frecuencia_examen": "93%",
           "materia": "Física I",
-          "nombre": "Cinemática y Tiro Parabólico",
+          "unidad": "Unidad 1: Vectores y Cinemática 1D/2D",
+          "nombre": "Cinemática 1D (MRU, MRUV y Caída Libre)",
           "area": "Física I",
           "prerrequisito_id": "fac_fis_01_vectores",
+          "xp": 130,
+          "tip_auxiliar": "En problemas de encuentro entre dos móviles fija UN único origen de coordenadas $x = 0$ y UN mismo reloj $t$; si uno sale después, su tiempo de viaje es $(t - t_0)$.",
+          "guia_aprendizaje": {
+            "idea_clave": "La cinemática rectilínea describe posición, velocidad y aceleración en una dimensión. El movimiento rectilíneo uniformemente variado (MRUV) y la caída libre vertical ($a = -g$) rigen problemas clásicos de frenado, alcance y encuentros.",
+            "formulas": [
+              {
+                "nombre": "Velocidad en MRUV",
+                "latex": "$$v = v_0 + a t$$"
+              },
+              {
+                "nombre": "Posición en MRUV",
+                "latex": "$$x = x_0 + v_0 t + \\frac{1}{2}a t^2$$"
+              },
+              {
+                "nombre": "Ecuación sin tiempo (Torricelli)",
+                "latex": "$$v^2 = v_0^2 + 2a(x - x_0)$$"
+              }
+            ],
+            "receta": [
+              "Elige un origen fijo $x = 0$ (o $y = 0$ al nivel del suelo) y define qué sentido es positivo.",
+              "Lista los datos conocidos verificando unidades coherentes en el SI (pasa $\\text{km/h}$ a $\\text{m/s}$ dividiendo entre $3.6$).",
+              "Elige la ecuación de MRUV que contiene únicamente una incógnita (usa Torricelli si falta el tiempo).",
+              "En problemas de encuentro, escribe $x_1(t)$ y $x_2(t)$ en función del mismo reloj $t$ e iguala $x_1(t) = x_2(t)$."
+            ],
+            "ejemplo_guiado": {
+              "enunciado": "Un automóvil viaja a $72\\text{ km/h}$ y frena con desaceleración constante de $4\\text{ m/s}^2$ hasta detenerse. ¿Qué distancia recorre durante el frenado?",
+              "pasos": [
+                {
+                  "titulo": "Paso 1: Convertir la velocidad a m/s y asignar signos",
+                  "expresion": "$$v_0 = \\frac{72}{3.6} = 20\\text{ m/s}, \\qquad v_f = 0, \\qquad a = -4\\text{ m/s}^2$$",
+                  "explicacion": "Pasamos a unidades del SI y colocamos aceleración negativa porque se opone al movimiento."
+                },
+                {
+                  "titulo": "Paso 2: Aplicar la ecuación independiente del tiempo",
+                  "expresion": "$$0^2 = 20^2 + 2(-4)d \\implies 8d = 400$$",
+                  "explicacion": "Como no conocemos el tiempo de frenado, la ecuación cuadrática de velocidades despeja $d$ directo."
+                },
+                {
+                  "titulo": "Paso 3: Despejar la distancia de frenado",
+                  "expresion": "$$d = \\frac{400}{8} = 50\\text{ m}$$",
+                  "explicacion": "Obtenemos el recorrido total antes del reposo."
+                }
+              ],
+              "resultado_final": "$$d = 50\\text{ m}$$"
+            },
+            "trampas_examen": [
+              "Mezclar $\\text{km/h}$ con $\\text{m/s}^2$ sin convertir entre $3.6$.",
+              "Poner signo positivo a la aceleración cuando el móvil está frenando."
+            ]
+          },
+          "paso1_concepto": {
+            "titulo": "Signo en desaceleración",
+            "enunciado_latex": "Si un móvil avanza hacia $+x$ con rapidez decreciente, ¿cuáles son los signos de su velocidad $v_x$ y aceleración $a_x$?",
+            "opciones": [
+              "$v_x > 0$ y $a_x < 0$ (tienen sentidos opuestos)",
+              "$v_x > 0$ y $a_x > 0$",
+              "$v_x < 0$ y $a_x < 0$",
+              "$v_x = 0$ y $a_x = 0$"
+            ],
+            "respuesta_correcta": "$v_x > 0$ y $a_x < 0$ (tienen sentidos opuestos)",
+            "explicacion": "Frenar significa que el vector aceleración apunta en dirección opuesta al vector velocidad."
+          },
+          "paso2_practica": {
+            "titulo": "Distancia recorrida desde el reposo",
+            "enunciado_latex": "Un tren parte del reposo con aceleración constante $a = 2\\text{ m/s}^2$. ¿Cuántos metros recorre en los primeros $6\\text{ s}$?",
+            "respuesta_correcta": "36",
+            "respuestas_aceptadas": [
+              "36",
+              "36.0"
+            ],
+            "pista": "Usa $d = \\frac{1}{2}at^2$ con $v_0 = 0$."
+          },
+          "paso3_reto_foto": {
+            "titulo": "Reto de examen: Encuentro con MRU y MRUV",
+            "enunciado_latex": "Un motociclista en reposo parte con aceleración constante $a = 2\\text{ m/s}^2$ justo en el instante en que un camión lo adelanta con velocidad constante de $12\\text{ m/s}$. ¿En qué tiempo $t$ y a qué distancia $x$ del punto de partida alcanza la moto al camión?",
+            "prerrequisito_evaluado": "Planteamiento simultáneo de posiciones $x_{\\text{moto}}(t) = x_{\\text{camión}}(t)$ y descarte de $t = 0$.",
+            "instrucciones": "Escribe las ecuaciones de posición de ambos vehículos respecto al mismo origen, iguala $x_1(t) = x_2(t)$, resuelve $t > 0$ y calcula $x$."
+          }
+        },
+        {
+          "id": "fac_fis_02_cinematica",
+          "ranking_criticidad": 3,
+          "frecuencia_examen": "94%",
+          "materia": "Física I",
+          "unidad": "Unidad 1: Vectores y Cinemática 1D/2D",
+          "nombre": "Movimiento en 2D y Tiro Parabólico",
+          "area": "Física I",
+          "prerrequisito_id": "fac_fis_01b_cinematica_1d",
           "xp": 140,
-          "tip_auxiliar": "El tiempo $t$ es el puente que une el eje $x$ (MRU: $x = v_{0x}t$) con el eje $y$ (MRUV: $y = v_{0y}t - \\frac{1}{2}gt^2$). En altura máxima, $v_y = 0$, pero $v_x$ NO es cero.",
+          "tip_auxiliar": "El tiempo $t$ une el eje $x$ (MRU: $x = v_{0x}t$) con el eje $y$ (MRUV: $y = y_0 + v_{0y}t - \\frac{1}{2}gt^2$). En altura máxima, $v_y = 0$, pero $v_x$ NO es cero.",
+          "guia_aprendizaje": {
+            "idea_clave": "El movimiento parabólico resulta de superponer dos movimientos independientes: horizontal uniforme ($a_x = 0$) y vertical bajo gravedad constante ($a_y = -g$). La única variable compartida entre ambos ejes es el tiempo $t$.",
+            "formulas": [
+              {
+                "nombre": "Velocidades iniciales",
+                "latex": "$$v_{0x} = v_0\\cos\\theta, \\qquad v_{0y} = v_0\\sin\\theta$$"
+              },
+              {
+                "nombre": "Ecuaciones paramétricas",
+                "latex": "$$x(t) = v_{0x}t, \\qquad y(t) = y_0 + v_{0y}t - \\frac{1}{2}gt^2$$"
+              },
+              {
+                "nombre": "Altura máxima y alcance simétrico",
+                "latex": "$$H_{\\max} = \\frac{v_{0y}^2}{2g}, \\qquad R = \\frac{v_0^2\\sin(2\\theta)}{g} \\;(y_{\\text{fin}}=y_0)$$"
+              }
+            ],
+            "receta": [
+              "Descompón la velocidad inicial en $v_{0x}$ y $v_{0y}$ al principio del ejercicio.",
+              "Anota si el lanzamiento parte y vuelve al mismo nivel ($y = y_0$) o desde una elevación ($y_0 > 0$).",
+              "Usa el eje vertical $y$ para despejar el tiempo (altura máxima con $v_y = 0$, o impacto con $y(t) = y_{\\text{objetivo}}$).",
+              "Reemplaza el tiempo hallado en $x = v_{0x}t$ o calcula la rapidez final $\\sqrt{v_x^2 + v_y^2}$."
+            ],
+            "ejemplo_guiado": {
+              "enunciado": "Desde el borde de un edificio de $h = 45\\text{ m}$ se lanza horizontalmente una esfera con $v_0 = 15\\text{ m/s}$ ($g = 10\\text{ m/s}^2$). Calcula el tiempo de caída y el alcance horizontal.",
+              "pasos": [
+                {
+                  "titulo": "Paso 1: Identificar componentes iniciales horizontales y verticales",
+                  "expresion": "$$v_{0x} = 15\\text{ m/s}, \\qquad v_{0y} = 0\\text{ m/s}, \\qquad y_0 = 45\\text{ m}$$",
+                  "explicacion": "Al lanzarse horizontalmente ($\\theta = 0^\\circ$), la velocidad vertical inicial es nula."
+                },
+                {
+                  "titulo": "Paso 2: Hallar el tiempo hasta llegar al suelo (y = 0)",
+                  "expresion": "$$0 = 45 + 0 - \\frac{1}{2}(10)t^2 \\implies 5t^2 = 45 \\implies t = 3\\text{ s}$$",
+                  "explicacion": "Resolvemos la caída vertical seleccionando la raíz positiva del tiempo."
+                },
+                {
+                  "titulo": "Paso 3: Calcular el alcance horizontal",
+                  "expresion": "$$x = v_{0x} \\cdot t = 15 \\cdot 3 = 45\\text{ m}$$",
+                  "explicacion": "La componente horizontal se mantiene constante durante los $3\\text{ s}$ de vuelo."
+                }
+              ],
+              "resultado_final": "$$t = 3\\text{ s}, \\qquad x = 45\\text{ m}$$"
+            },
+            "trampas_examen": [
+              "Aplicar $R = v_0^2 \\sin(2\\theta)/g$ cuando el punto de impacto está a distinta altura que el de lanzamiento.",
+              "Afirmar que la velocidad total del proyectil es cero en la altura máxima (solo $v_y = 0$; queda $v_x = v_{0x}$)."
+            ]
+          },
           "paso1_concepto": {
             "titulo": "Velocidad en movimiento parabólico",
             "enunciado_latex": "En un tiro parabólico ideal sin resistencia del aire, ¿cómo se comporta la componente horizontal de la velocidad $v_x$ durante todo el vuelo?",
@@ -383,14 +1242,63 @@
         },
         {
           "id": "fac_fis_03_dinamica",
-          "ranking_criticidad": 3,
+          "ranking_criticidad": 4,
           "frecuencia_examen": "92%",
           "materia": "Física I",
+          "unidad": "Unidad 2: Dinámica y Leyes de Newton",
           "nombre": "Leyes de Newton y Plano Inclinado",
           "area": "Física I",
           "prerrequisito_id": "fac_fis_02_cinematica",
           "xp": 160,
           "tip_auxiliar": "Nunca asumas $N = mg$ en un plano inclinado o si hay fuerzas diagonales. Haz siempre $\\sum F_y = 0$ en el eje perpendicular al plano para hallar la normal $N$ primero.",
+          "guia_aprendizaje": {
+            "idea_clave": "Las leyes de Newton conectan las fuerzas netas con la aceleración de un cuerpo ($\\sum \\vec{F} = m\\vec{a}$). El éxito en exámenes depende de dibujar un Diagrama de Cuerpo Libre (DCL) completo y rotar los ejes a lo largo del plano inclinado.",
+            "formulas": [
+              {
+                "nombre": "Segunda Ley de Newton",
+                "latex": "$$\\sum F_x = m a_x, \\qquad \\sum F_y = m a_y$$"
+              },
+              {
+                "nombre": "Fuerza de rozamiento cinético",
+                "latex": "$$f_k = \\mu_k N \\quad (\\text{siempre opuesta al deslizamiento})$$"
+              },
+              {
+                "nombre": "Componentes del peso en plano",
+                "latex": "$$W_\\parallel = mg\\sin\\theta, \\qquad W_\\perp = mg\\cos\\theta$$"
+              }
+            ],
+            "receta": [
+              "Aísla el bloque y dibuja todas las fuerzas reales en el DCL: peso $mg$ vertical hacia abajo, normal $N$ perpendicular a la superficie, tensiones y fricción contraria al movimiento.",
+              "Elige el eje $+x$ en la dirección esperada de la aceleración y el eje $y$ perpendicular a la superficie.",
+              "Resuelve primero $\\sum F_y = 0$ para obtener el valor numérico real de la fuerza normal $N$.",
+              "Calcula $f_k = \\mu_k N$ y sustituye en $\\sum F_x = ma$ para despejar $a$."
+            ],
+            "ejemplo_guiado": {
+              "enunciado": "Un bloque de $m = 5\\text{ kg}$ es jalado por una fuerza $F = 30\\text{ N}$ inclinada $37^\\circ$ sobre la horizontal ($\\cos 37^\\circ = 0.8$, $\\sin 37^\\circ = 0.6$) sobre un piso con $\\mu_k = 0.2$ ($g = 10\\text{ m/s}^2$). Halla su aceleración.",
+              "pasos": [
+                {
+                  "titulo": "Paso 1: Hallar la normal N con sumatoria vertical",
+                  "expresion": "$$N + F\\sin 37^\\circ - mg = 0 \\implies N = 5(10) - 30(0.6) = 32\\text{ N}$$",
+                  "explicacion": "La componente vertical hacia arriba de $F$ alivia el contacto sobre el suelo, reduciendo $N$ por debajo de $mg$."
+                },
+                {
+                  "titulo": "Paso 2: Calcular la fuerza de rozamiento cinético",
+                  "expresion": "$$f_k = \\mu_k N = 0.2 \\times 32 = 6.4\\text{ N}$$",
+                  "explicacion": "La fricción depende siempre de la normal $N$, nunca directamente de $mg$."
+                },
+                {
+                  "titulo": "Paso 3: Aplicar Segunda Ley en el eje horizontal",
+                  "expresion": "$$F\\cos 37^\\circ - f_k = ma \\implies 30(0.8) - 6.4 = 5a \\implies a = \\frac{17.6}{5} = 3.52\\text{ m/s}^2$$",
+                  "explicacion": "Restamos la fricción de la fuerza impulsora horizontal y dividimos por la masa."
+                }
+              ],
+              "resultado_final": "$$a = 3.52\\text{ m/s}^2$$"
+            },
+            "trampas_examen": [
+              "Suponer $N = mg$ cuando hay fuerzas diagonales o plano inclinado.",
+              "Poner $f_k$ en el mismo sentido que el movimiento o olvidar incluir la normal en el DCL."
+            ]
+          },
           "paso1_concepto": {
             "titulo": "Componentes del peso en plano inclinado",
             "enunciado_latex": "Para un bloque de masa $m$ sobre un plano inclinado ángulo $\\theta$ respecto a la horizontal, ¿cuál es la expresión de la fuerza normal $N$ si no hay otras fuerzas perpendiculares al plano?",
@@ -401,7 +1309,7 @@
               "$N = mg\\tan(\\theta)$"
             ],
             "respuesta_correcta": "$N = mg\\cos(\\theta)$",
-            "explicacion": "La componente perpendicular al plano del peso es $mg\\cos(\\theta)$, que se equilibra con la normal $N$ al no haber aceleración normal."
+            "explicacion": "La componente perpendicular al plano del peso es $mg\\cos(\\theta)$, equilibrada con $N$."
           },
           "paso2_practica": {
             "titulo": "Segunda Ley de Newton",
@@ -421,15 +1329,148 @@
           }
         },
         {
-          "id": "fac_fis_04_energia",
-          "ranking_criticidad": 4,
-          "frecuencia_examen": "89%",
+          "id": "fac_fis_03b_poleas_circular",
+          "ranking_criticidad": 5,
+          "frecuencia_examen": "88%",
           "materia": "Física I",
-          "nombre": "Trabajo y Conservación de la Energía",
+          "unidad": "Unidad 2: Dinámica y Leyes de Newton",
+          "nombre": "Poleas, Tensión y Dinámica Circular",
           "area": "Física I",
           "prerrequisito_id": "fac_fis_03_dinamica",
+          "xp": 170,
+          "tip_auxiliar": "En sistemas acoplados por una cuerda ideal, plantea las ecuaciones por separado de cada masa, súmalas para cancelar la tensión $T$ y luego sustituye $a$ para hallar $T$.",
+          "guia_aprendizaje": {
+            "idea_clave": "Cuando varios bloques se unen mediante cuerdas inextensibles sobre poleas ideales, todos comparten la misma magnitud de aceleración $a$ y tensión $T$. En trayectorias curvas, la fuerza neta hacia el centro produce aceleración centrípeta $a_c = v^2/R$.",
+            "formulas": [
+              {
+                "nombre": "Sistema acoplado",
+                "latex": "$$\\sum F_{\\text{sistema}} = (m_1 + m_2)a$$"
+              },
+              {
+                "nombre": "Aceleración y fuerza centrípeta",
+                "latex": "$$a_c = \\frac{v^2}{R} = \\omega^2 R, \\qquad \\sum F_{\\text{radial}} = m\\frac{v^2}{R}$$"
+              }
+            ],
+            "receta": [
+              "Dibuja un DCL separado para cada masa del sistema acoplado (ej. $m_1$ y $m_2$).",
+              "Define el sentido positivo de movimiento consistente para TODA la cuerda (si $m_2$ baja, $m_1$ avanza).",
+              "Escribe $\\sum F = m_i a$ para cada cuerpo y suma ambas ecuaciones para eliminar $T$ y hallar $a$.",
+              "En dinámica circular, recuerda que la fuerza centrípeta NO es una fuerza extra: es la resultante de fuerzas reales ($N, T, f, mg$) hacia el centro."
+            ],
+            "ejemplo_guiado": {
+              "enunciado": "Dos bloques $m_1 = 3\\text{ kg}$ (sobre una mesa horizontal lisa) y $m_2 = 2\\text{ kg}$ (colgando verticalmente) se unen por una cuerda ideal sobre una polea sin fricción ($g = 10\\text{ m/s}^2$). Calcula $a$ y $T$.",
+              "pasos": [
+                {
+                  "titulo": "Paso 1: Ecuación de Newton para cada bloque",
+                  "expresion": "$$\\text{Bloque 1: } T = m_1 a = 3a \\qquad \\text{Bloque 2: } m_2 g - T = m_2 a \\implies 20 - T = 2a$$",
+                  "explicacion": "La mesa no tiene fricción, así que $T$ acelera a $m_1$, mientras que en $m_2$ el peso tira hacia abajo y $T$ hacia arriba."
+                },
+                {
+                  "titulo": "Paso 2: Sumar las ecuaciones para cancelar T",
+                  "expresion": "$$20 = (3 + 2)a \\implies 5a = 20 \\implies a = 4\\text{ m/s}^2$$",
+                  "explicacion": "La suma elimina la tensión interna de la cuerda y despeja la aceleración común."
+                },
+                {
+                  "titulo": "Paso 3: Calcular la tensión de la cuerda",
+                  "expresion": "$$T = 3a = 3(4) = 12\\text{ N}$$",
+                  "explicacion": "Sustituimos $a = 4\\text{ m/s}^2$ en la primera ecuación; nótese que $T = 12\\text{ N} < m_2 g = 20\\text{ N}$ porque $m_2$ acelera hacia abajo."
+                }
+              ],
+              "resultado_final": "$$a = 4\\text{ m/s}^2, \\qquad T = 12\\text{ N}$$"
+            },
+            "trampas_examen": [
+              "Asumir que la tensión $T$ iguala al peso colgante $m_2 g$ cuando el sistema está acelerando.",
+              "Dibujar la fuerza centrípeta como una flecha independiente adicional al peso, tensión o normal en un DCL."
+            ]
+          },
+          "paso1_concepto": {
+            "titulo": "Tensión en cuerpo acelerado verticalmente",
+            "enunciado_latex": "Si un bloque colgante de peso $mg$ desciende acelerando hacia abajo con aceleración $a > 0$, ¿cómo se compara la tensión de la cuerda $T$ respecto a $mg$?",
+            "opciones": [
+              "$T < mg$, porque $mg - T = ma > 0$",
+              "$T = mg$ siempre",
+              "$T > mg$ porque desciende",
+              "$T = 0$"
+            ],
+            "respuesta_correcta": "$T < mg$, porque $mg - T = ma > 0$",
+            "explicacion": "Para que acelere hacia abajo, la fuerza hacia abajo ($mg$) debe superar a la fuerza hacia arriba ($T$)."
+          },
+          "paso2_practica": {
+            "titulo": "Máquina de Atwood clásica",
+            "enunciado_latex": "En una máquina de Atwood ideal se cuelgan dos masas $m_1 = 2\\text{ kg}$ y $m_2 = 6\\text{ kg}$ ($g = 10\\text{ m/s}^2$). Calcula la magnitud de la aceleración del sistema en $\\text{m/s}^2$.",
+            "respuesta_correcta": "5",
+            "respuestas_aceptadas": [
+              "5",
+              "5.0"
+            ],
+            "pista": "Usa $a = \\frac{m_2 - m_1}{m_1 + m_2} g$."
+          },
+          "paso3_reto_foto": {
+            "titulo": "Reto de examen: Polea con fricción en la mesa",
+            "enunciado_latex": "Un bloque de $m_1 = 4\\text{ kg}$ descansa sobre una mesa horizontal rugosa ($\\mu_k = 0.25$) unido mediante cuerda y polea ideal a un bloque colgante $m_2 = 6\\text{ kg}$ ($g = 10\\text{ m/s}^2$). Dibuja los DCL de ambos cuerpos y calcula la aceleración $a$ y la tensión $T$.",
+            "prerrequisito_evaluado": "DCL acoplados por cuerda ideal, normal y fricción en mesa horizontal y sistema de dos ecuaciones.",
+            "instrucciones": "Plantea por separado el DCL de $m_1$ (incluyendo $f_k = \\mu_k N_1$) y de $m_2$, suma las ecuaciones de movimiento para hallar $a$ y luego sustituye para hallar $T$."
+          }
+        },
+        {
+          "id": "fac_fis_04_energia",
+          "ranking_criticidad": 6,
+          "frecuencia_examen": "90%",
+          "materia": "Física I",
+          "unidad": "Unidad 3: Trabajo y Energía",
+          "nombre": "Trabajo y Conservación de la Energía",
+          "area": "Física I",
+          "prerrequisito_id": "fac_fis_03b_poleas_circular",
           "xp": 180,
           "tip_auxiliar": "Define claramente tu nivel de referencia $h = 0$ antes de escribir $E_M = K + U_g + U_e$. Si hay fricción, recuerda que $W_{f} = -f_k d = \\Delta E_M$.",
+          "guia_aprendizaje": {
+            "idea_clave": "El enfoque energético relaciona posiciones iniciales y finales sin depender de la geometría curva de la trayectoria ni de calcular la aceleración en cada instante. Solo las fuerzas no conservativas (como el rozamiento) alteran la energía mecánica total.",
+            "formulas": [
+              {
+                "nombre": "Energía mecánica total",
+                "latex": "$$E_M = \\frac{1}{2}mv^2 + mgh + \\frac{1}{2}kx^2$$"
+              },
+              {
+                "nombre": "Trabajo de fuerza constante",
+                "latex": "$$W = F\\,d\\cos\\phi$$"
+              },
+              {
+                "nombre": "Balance con fricción",
+                "latex": "$$E_{M,0} + W_{\\text{no cons.}} = E_{M,f} \\implies \\Delta E_M = -f_k d$$"
+              }
+            ],
+            "receta": [
+              "Identifica claramente el estado inicial (0) y el estado final (f) fijando el nivel de altura $h = 0$.",
+              "Anota qué formas de energía están presentes en cada punto ($K$ por rapidez, $U_g$ por altura, $U_e$ por resorte deformado).",
+              "Verifica si existen fuerzas no conservativas como rozamiento $f_k$ o fuerza externa en el tramo de distancia $d$.",
+              "Iguala $E_{M,0} - f_k d = E_{M,f}$ y despeja la rapidez, altura o compresión pedida."
+            ],
+            "ejemplo_guiado": {
+              "enunciado": "Un bloque de $m = 2\\text{ kg}$ parte del reposo desde lo alto de un plano curvo liso a $h = 3.2\\text{ m}$ y luego frena sobre un piso rugoso horizontal con $\\mu_k = 0.4$ ($g = 10\\text{ m/s}^2$). ¿Qué distancia $d$ recorre sobre el piso rugoso hasta detenerse?",
+              "pasos": [
+                {
+                  "titulo": "Paso 1: Evaluar energía mecánica inicial y final",
+                  "expresion": "$$E_{M,0} = mgh = (2)(10)(3.2) = 64\\text{ J}, \\qquad E_{M,f} = 0\\text{ J}$$",
+                  "explicacion": "Inicia desde el reposo arriba ($K_0 = 0$) y termina detenido al nivel $h = 0$ ($E_{M,f} = 0$)."
+                },
+                {
+                  "titulo": "Paso 2: Expresar el trabajo negativo de la fricción en el piso",
+                  "expresion": "$$f_k = \\mu_k N = \\mu_k mg = 0.4(2)(10) = 8\\text{ N}, \\qquad W_f = -f_k d = -8d$$",
+                  "explicacion": "Solo el tramo horizontal tiene rozamiento cinético opuesto al desplazamiento."
+                },
+                {
+                  "titulo": "Paso 3: Aplicar el balance energético total",
+                  "expresion": "$$64 - 8d = 0 \\implies d = 8\\text{ m}$$",
+                  "explicacion": "Toda la energía potencial gravitatoria inicial se disipa por trabajo de fricción."
+                }
+              ],
+              "resultado_final": "$$d = 8\\text{ m}$$"
+            },
+            "trampas_examen": [
+              "Sumar $+f_k d$ en el lado equivocado de la igualdad (la fricción siempre DISIPA energía mecánica, $E_{M,f} < E_{M,0}$).",
+              "Olvidar la distancia total recorrida sobre la superficie inclinada al calcular $W_f = -f_k d$ usando la altura $h$ en vez de la hipotenusa $d$."
+            ]
+          },
           "paso1_concepto": {
             "titulo": "Teorema del Trabajo y la Energía Cinética",
             "enunciado_latex": "Según el Teorema Trabajo-Energía, ¿a qué equivale el trabajo neto $W_{\\text{neto}}$ realizado sobre una partícula?",
@@ -465,7 +1506,7 @@
           "id": "exam_fac_fis_1",
           "skill_id": "fac_fis_01_vectores",
           "nivel_nodo": 1,
-          "tema": "Vectores y Descomposición",
+          "tema": "Vectores y Descomposición 2D/3D",
           "area": "Álgebra y Trig.",
           "tiempo_segundos": 60,
           "enunciado_latex": "Si un vector $\\vec{A}$ en el plano tiene componentes $A_x = 6\\text{ u}$ y $A_y = 8\\text{ u}$, ¿cuál es su módulo $\\|\\vec{A}\\|$?",
@@ -476,13 +1517,13 @@
             "$\\sqrt{14}\\text{ u}$"
           ],
           "respuesta_correcta": "$10\\text{ u}$",
-          "explicacion_breve": "Por el teorema de Pitágoras, $\\|\\vec{A}\\| = \\sqrt{6^2 + 8^2} = \\sqrt{36 + 64} = 10\\text{ u}$."
+          "explicacion_breve": "Por Pitágoras, $\\|\\vec{A}\\| = \\sqrt{6^2 + 8^2} = 10\\text{ u}$."
         },
         {
           "id": "exam_fac_fis_2",
-          "skill_id": "fac_fis_02_cinematica",
+          "skill_id": "fac_fis_01b_cinematica_1d",
           "nivel_nodo": 2,
-          "tema": "Cinemática y Tiro Parabólico",
+          "tema": "Cinemática 1D (MRU, MRUV y Caída Libre)",
           "area": "Física I",
           "tiempo_segundos": 60,
           "enunciado_latex": "Un móvil parte del reposo con aceleración rectilínea constante $a = 4\\text{ m/s}^2$. ¿Qué distancia recorre en los primeros $t = 3\\text{ s}$?",
@@ -493,12 +1534,29 @@
             "$6\\text{ m}$"
           ],
           "respuesta_correcta": "$18\\text{ m}$",
-          "explicacion_breve": "Con $v_0 = 0$, la ecuación de MRUV da $d = \\frac{1}{2} a t^2 = \\frac{1}{2}(4)(3^2) = 18\\text{ m}$."
+          "explicacion_breve": "Con $v_0 = 0$, $d = \\frac{1}{2} a t^2 = \\frac{1}{2}(4)(3^2) = 18\\text{ m}$."
         },
         {
           "id": "exam_fac_fis_3",
-          "skill_id": "fac_fis_03_dinamica",
+          "skill_id": "fac_fis_02_cinematica",
           "nivel_nodo": 3,
+          "tema": "Movimiento en 2D y Tiro Parabólico",
+          "area": "Física I",
+          "tiempo_segundos": 60,
+          "enunciado_latex": "Un proyectil se lanza desde el suelo con $v_{0y} = 30\\text{ m/s}$ ($g = 10\\text{ m/s}^2$). ¿Cuánto tiempo permanece en el aire hasta regresar al suelo?",
+          "opciones": [
+            "$6\\text{ s}$",
+            "$3\\text{ s}$",
+            "$1.5\\text{ s}$",
+            "$9\\text{ s}$"
+          ],
+          "respuesta_correcta": "$6\\text{ s}$",
+          "explicacion_breve": "El tiempo de subida es $t_s = \\frac{v_{0y}}{g} = 3\\text{ s}$; el vuelo simétrico total dura $2t_s = 6\\text{ s}$."
+        },
+        {
+          "id": "exam_fac_fis_4",
+          "skill_id": "fac_fis_03_dinamica",
+          "nivel_nodo": 4,
           "tema": "Leyes de Newton y Plano Inclinado",
           "area": "Física I",
           "tiempo_segundos": 60,
@@ -513,9 +1571,26 @@
           "explicacion_breve": "Por la segunda ley de Newton, $a = \\frac{F_{\\text{neta}}}{m} = \\frac{20}{5} = 4\\text{ m/s}^2$."
         },
         {
-          "id": "exam_fac_fis_4",
+          "id": "exam_fac_fis_5",
+          "skill_id": "fac_fis_03b_poleas_circular",
+          "nivel_nodo": 5,
+          "tema": "Poleas, Tensión y Dinámica Circular",
+          "area": "Física I",
+          "tiempo_segundos": 60,
+          "enunciado_latex": "Una partícula de $m = 2\\text{ kg}$ describe una circunferencia horizontal de radio $R = 4\\text{ m}$ con rapidez constante $v = 6\\text{ m/s}$. ¿Cuál es la magnitud de la fuerza centrípeta neta?",
+          "opciones": [
+            "$18\\text{ N}$",
+            "$9\\text{ N}$",
+            "$12\\text{ N}$",
+            "$36\\text{ N}$"
+          ],
+          "respuesta_correcta": "$18\\text{ N}$",
+          "explicacion_breve": "$F_c = m\\frac{v^2}{R} = 2 \\cdot \\frac{6^2}{4} = 18\\text{ N}$."
+        },
+        {
+          "id": "exam_fac_fis_6",
           "skill_id": "fac_fis_04_energia",
-          "nivel_nodo": 4,
+          "nivel_nodo": 6,
           "tema": "Trabajo y Conservación de la Energía",
           "area": "Física I",
           "tiempo_segundos": 60,
@@ -528,23 +1603,6 @@
           ],
           "respuesta_correcta": "$25\\text{ J}$",
           "explicacion_breve": "La energía cinética es $K = \\frac{1}{2}mv^2 = \\frac{1}{2}(2)(5^2) = 25\\text{ J}$."
-        },
-        {
-          "id": "exam_fac_fis_5",
-          "skill_id": "fac_fis_04_energia",
-          "nivel_nodo": 4,
-          "tema": "Trabajo y Conservación de la Energía",
-          "area": "Física I",
-          "tiempo_segundos": 60,
-          "enunciado_latex": "Se suelta un bloque desde el reposo a una altura $h = 5\\text{ m}$ en una rampa sin fricción ($g = 10\\text{ m/s}^2$). ¿Con qué rapidez llega a la base?",
-          "opciones": [
-            "$10\\text{ m/s}$",
-            "$5\\text{ m/s}$",
-            "$50\\text{ m/s}$",
-            "$100\\text{ m/s}$"
-          ],
-          "respuesta_correcta": "$10\\text{ m/s}$",
-          "explicacion_breve": "Por conservación de la energía mecánica, $mgh = \\frac{1}{2}mv^2 \\implies v = \\sqrt{2gh} = \\sqrt{2(10)(5)} = 10\\text{ m/s}$."
         }
       ]
     }

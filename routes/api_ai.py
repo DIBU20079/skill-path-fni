@@ -9,7 +9,9 @@ from flask import Blueprint, jsonify, request
 
 from services.ai_auditor import auditar_resolucion
 from services.ai_generator import (
+    explicar_paso_algebraico,
     generar_ejemplo_analogo,
+    generar_ejemplo_guiado,
     generar_ejercicio_dinamico,
     generar_ejercicio_error,
 )
@@ -163,6 +165,7 @@ def api_generar_ejercicio():
 
         materia = str(datos.get("materia") or "").strip()
         tema = str(datos.get("tema") or "").strip()
+        dificultad = str(datos.get("dificultad") or "base").strip()
         historial_errores = _decodificar_lista_json(datos.get("historial_errores"))
 
         if not materia or not tema:
@@ -180,6 +183,7 @@ def api_generar_ejercicio():
             materia=materia,
             tema=tema,
             historial_errores=historial_errores,
+            dificultad=dificultad,
         )
         return jsonify(ejercicio), 200
 
@@ -339,3 +343,83 @@ def api_generar_ejercicio_error():
             ),
             500,
         )
+
+
+@api_ai_bp.post("/api/explicar-paso")
+def api_explicar_paso():
+    """Explica brevemente qué transformación ocurrió entre dos pasos de un ejemplo guiado."""
+    try:
+        datos = _obtener_datos_solicitud(
+            "Envía un objeto JSON válido con 'materia', 'tema', 'paso_anterior' y 'paso_actual'."
+        )
+
+        materia = str(datos.get("materia") or "").strip()
+        tema = str(datos.get("tema") or "").strip()
+        paso_anterior = str(datos.get("paso_anterior") or "").strip()
+        paso_actual = str(datos.get("paso_actual") or "").strip()
+        explicacion_actual = str(datos.get("explicacion_actual") or "").strip()
+
+        if not paso_actual:
+            return (
+                jsonify(
+                    {
+                        "error": "Datos incompletos",
+                        "detalle": "El campo 'paso_actual' es obligatorio.",
+                    }
+                ),
+                400,
+            )
+
+        aclaracion = explicar_paso_algebraico(
+            materia=materia,
+            tema=tema,
+            paso_anterior=paso_anterior,
+            paso_actual=paso_actual,
+            explicacion_actual=explicacion_actual,
+        )
+        return jsonify(aclaracion), 200
+
+    except ValueError as exc:
+        return jsonify({"error": "Solicitud inválida", "detalle": str(exc)}), 400
+    except RuntimeError as exc:
+        return jsonify({"error": "Error al explicar paso con IA", "detalle": str(exc)}), 502
+    except Exception as exc:
+        return jsonify({"error": "Error interno inesperado al explicar paso", "detalle": str(exc)}), 500
+
+
+@api_ai_bp.post("/api/generar-ejemplo-guiado")
+def api_generar_ejemplo_guiado():
+    """Genera un nuevo ejemplo guiado paso a paso para estudiar un tema."""
+    try:
+        datos = _obtener_datos_solicitud(
+            "Envía un objeto JSON válido con 'materia' y 'tema'."
+        )
+
+        materia = str(datos.get("materia") or "").strip()
+        tema = str(datos.get("tema") or "").strip()
+        enunciado_previo = str(datos.get("enunciado_previo") or "").strip()
+
+        if not materia or not tema:
+            return (
+                jsonify(
+                    {
+                        "error": "Datos incompletos",
+                        "detalle": "Los campos 'materia' y 'tema' son obligatorios.",
+                    }
+                ),
+                400,
+            )
+
+        ejemplo = generar_ejemplo_guiado(
+            materia=materia,
+            tema=tema,
+            enunciado_previo=enunciado_previo,
+        )
+        return jsonify(ejemplo), 200
+
+    except ValueError as exc:
+        return jsonify({"error": "Solicitud inválida", "detalle": str(exc)}), 400
+    except RuntimeError as exc:
+        return jsonify({"error": "Error al generar ejemplo guiado con IA", "detalle": str(exc)}), 502
+    except Exception as exc:
+        return jsonify({"error": "Error interno inesperado al generar ejemplo guiado", "detalle": str(exc)}), 500

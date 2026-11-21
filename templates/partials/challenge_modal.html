@@ -21,6 +21,9 @@
                 <span id="modal-ai-gen-badge" class="badge rounded-pill text-bg-info text-dark d-none">
                   ✨ Generado con IA
                 </span>
+                <span id="modal-difficulty-badge" class="badge rounded-pill text-bg-danger d-none">
+                  🔥 Nivel Parcial FNI
+                </span>
               </div>
             </div>
 
@@ -50,8 +53,18 @@
             <span id="modal-reinforcement-text">Reforzando base previa antes de volver a tu ejercicio principal.</span>
           </div>
 
-          <!-- Barra de 3 pasos -->
-          <div id="lesson-stepper-wrap" class="lesson-stepper-wrap">
+          <!-- Selector de dos pestañas: Aprender vs Practicar -->
+          <div id="modal-mode-tabs" class="modal-mode-tabs mb-3" role="tablist" aria-label="Modo del módulo">
+            <button type="button" id="tab-modal-learn" class="modal-mode-tab active" role="tab" aria-selected="true">
+              📖 Aprender
+            </button>
+            <button type="button" id="tab-modal-practice" class="modal-mode-tab" role="tab" aria-selected="false">
+              ✍️ Practicar
+            </button>
+          </div>
+
+          <!-- Barra de 3 pasos (visible en pestaña Practicar) -->
+          <div id="lesson-stepper-wrap" class="lesson-stepper-wrap d-none">
             <div class="lesson-stepper" role="tablist" aria-label="Sub-niveles de la lección">
               <button type="button" id="stepper-step-1" class="stepper-item active" data-step="1">
                 <span class="stepper-num">1</span>
@@ -73,6 +86,69 @@
         </div>
 
         <div class="modal-body pt-2 pb-4 px-4">
+
+          <!-- =====================================================
+               PESTAÑA 1: APRENDER (GUÍA, FÓRMULAS, EJEMPLO GUIADO Y TRAMPAS)
+               ===================================================== -->
+          <div id="modal-pane-learn" class="modal-learn-pane d-flex flex-column gap-3">
+            <div class="learn-section-card learn-idea-card">
+              <div class="learn-card-title">💡 Idea Clave</div>
+              <div id="learn-idea-clave" class="small text-dark" style="line-height: 1.55;"></div>
+            </div>
+
+            <div class="learn-section-card">
+              <div class="learn-card-title">🧾 Formulario Esencial</div>
+              <div id="learn-formulas-grid" class="formulas-grid"></div>
+            </div>
+
+            <div class="learn-section-card">
+              <div class="learn-card-title">🧭 Receta Rápida</div>
+              <ol id="learn-receta-list" class="learn-receta-list mb-0"></ol>
+            </div>
+
+            <div class="learn-section-card">
+              <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2">
+                <div class="learn-card-title mb-0">🧩 Ejemplo Guiado Paso a Paso</div>
+                <button type="button" id="btn-gen-guided-example" class="btn btn-duo btn-duo-outline-primary btn-sm">
+                  <span id="btn-guided-label">🤖 Ver otro ejemplo guiado con IA</span>
+                  <span id="btn-guided-spinner" class="d-none">
+                    <span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
+                    Generando ejemplo...
+                  </span>
+                </button>
+              </div>
+
+              <div id="learn-guided-enunciado" class="math-prompt-box mb-3"></div>
+              <div id="learn-guided-error" class="alert alert-warning py-2 px-3 small d-none mb-3"></div>
+              <div id="learn-guided-steps-list" class="d-flex flex-column gap-2 mb-3"></div>
+              <div id="learn-guided-final" class="guided-final-box d-none mb-3"></div>
+
+              <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
+                <button type="button" id="btn-reveal-next-step" class="btn btn-duo btn-duo-blue btn-sm">
+                  👁️ Ver Paso 1
+                </button>
+                <button type="button" id="btn-reveal-all-steps" class="btn btn-link btn-sm text-decoration-none fw-bold p-0">
+                  Mostrar todos
+                </button>
+              </div>
+            </div>
+
+            <div class="learn-traps-card">
+              <div class="learn-card-title text-warning-emphasis">⚠️ Trampas Típicas de Examen</div>
+              <ul id="learn-traps-list" class="small text-dark mb-0 ps-3 d-flex flex-column gap-1"></ul>
+            </div>
+
+            <div class="d-grid d-sm-flex justify-content-sm-end pt-1">
+              <button type="button" id="btn-learn-go-practice" class="btn btn-duo btn-duo-green px-4 py-2">
+                Listo, ir a Practicar →
+              </button>
+            </div>
+          </div>
+
+          <!-- =====================================================
+               PESTAÑA 2: PRACTICAR (3 PASOS + AUDITORÍA IA)
+               ===================================================== -->
+          <div id="modal-pane-practice" class="modal-practice-pane d-none">
 
           <!-- PASO 1: Pregunta de concepto -->
           <div id="lesson-step-1" class="lesson-step-pane">
@@ -141,6 +217,34 @@
             </div>
             <h3 id="step3-title" class="h5 fw-bold mb-2">Reto de desarrollo completo</h3>
             <p id="step3-instructions" class="small text-secondary mb-3"></p>
+
+            <!-- Barra de herramientas Paso 3: Formulario desplegable + Nivel Base / Parcial FNI -->
+            <div id="step3-tools-bar" class="step3-tools-bar mb-3">
+              <button type="button" id="btn-toggle-step3-formulas" class="btn btn-duo btn-duo-outline-secondary btn-sm">
+                🧾 Formulario del tema
+              </button>
+
+              <div id="step3-difficulty-wrap" class="difficulty-pills">
+                <button type="button" id="btn-diff-base" class="difficulty-pill active" data-diff="base">
+                  🟢 Nivel Base
+                </button>
+                <button type="button" id="btn-diff-parcial" class="difficulty-pill" data-diff="parcial_fni">
+                  🔥 Nivel Parcial FNI
+                </button>
+                <button type="button" id="btn-step3-generate-ai" class="btn btn-duo btn-duo-outline-primary btn-sm">
+                  <span id="btn-step3-gen-label">🔄 Generar reto</span>
+                  <span id="btn-step3-gen-spinner" class="d-none">
+                    <span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
+                    Generando...
+                  </span>
+                </button>
+              </div>
+            </div>
+
+            <div id="step3-formulas-drawer" class="step3-formulas-drawer d-none mb-3">
+              <div class="small fw-black text-uppercase text-primary mb-2">🧾 Fórmulas del tema actual</div>
+              <div id="step3-formulas-list" class="formulas-grid"></div>
+            </div>
 
             <div id="step3-enunciado-latex" class="math-prompt-box mb-4"></div>
 
@@ -318,6 +422,7 @@
             </div>
           </div>
 
+          </div>
         </div>
       </div>
     </div>

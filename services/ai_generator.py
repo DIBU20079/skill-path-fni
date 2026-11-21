@@ -172,8 +172,9 @@ def generar_ejercicio_dinamico(
     materia: str,
     tema: str,
     historial_errores: Optional[Union[str, list]] = None,
+    dificultad: str = "base",
 ) -> dict[str, Any]:
-    """Genera un ejercicio inédito de 3 pasos en LaTeX para la materia y tema dados."""
+    """Genera un ejercicio inédito de 3 pasos en LaTeX para la materia, tema y dificultad dados."""
     materia_limpia = (materia or "").strip()
     tema_limpio = (tema or "").strip()
 
@@ -182,11 +183,24 @@ def generar_ejercicio_dinamico(
             "Los campos 'materia' y 'tema' son obligatorios para generar un ejercicio."
         )
 
+    raw_diff = str(dificultad or "base").strip().lower()
+    dificultad_limpia = "parcial_fni" if raw_diff == "parcial_fni" else "base"
+
+    bloque_dificultad = (
+        "NIVEL DE DIFICULTAD: EXAMEN PARCIAL DE INGENIERÍA FNI (parcial_fni). "
+        "Eleva la exigencia técnica respecto al nivel base: combina propiedades o pasos intermedios "
+        "(por ejemplo, racionalización + factorización, regla de la cadena + producto, plano inclinado con fricción + descomposición o casos límite con trampa típica de parcial universitario), "
+        "manteniendo un enunciado perfectamente resoluble a mano en una hoja."
+        if dificultad_limpia == "parcial_fni"
+        else "NIVEL DE DIFICULTAD: NIVEL BASE (base). Refuerza el fundamento operativo directo del tema."
+    )
+
     historial_texto = _formatear_historial(historial_errores)
     prompt_generacion = (
         "Genera un ejercicio universitario completamente nuevo y original de 3 sub-pasos.\n\n"
         f"MATERIA: {materia_limpia}\n"
         f"TEMA: {tema_limpio}\n"
+        f"{bloque_dificultad}\n"
         f"ERRORES RECIENTES DEL ESTUDIANTE (BAÚL DE ERRORES):\n{historial_texto}\n\n"
         "Diseña el Paso 1 (concepto con 4 opciones), el Paso 2 (práctica corta numérica/fraccionaria) "
         "y el Paso 3 (reto completo en papel con LaTeX) enfocado en reforzar este tema sin repetir ejercicios triviales."
@@ -196,10 +210,15 @@ def generar_ejercicio_dinamico(
         system_instruction=EXERCISE_GEN_SYSTEM_INSTRUCTION,
         response_mime_type="application/json",
         response_schema=DYNAMIC_EXERCISE_SCHEMA,
-        temperature=0.8,
+        temperature=0.82 if dificultad_limpia == "parcial_fni" else 0.78,
     )
     payload = _invocar_gemini_json([prompt_generacion], config)
-    return _normalizar_ejercicio_dinamico(payload)
+    resultado = _normalizar_ejercicio_dinamico(payload)
+    resultado["dificultad"] = dificultad_limpia
+    return resultado
+
+
+generar_ejercicio = generar_ejercicio_dinamico
 
 
 ANALOGOUS_EXAMPLE_SCHEMA = {
@@ -362,3 +381,170 @@ def generar_ejercicio_error(
     )
     payload = _invocar_gemini_json([prompt], config)
     return _normalizar_ejercicio_error(payload)
+
+
+STEP_EXPLAIN_SCHEMA = {
+    "type": "OBJECT",
+    "properties": {
+        "aclaracion": {"type": "STRING"},
+    },
+    "required": ["aclaracion"],
+}
+
+STEP_EXPLAIN_SYSTEM_INSTRUCTION = """Eres un auxiliar de docencia universitario de Ciencias Básicas (FNI) muy claro y directo.
+
+REGLAS ESTRICTAS:
+1. Explica en 2 a 3 líneas muy concretas exactamente qué transformación matemática o física ocurrió entre `paso_anterior` y `paso_actual`.
+2. Incluye las fórmulas o propiedades clave con LaTeX válido compatible con KaTeX delimitado por `$ ... $` (o `$$ ... $$`). Nunca dejes comandos LaTeX sueltos sin `$`.
+3. Evita saludos largos o relleno; responde directo al punto que generó duda.
+4. Devuelve estrictamente JSON válido según el esquema."""
+
+GUIDED_EXAMPLE_SCHEMA = {
+    "type": "OBJECT",
+    "properties": {
+        "enunciado": {"type": "STRING"},
+        "pasos": {
+            "type": "ARRAY",
+            "items": {
+                "type": "OBJECT",
+                "properties": {
+                    "titulo": {"type": "STRING"},
+                    "expresion": {"type": "STRING"},
+                    "explicacion": {"type": "STRING"},
+                },
+                "required": ["titulo", "expresion", "explicacion"],
+            },
+        },
+        "resultado_final": {"type": "STRING"},
+    },
+    "required": ["enunciado", "pasos", "resultado_final"],
+}
+
+GUIDED_EXAMPLE_SYSTEM_INSTRUCTION = """Eres un docente universitario de Ciencias Básicas de Ingeniería (FNI) creando ejemplos guiados paso a paso en español.
+
+REGLAS ESTRICTAS:
+1. Genera un ejemplo modelo universitario COMPLETAMENTE NUEVO para la materia y tema solicitados (distinto al `enunciado_previo` si se proporciona).
+2. Descompón la resolución en 3 a 4 pasos didácticos claros. Cada paso incluye `titulo` ("Paso N: ..."), `expresion` (en bloque `$$...$$`) y `explicacion` (1-2 líneas del porqué del movimiento).
+3. Toda expresión matemática debe usar LaTeX válido compatible con KaTeX delimitado por `$ ... $` o `$$ ... $$`.
+4. Devuelve estrictamente JSON válido según el esquema."""
+
+
+def _normalizar_explicacion_paso(payload: dict[str, Any]) -> dict[str, str]:
+    """Valida la aclaración corta de un paso del ejemplo guiado."""
+    if not isinstance(payload, dict):
+        raise RuntimeError("La aclaración del paso devuelta por IA no es válida.")
+    aclaracion = str(payload.get("aclaracion") or "").strip()
+    if not aclaracion:
+        raise RuntimeError("La IA devolvió una aclaración vacía.")
+    return {"aclaracion": aclaracion}
+
+
+def _normalizar_ejemplo_guiado(payload: dict[str, Any]) -> dict[str, Any]:
+    """Valida y normaliza un ejemplo guiado con pasos estructurados."""
+    if not isinstance(payload, dict):
+        raise RuntimeError("El ejemplo guiado devuelto por IA no tiene formato JSON válido.")
+
+    enunciado = str(payload.get("enunciado") or "").strip()
+    resultado_final = str(payload.get("resultado_final") or "").strip()
+    pasos_raw = payload.get("pasos") or []
+
+    pasos_norm: list[dict[str, str]] = []
+    for idx, step in enumerate(pasos_raw):
+        if not isinstance(step, dict):
+            continue
+        titulo = str(step.get("titulo") or f"Paso {idx + 1}").strip()
+        expresion = str(step.get("expresion") or "").strip()
+        explicacion = str(step.get("explicacion") or "").strip()
+        if expresion and explicacion:
+            if not titulo.lower().startswith("paso "):
+                titulo = f"Paso {idx + 1}: {titulo}"
+            pasos_norm.append(
+                {
+                    "titulo": titulo,
+                    "expresion": expresion,
+                    "explicacion": explicacion,
+                }
+            )
+
+    if not enunciado or not pasos_norm or not resultado_final:
+        raise RuntimeError("El ejemplo guiado generado está incompleto.")
+
+    return {
+        "enunciado": enunciado,
+        "pasos": pasos_norm,
+        "resultado_final": resultado_final,
+    }
+
+
+def explicar_paso_algebraico(
+    materia: str,
+    tema: str,
+    paso_anterior: str,
+    paso_actual: str,
+    explicacion_actual: str = "",
+) -> dict[str, str]:
+    """Explica en 2-3 líneas qué transformación ocurrió entre paso_anterior y paso_actual."""
+    materia_limpia = (materia or "").strip() or "Ciencias Básicas FNI"
+    tema_limpio = (tema or "").strip() or "Resolución guiada"
+    anterior_limpio = (paso_anterior or "").strip() or "Enunciado inicial del problema"
+    actual_limpio = (paso_actual or "").strip()
+    explicacion_limpia = (explicacion_actual or "").strip()
+
+    if not actual_limpio:
+        raise ValueError("El campo 'paso_actual' es obligatorio.")
+
+    prompt = (
+        "Un estudiante está leyendo un ejemplo guiado y pregunta: '¿Por qué pasó esto?'.\n\n"
+        f"MATERIA: {materia_limpia}\n"
+        f"TEMA: {tema_limpio}\n"
+        f"ESTADO ANTERIOR:\n{anterior_limpio}\n\n"
+        f"PASO ACTUAL:\n{actual_limpio}\n\n"
+        f"EXPLICACIÓN BREVE ORIGINAL:\n{explicacion_limpia or 'Sin nota adicional'}\n\n"
+        "Aclara en 2 a 3 líneas exactas qué regla, identidad o despeje conectó el estado anterior con el paso actual."
+    )
+
+    config = types.GenerateContentConfig(
+        system_instruction=STEP_EXPLAIN_SYSTEM_INSTRUCTION,
+        response_mime_type="application/json",
+        response_schema=STEP_EXPLAIN_SCHEMA,
+        temperature=0.35,
+    )
+    payload = _invocar_gemini_json([prompt], config)
+    return _normalizar_explicacion_paso(payload)
+
+
+def generar_ejemplo_guiado(
+    materia: str,
+    tema: str,
+    enunciado_previo: str = "",
+) -> dict[str, Any]:
+    """Genera un nuevo ejemplo guiado paso a paso con estructura de `guia_aprendizaje`."""
+    materia_limpia = (materia or "").strip()
+    tema_limpio = (tema or "").strip()
+    previo_limpio = (enunciado_previo or "").strip()
+
+    if not materia_limpia or not tema_limpio:
+        raise ValueError("Los campos 'materia' y 'tema' son obligatorios.")
+
+    nota_previo = (
+        f"EJEMPLO ANTERIOR (OBLIGATORIO HACER UNO DISTINTO):\n{previo_limpio}\n\n"
+        if previo_limpio
+        else ""
+    )
+
+    prompt = (
+        "Genera un ejemplo guiado paso a paso de nivel universitario FNI.\n\n"
+        f"MATERIA: {materia_limpia}\n"
+        f"TEMA: {tema_limpio}\n"
+        f"{nota_previo}"
+        "Incluye enunciado claro, 3 a 4 pasos con título/expresión/explicación en LaTeX y resultado_final."
+    )
+
+    config = types.GenerateContentConfig(
+        system_instruction=GUIDED_EXAMPLE_SYSTEM_INSTRUCTION,
+        response_mime_type="application/json",
+        response_schema=GUIDED_EXAMPLE_SCHEMA,
+        temperature=0.75,
+    )
+    payload = _invocar_gemini_json([prompt], config)
+    return _normalizar_ejemplo_guiado(payload)
