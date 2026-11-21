@@ -1,0 +1,117 @@
+  <!-- =========================================================
+       NAVEGACIÓN FIJA ESTILO DUOLINGO (Lateral en PC / Inferior en móvil)
+       ========================================================= -->
+  <nav id="app-nav" class="app-nav d-none" aria-label="Navegación principal">
+    <div class="app-nav-brand d-none d-lg-flex">
+      <a href="#" id="sidebar-home-link" class="brand-logo text-decoration-none">
+        <span class="brand-badge">
+          <i class="bi bi-compass-fill"></i>
+        </span>
+        <span class="brand-title">Skill-Path FNI</span>
+      </a>
+    </div>
+
+    <div class="app-nav-items" role="tablist">
+      <button type="button" class="nav-section-btn active" data-section="camino" aria-label="Camino">
+        <i class="bi bi-map-fill"></i>
+        <span>Camino</span>
+      </button>
+      <button type="button" class="nav-section-btn" data-section="materias" aria-label="Materias">
+        <i class="bi bi-journals"></i>
+        <span>Materias</span>
+      </button>
+      <button type="button" class="nav-section-btn" data-section="skills" aria-label="Mis Skills">
+        <i class="bi bi-trophy-fill"></i>
+        <span>Mis Skills</span>
+      </button>
+      <button type="button" class="nav-section-btn" data-section="perfil" aria-label="Perfil">
+        <i class="bi bi-person-circle"></i>
+        <span>Perfil</span>
+      </button>
+    </div>
+
+    <div class="app-nav-user d-none d-lg-flex">
+      <div id="sidebar-user-avatar" class="user-avatar-circle">E</div>
+      <div class="min-w-0">
+        <div id="sidebar-user-name" class="fw-bold text-dark text-truncate small">Estudiante</div>
+        <div id="sidebar-user-stage" class="text-secondary text-truncate" style="font-size: 0.74rem;">Pre-U</div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- =========================================================
+       BARRA SUPERIOR FIJA
+       ========================================================= -->
+  <header id="top-navbar" class="topbar sticky-top d-none" aria-label="Barra de progreso y estado del estudiante">
+    <div class="container-xl py-2">
+      <div class="topbar-grid">
+        <!-- Saludo, Logo en móvil y Materia activa -->
+        <div class="topbar-brand-group">
+          <a href="#" id="brand-home-link" class="brand-logo text-decoration-none d-lg-none" title="Skill-Path FNI">
+            <span class="brand-badge">
+              <i class="bi bi-compass-fill"></i>
+            </span>
+            <span class="brand-title">Skill-Path FNI</span>
+          </a>
+          <span id="nav-user-greeting" class="greeting-pill d-none d-sm-inline-flex">¡Hola, Estudiante!</span>
+          <span id="nav-subject-name" class="subject-pill">Álgebra Pre-U</span>
+        </div>
+
+        <!-- Barra de progreso visual de la materia activa -->
+        <div class="topbar-progress-group">
+          <div class="d-flex justify-content-between align-items-center mb-1">
+            <span id="nav-progress-text" class="progress-caption">Faltan <strong>5</strong> temas</span>
+            <span id="nav-progress-percent" class="progress-percent-tag">0%</span>
+          </div>
+          <div class="duo-progress-track">
+            <div
+              id="nav-progress-bar"
+              class="duo-progress-fill"
+              role="progressbar"
+              style="width: 0%;"
+              aria-valuenow="0"
+              aria-valuemin="0"
+              aria-valuemax="100"
+              aria-label="Progreso de temas completados"
+            ></div>
+          </div>
+        </div>
+
+        <!-- Estadísticas gamificadas y acciones rápidas -->
+        <div class="topbar-actions-group">
+          <div class="stat-pill stat-pill-streak" title="Racha actual">
+            <span class="stat-emoji" aria-hidden="true">🔥</span>
+            <span id="nav-streak-count" class="stat-value">0</span>
+          </div>
+
+          <div class="stat-pill stat-pill-xp" title="Puntos de experiencia acumulados">
+            <span class="stat-emoji" aria-hidden="true">⚡</span>
+            <span class="stat-value"><span id="nav-xp-count">0</span> XP</span>
+          </div>
+
+          <button
+            type="button"
+            id="btn-open-grade-modal"
+            class="btn btn-duo btn-duo-outline-primary btn-sm"
+            data-bs-toggle="modal"
+            data-bs-target="#partialGradeModal"
+          >
+            <i class="bi bi-clipboard2-pulse me-1"></i>
+            <span class="d-none d-md-inline">Registrar Nota Parcial</span>
+            <span class="d-inline d-md-none">Nota</span>
+          </button>
+
+          <button
+            type="button"
+            id="btn-reset-diagnostic"
+            class="btn btn-duo btn-duo-outline-secondary btn-sm"
+            title="Repetir diagnóstico y cambiar etapa"
+          >
+            <i class="bi bi-arrow-counterclockwise me-1"></i>
+            <span class="d-none d-xl-inline">Reiniciar Diagnóstico</span>
+            <span class="d-inline d-xl-none">Reiniciar</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>

@@ -6,45 +6,78 @@ Guía de arquitectura, restricciones técnicas, reglas pedagógicas y contratos 
 
 ## 1. Stack y Restricciones Técnicas Estrictas
 
-- **Backend**: Python 3 + **Flask** + **Flask-CORS** corriendo en el puerto `5000`.
-  - Prohibido usar FastAPI, Django, Node.js en backend o bases de datos SQL.
+- **Backend**: Python 3 + **Flask** + **Flask-CORS** corriendo en el puerto `5000` (configurable mediante `PORT`), organizado con **Flask Blueprints** en `routes/` y lógica de dominio en `services/`.
+  - Prohibido usar FastAPI, Django, Node.js en backend o bases de datos SQL locales.
 - **Inteligencia Artificial**: SDK oficial **`google-genai`** con modelo estándar **`gemini-2.5-flash`** (respaldado por `GEMINI_MODEL` opcional en `.env` y fallback controlado ante 404/503), leyendo `GEMINI_API_KEY` desde `.env` con `python-dotenv`.
+  - Cliente compartido en `services/ai_client.py`; auditoría en `services/ai_auditor.py`; generación dinámica en `services/ai_generator.py`.
   - Usar `response_mime_type="application/json"` y `response_schema`.
   - Enviar imágenes mediante `types.Part.from_bytes(...)` tras validación/normalización con Pillow.
   - Todas las llamadas a Gemini deben estar envueltas en `try/except` y retornar errores JSON claros.
-- **Frontend**: Una sola página (`templates/index.html`) + `static/css/styles.css` + `static/js/app.js` en **JavaScript Vanilla**.
-  - Prohibido usar React, Vue, Angular, npm o bundlers.
-  - CDNs permitidos exclusivamente: **Bootstrap 5**, **Bootstrap Icons**, **KaTeX** (con extensión `auto-render`) y **Chart.js** (solo para el gráfico radar diagnóstico).
+- **Frontend**: Una sola página modular (`templates/index.html` + `templates/partials/*.html`) + hojas CSS modulares (`base.css`, `skilltree.css`, `modals.css`) + **ES Modules** en **JavaScript Vanilla** (`static/js/*.js` cargados desde `main.js` con `<script type="module">`).
+  - Prohibido usar React, Vue, Angular, npm, bundlers o `onclick="..."` inline en HTML.
+  - CDNs permitidos exclusivamente: **Bootstrap 5**, **Bootstrap Icons**, **KaTeX** (con extensión `auto-render`) y **Chart.js** (solo para gráficos radar).
   - **Sin pizarra digital**: Prohibido implementar `<canvas>` de dibujo o pizarras interactivas; la práctica del Paso 3 se basa en foto del cuaderno físico (`<input type="file" accept="image/*" capture="environment">`) y/o explicación escrita en texto.
-- **Persistencia**: Sin base de datos en servidor. Todo el progreso del usuario se guarda en `localStorage` bajo la clave `skillpath_fni_progress_v1`:
+- **Persistencia**: El progreso del usuario se guarda en `localStorage` bajo la clave `skillpath_fni_progress_v1`, con adaptador en nube opcional (`services/db_cloud.py` / `/api/auth/sync`) con fallback automático local:
   - `nombre`, `etapa`, `materia_activa`, `xp`, `racha`, `nodos_estado`, `historial_errores`, `notas_parciales`, `nota_parcial`, `diagnostico_completado`, `diagnostico_resultados`, `alerta_rescate`, `xp_otorgado_nodos`, `nodo_retorno`.
 - **Calidad**: Cero funciones vacías, cero `// TODO`, cero placeholders o datos truncados.
 
 ---
 
-## 2. Estructura de Archivos del Proyecto
+## 2. Estructura Modular del Proyecto (Trabajo en Paralelo)
 
 ```text
 .
 ├── AGENTS.md
+├── README.md
+├── .env.example
+├── .gitattributes
 ├── .gitignore
 ├── requirements.txt
-├── app.py
-├── ai_tutor.py
+├── app.py                        # Inicialización minimalista de Flask, CORS, error 413 y Blueprints
+├── routes/
+│   ├── __init__.py               # Exporta los 4 Blueprints
+│   ├── views.py                  # GET / -> renderiza index.html
+│   ├── api_skills.py             # GET /api/skills (combina diagnostico + pre_u + facultad)
+│   ├── api_ai.py                 # POST /api/evaluar y POST /api/generar-ejercicio
+│   └── api_auth.py               # GET/POST /api/auth/* (base para login y sync Supabase)
+├── services/
+│   ├── __init__.py
+│   ├── ai_client.py              # Cliente Gemini compartido, timeout y fallback de modelos
+│   ├── ai_auditor.py             # Auditoría socrática por foto/texto (8 claves)
+│   ├── ai_generator.py           # Generación dinámica de ejercicios de 3 pasos en LaTeX
+│   └── db_cloud.py               # Adaptador Supabase / respaldo seguro localStorage
 ├── data/
-│   └── skills_db.json
+│   ├── diagnostico.json          # Bancos de diagnóstico y tiempos de pre_u y facultad
+│   ├── pre_u.json                # Materias y skills de la etapa Pre-U
+│   └── facultad.json             # Materias y skills de la etapa Facultad
 ├── templates/
-│   └── index.html
+│   ├── index.html                # Shell HTML, CDNs, CSS modulares e entry ES Module (main.js)
+│   └── partials/
+│       ├── navbar.html           # Navegación lateral/inferior Duolingo y topbar fija
+│       ├── auth_welcome.html     # Pantalla bienvenida, perfil rápido y selector de etapa
+│       ├── diagnostic.html       # Quiz diagnóstico con cronómetro y radar inicial
+│       ├── skilltree.html        # Camino vertical de nodos, Alerta Roja y ranking crítico
+│       ├── materias.html         # Catálogo curricular multi-materia
+│       ├── skills_stats.html     # Mis Skills: radar, medallas, nota parcial y Baúl IA
+│       ├── profile.html          # Sección Perfil: nombre, etapa, repetir diag y Demo
+│       └── challenge_modal.html  # Modal de 3 pasos (Concepto, Práctica, Reto Foto) + Nota Parcial
 └── static/
     ├── css/
-    │   └── styles.css
+    │   ├── base.css              # Design tokens, botones 3D, navbar, bienvenida y diagnóstico
+    │   ├── skilltree.css         # Árbol de nodos, conectores, animaciones, catálogo y medallas
+    │   └── modals.css            # Modal 3 pasos, dropzone, tarjeta IA, historial e intentos
     └── js/
-        └── app.js
+        ├── api.js                # Llamadas fetch tipadas (/api/skills, /api/evaluar, etc.)
+        ├── state.js              # Estado localStorage, caché DOM, helpers currículo y KaTeX
+        ├── diagnostic.js         # Cuestionario diagnóstico, temporizador, calibración y radar
+        ├── skilltree.js          # Camino de nodos, ranking, catálogo Materias, Mis Skills y Baúl
+        ├── challenge.js          # Modal 3 pasos, generación IA, subida foto, auditoría continua
+        └── main.js               # Orquestador inicialización, navegación, perfil y eventos
 ```
 
 ---
 
-## 3. Regla Pedagógica Innegociable (`ai_tutor.py`)
+## 3. Regla Pedagógica Innegociable (`services/ai_auditor.py`)
 
 La función `auditar_resolucion(enunciado, prerrequisito, texto_usuario, imagen_bytes, mime_type, historial_errores, intentos_previos_ejercicio, prerrequisito_id)` audita procedimientos manuscritos y/o escritos con enfoque socrático y retroalimentación continua por intentos:
 
@@ -77,11 +110,11 @@ La función `auditar_resolucion(enunciado, prerrequisito, texto_usuario, imagen_
 
 ---
 
-## 4. Contratos de API (`app.py`)
+## 4. Contratos de API (`routes/*.py`)
 
-- **`GET /`**: Renderiza `templates/index.html`.
-- **`GET /api/skills`**: Lee y devuelve `data/skills_db.json` (UTF-8, HTTP 200).
-- **`POST /api/evaluar`**:
+- **`GET /` (`routes/views.py`)**: Renderiza `templates/index.html`.
+- **`GET /api/skills` (`routes/api_skills.py`)**: Lee y combina `data/diagnostico.json`, `data/pre_u.json` y `data/facultad.json` en UTF-8 devolviendo exactamente el objeto unificado `{ "pre_u": ..., "facultad": ... }` (HTTP 200).
+- **`POST /api/evaluar` (`routes/api_ai.py`)**:
   - Acepta `multipart/form-data` (y fallback JSON) con:
     - `enunciado` (obligatorio)
     - `prerrequisito` (opcional)
@@ -90,16 +123,18 @@ La función `auditar_resolucion(enunciado, prerrequisito, texto_usuario, imagen_
     - `historial_errores` (JSON string de lista o texto)
     - `intentos_previos_ejercicio` (JSON string de lista de errores en fotos previas del mismo ejercicio)
     - `foto` (archivo de imagen opcional; máx. 10 MB)
-  - Llama a `auditar_resolucion(...)` y devuelve HTTP `200` con el JSON de 8 claves.
+  - Llama a `auditar_resolucion(...)` (`services/ai_auditor.py`) y devuelve HTTP `200` con el JSON de 8 claves.
   - Errores devuelven JSON claro (`400` validación, `413` imagen > 10 MB, `502` fallo de proveedor IA, `500` error interno).
-- **`POST /api/generar-ejercicio`**:
+- **`POST /api/generar-ejercicio` (`routes/api_ai.py`)**:
   - Acepta JSON (o `form-data`) con `materia` (obligatorio), `tema` (obligatorio) e `historial_errores` (opcional).
-  - Llama a `generar_ejercicio_dinamico(...)` (`temperature=0.8`, `response_mime_type="application/json"`) y devuelve HTTP `200` con un ejercicio inédito de 3 pasos (`paso1_concepto`, `paso2_practica`, `paso3_reto_foto`) en LaTeX.
-  - Si falla la IA, el frontend conserva el respaldo estático de `data/skills_db.json` sin errores rotos.
+  - Llama a `generar_ejercicio_dinamico(...)` (`services/ai_generator.py`, `temperature=0.8`, `response_mime_type="application/json"`) y devuelve HTTP `200` con un ejercicio inédito de 3 pasos (`paso1_concepto`, `paso2_practica`, `paso3_reto_foto`) en LaTeX.
+  - Si falla la IA, el frontend conserva el respaldo estático del currículo sin errores rotos.
+- **`GET /api/auth/status`, `GET /api/auth/sync/<user_id>`, `POST /api/auth/sync` (`routes/api_auth.py`)**:
+  - Endpoints base conectados a `services/db_cloud.py` preparados para sincronización futura con Supabase con fallback automático a `localStorage`.
 
 ---
 
-## 5. Contrato Curricular (`data/skills_db.json`) y Flujo UI
+## 5. Contrato Curricular (`data/{diagnostico,pre_u,facultad}.json`) y Flujo UI
 
 - Dos etapas de primer nivel: `pre_u` y `facultad`.
 - Cada etapa contiene:

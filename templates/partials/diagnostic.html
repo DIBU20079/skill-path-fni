@@ -1,0 +1,80 @@
+      <!-- =========================================================
+           EXAMEN DIAGNÓSTICO Y RADAR INICIAL
+           ========================================================= -->
+      <section id="view-diagnostic" class="app-view d-none">
+        <div class="diagnostic-shell mx-auto">
+
+          <!-- Panel A: Cuestionario paso a paso -->
+          <div id="diagnostic-quiz-panel" class="duo-card p-4 p-lg-5">
+            <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+              <div class="d-flex align-items-center gap-2">
+                <span class="badge-step-counter">
+                  Pregunta <span id="diag-current-num">1</span> de <span id="diag-total-num">6</span>
+                </span>
+                <span id="diag-area-badge" class="badge-area">Álgebra</span>
+              </div>
+              <div class="timer-pill" id="diag-timer-pill">
+                <i class="bi bi-clock-fill me-1"></i>
+                <span id="diag-timer-text">45s</span>
+              </div>
+            </div>
+
+            <div class="timer-track mb-3" aria-label="Tiempo restante de la pregunta">
+              <div id="diag-timer-bar" class="timer-fill" style="width: 100%;"></div>
+            </div>
+
+            <div id="diag-step-dots" class="diag-dots mb-4" aria-hidden="true"></div>
+
+            <div id="diag-question-latex" class="math-prompt-box mb-4">
+              Cargando pregunta de diagnóstico...
+            </div>
+
+            <div id="diag-options-container" class="options-grid mb-4" role="radiogroup" aria-label="Opciones de respuesta"></div>
+
+            <div id="diag-feedback-box" class="feedback-banner d-none mb-4" role="status"></div>
+
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+              <span class="small text-secondary">
+                <i class="bi bi-lightning-charge-fill text-warning me-1"></i>
+                Calibramos todas tus materias según tus resultados
+              </span>
+              <button type="button" id="btn-diag-next" class="btn btn-duo btn-duo-green px-4" disabled>
+                Confirmar Respuesta <i class="bi bi-check2-circle ms-1"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- Panel B: Resultados y Radar Chart.js -->
+          <div id="diagnostic-results-panel" class="duo-card p-4 p-lg-5 d-none">
+            <div class="text-center mb-4">
+              <span class="result-pill-top">DIAGNÓSTICO COMPLETADO</span>
+              <h2 class="fw-black mt-2 mb-1">Tu Mapa Inicial de Competencias</h2>
+              <p class="text-secondary mb-0">
+                Puntaje global: <strong id="diag-overall-score" class="text-dark">0%</strong> — Desbloqueamos automáticamente las áreas con &ge; 80%.
+              </p>
+            </div>
+
+            <div class="row g-4 align-items-center">
+              <div class="col-12 col-lg-7">
+                <div class="radar-canvas-wrap">
+                  <canvas id="diagnostic-radar-chart" aria-label="Gráfico radar de porcentaje de dominio por área"></canvas>
+                </div>
+              </div>
+              <div class="col-12 col-lg-5">
+                <h3 class="h6 fw-bold text-uppercase text-secondary mb-3">Desglose por Área</h3>
+                <div id="diag-area-summary" class="d-flex flex-column gap-2 mb-3"></div>
+                <div id="diag-recommendation-text" class="recommendation-box small">
+                  Analizando tus bloqueos iniciales para ordenar tu camino...
+                </div>
+              </div>
+            </div>
+
+            <div class="text-center mt-4 pt-2">
+              <button type="button" id="btn-go-to-path" class="btn btn-duo btn-duo-green btn-lg px-5 py-3">
+                <i class="bi bi-signpost-split-fill me-2"></i>Ir a mi Camino Personalizado
+              </button>
+            </div>
+          </div>
+
+        </div>
+      </section>

@@ -1,0 +1,380 @@
+{
+  "id": "pre_u",
+  "nombre": "Ruta Pre-Universitaria (Admisión FNI)",
+  "descripcion": "Preparación intensiva por materias para el examen de ingreso a Ingeniería: Álgebra Pre-U y Trigonometría.",
+  "materias": [
+    {
+      "id": "pre_algebra",
+      "nombre": "Álgebra Pre-U",
+      "codigo": "PRE-ALG",
+      "icono": "bi-calculator-fill",
+      "color": "blue",
+      "descripcion": "Bases críticas de factorización, fracciones algebraicas, inecuaciones, funciones y límites iniciales para ingreso.",
+      "skills": [
+        {
+          "id": "pre_alg_01_factorizacion",
+          "ranking_criticidad": 1,
+          "frecuencia_examen": "98%",
+          "materia": "Álgebra Pre-U",
+          "nombre": "Factorización",
+          "area": "Álgebra",
+          "prerrequisito_id": null,
+          "xp": 100,
+          "tip_auxiliar": "Antes de expandir paréntesis, busca factor común, diferencia de cuadrados o diferencia de cubos. Casi todo ejercicio filtro de admisión se destraba factorizando primero.",
+          "paso1_concepto": {
+            "titulo": "Identidad de diferencia de cubos",
+            "enunciado_latex": "¿Cuál es la factorización correcta en los reales de la expresión $a^3 - b^3$?",
+            "opciones": [
+              "$(a - b)(a^2 + ab + b^2)$",
+              "$(a - b)(a^2 - ab + b^2)$",
+              "$(a - b)(a^2 + 2ab + b^2)$",
+              "$(a + b)(a^2 - ab + b^2)$"
+            ],
+            "respuesta_correcta": "$(a - b)(a^2 + ab + b^2)$",
+            "explicacion": "En $a^3 - b^3$, el factor lineal conserva el signo negativo $(a - b)$ y el trinomio lleva todos sus términos positivos sin doble producto."
+          },
+          "paso2_practica": {
+            "titulo": "Simplificación y evaluación rápida",
+            "enunciado_latex": "Simplifica $f(x) = \\frac{x^2 - 16}{x - 4}$ ($x \\neq 4$) y evalúa la expresión reducida en $x = 5$.",
+            "respuesta_correcta": "9",
+            "respuestas_aceptadas": [
+              "9",
+              "9.0"
+            ],
+            "pista": "Factoriza $x^2 - 16 = (x - 4)(x + 4)$ antes de sustituir $x = 5$."
+          },
+          "paso3_reto_foto": {
+            "titulo": "Reto de examen: Simplificación racional con cubos",
+            "enunciado_latex": "Simplifica al máximo indicando explícitamente las restricciones de dominio: $$E(x) = \\frac{x^3 - 8}{x^2 - 4} \\cdot \\frac{x + 2}{x^2 + 2x + 4}$$",
+            "prerrequisito_evaluado": "Factorización de diferencia de cubos, diferencia de cuadrados y restricciones de denominador distinto de cero.",
+            "instrucciones": "Resuelve paso a paso en papel mostrando cada factorización, anota los valores prohibidos de $x$ antes de cancelar y sube una foto clara de tu hoja."
+          }
+        },
+        {
+          "id": "pre_alg_02_fracciones",
+          "ranking_criticidad": 2,
+          "frecuencia_examen": "95%",
+          "materia": "Álgebra Pre-U",
+          "nombre": "Fracciones Algebraicas",
+          "area": "Álgebra",
+          "prerrequisito_id": "pre_alg_01_factorizacion",
+          "xp": 110,
+          "tip_auxiliar": "Prohibido cancelar términos que están sumando o restando. Solo se simplifican factores completos del numerador y denominador tras factorizar.",
+          "paso1_concepto": {
+            "titulo": "Regla de cancelación segura",
+            "enunciado_latex": "Antes de cancelar un factor común $(x - a)$ entre el numerador y el denominador de una fracción algebraica $\\frac{P(x)}{Q(x)}$, ¿qué condición debes dejar registrada?",
+            "opciones": [
+              "Que $x \\neq a$ (y excluir toda raíz del denominador original)",
+              "Que $x = a$ es automáticamente solución del ejercicio",
+              "Que $(x - a)$ solo se excluye si es negativo",
+              "No hace falta ninguna restricción después de cancelar"
+            ],
+            "respuesta_correcta": "Que $x \\neq a$ (y excluir toda raíz del denominador original)",
+            "explicacion": "La simplificación solo es válida fuera de los valores que anulan el denominador original."
+          },
+          "paso2_practica": {
+            "titulo": "Suma simplificada evaluada",
+            "enunciado_latex": "Simplifica $S(x) = \\frac{x^2 - 1}{x + 1} + \\frac{x^2 - 4}{x - 2}$ (para $x \\neq -1, 2$) y calcula el valor numérico resultante en $x = 3$.",
+            "respuesta_correcta": "7",
+            "respuestas_aceptadas": [
+              "7",
+              "7.0"
+            ],
+            "pista": "Cada fracción se simplifica primero a $(x - 1)$ y $(x + 2)$; súmalas y evalúa en $x = 3$."
+          },
+          "paso3_reto_foto": {
+            "titulo": "Reto de examen: Resta de fracciones algebraicas",
+            "enunciado_latex": "Opera y reduce a su mínima expresión indicando las restricciones de $x$: $$A(x) = \\frac{x}{x - 2} - \\frac{4}{x^2 - 2x}$$",
+            "prerrequisito_evaluado": "Factor común en denominadores, mínimo común múltiplo algebraico y diferencia de cuadrados.",
+            "instrucciones": "Factoriza $x^2 - 2x$ en tu cuaderno, halla el denominador común, simplifica el numerador resultante y anota qué valores no puede tomar $x$."
+          }
+        },
+        {
+          "id": "pre_alg_03_inecuaciones",
+          "ranking_criticidad": 3,
+          "frecuencia_examen": "93%",
+          "materia": "Álgebra Pre-U",
+          "nombre": "Inecuaciones",
+          "area": "Álgebra",
+          "prerrequisito_id": "pre_alg_02_fracciones",
+          "xp": 125,
+          "tip_auxiliar": "Nunca pases multiplicando un denominador con incógnita $x$ en una inecuación porque desconoces su signo. Pasa todo a un lado y usa puntos críticos.",
+          "paso1_concepto": {
+            "titulo": "Extremos abiertos del denominador",
+            "enunciado_latex": "Al resolver $\\frac{x + 1}{x - 3} \\ge 0$, ¿por qué $x = 3$ lleva paréntesis abierto en el intervalo solución pese al signo $\\ge$?",
+            "opciones": [
+              "Porque $x = 3$ anula el denominador y la división entre cero está indefinida",
+              "Porque en el denominador siempre se invierte la desigualdad",
+              "Porque $x = 3$ vuelve negativo al numerador",
+              "Porque las inecuaciones racionales nunca aceptan corchetes"
+            ],
+            "respuesta_correcta": "Porque $x = 3$ anula el denominador y la división entre cero está indefinida",
+            "explicacion": "Solo las raíces del numerador pueden incluirse con $\\ge$ o $\\le$; los ceros del denominador siempre se excluyen."
+          },
+          "paso2_practica": {
+            "titulo": "Menor entero que cumple",
+            "enunciado_latex": "¿Cuál es el menor número entero que satisface la inecuación $2x - 5 > 3$?",
+            "respuesta_correcta": "5",
+            "respuestas_aceptadas": [
+              "5",
+              "5.0"
+            ],
+            "pista": "Despeja $x > 4$; al ser desigualdad estricta, el entero $4$ queda fuera."
+          },
+          "paso3_reto_foto": {
+            "titulo": "Reto de examen: Inecuación racional con tabla de signos",
+            "enunciado_latex": "Halla el conjunto solución en intervalos de: $$\\frac{x^2 - x - 6}{x - 1} \\le 0$$",
+            "prerrequisito_evaluado": "Factorización de trinomios, tabla de signos por intervalos y exclusión de raíces del denominador.",
+            "instrucciones": "Factoriza el numerador en papel, ubica los tres puntos críticos en la recta real, realiza la tabla de signos y escribe el intervalo solución."
+          }
+        },
+        {
+          "id": "pre_alg_04_funciones",
+          "ranking_criticidad": 4,
+          "frecuencia_examen": "90%",
+          "materia": "Álgebra Pre-U",
+          "nombre": "Funciones y Dominio",
+          "area": "Cálculo/Lógica",
+          "prerrequisito_id": "pre_alg_03_inecuaciones",
+          "xp": 140,
+          "tip_auxiliar": "Los tres candados del dominio real: denominadores $\\neq 0$, radicandos pares $\\ge 0$ y argumentos de logaritmo $> 0$.",
+          "paso1_concepto": {
+            "titulo": "Dominio de composición",
+            "enunciado_latex": "Dadas $f(x) = \\sqrt{x}$ y $g(x) = x - 4$, ¿cuál es el dominio de $(f \\circ g)(x) = f(g(x))$?",
+            "opciones": [
+              "$x \\ge 4$",
+              "$x \\ge 0$",
+              "$x > 4$",
+              "$x \\ge -4$"
+            ],
+            "respuesta_correcta": "$x \\ge 4$",
+            "explicacion": "La composición es $\\sqrt{x - 4}$, exigiendo $x - 4 \\ge 0$, es decir $x \\ge 4$."
+          },
+          "paso2_practica": {
+            "titulo": "Evaluación de función compuesta",
+            "enunciado_latex": "Si $f(x) = 2x + 3$ y $g(x) = x^2 - 1$, calcula el valor numérico de $f(g(2))$.",
+            "respuesta_correcta": "9",
+            "respuestas_aceptadas": [
+              "9",
+              "9.0"
+            ],
+            "pista": "Evalúa primero $g(2)$ y luego sustituye ese valor en $f$."
+          },
+          "paso3_reto_foto": {
+            "titulo": "Reto de examen: Dominio mixto con radical y logaritmo",
+            "enunciado_latex": "Determina analíticamente el dominio máximo real de: $$f(x) = \\frac{\\sqrt{9 - x^2}}{\\ln(x + 1)}$$",
+            "prerrequisito_evaluado": "Inecuaciones cuadráticas, restricciones de logaritmo en denominador e intersección de conjuntos.",
+            "instrucciones": "Plantea por separado las condiciones del numerador y del denominador, resuelve cada desigualdad e intersecta los intervalos en tu hoja."
+          }
+        },
+        {
+          "id": "pre_alg_05_limites_alg",
+          "ranking_criticidad": 5,
+          "frecuencia_examen": "88%",
+          "materia": "Álgebra Pre-U",
+          "nombre": "Límites Algebraicos",
+          "area": "Cálculo/Lógica",
+          "prerrequisito_id": "pre_alg_04_funciones",
+          "xp": 160,
+          "tip_auxiliar": "Siempre evalúa directo primero. Si sale $\\frac{0}{0}$ con raíces cuadradas, multiplica arriba y abajo por el conjugado sin expandir el otro término.",
+          "paso1_concepto": {
+            "titulo": "Eliminación de raíz en límite 0/0",
+            "enunciado_latex": "Al evaluar un límite algebraico aparece $\\frac{0}{0}$ con $\\sqrt{x + a} - b$ en el numerador. ¿Qué técnica elimina la indeterminación?",
+            "opciones": [
+              "Multiplicar numerador y denominador por el conjugado $\\sqrt{x + a} + b$",
+              "Elevar al cuadrado solo el numerador",
+              "Reemplazar la raíz por cero",
+              "Dividir entre $x^2$"
+            ],
+            "respuesta_correcta": "Multiplicar numerador y denominador por el conjugado $\\sqrt{x + a} + b$",
+            "explicacion": "El conjugado produce una diferencia de cuadrados que elimina la raíz y revela el factor común a cancelar."
+          },
+          "paso2_practica": {
+            "titulo": "Límite racional por factorización",
+            "enunciado_latex": "Calcula el valor exacto del límite: $$\\lim_{x \\to 2} \\frac{x^2 - 4}{x - 2}$$",
+            "respuesta_correcta": "4",
+            "respuestas_aceptadas": [
+              "4",
+              "4.0"
+            ],
+            "pista": "Factoriza $x^2 - 4 = (x - 2)(x + 2)$, simplifica $(x - 2)$ y evalúa en $x = 2$."
+          },
+          "paso3_reto_foto": {
+            "titulo": "Reto de examen: Límite por racionalización",
+            "enunciado_latex": "Calcula paso a paso el valor exacto del límite: $$\\lim_{x \\to 4} \\frac{\\sqrt{x + 5} - 3}{x - 4}$$",
+            "prerrequisito_evaluado": "Racionalización por conjugado, simplificación de factores y evaluación de límites.",
+            "instrucciones": "Verifica la forma $0/0$, multiplica por el conjugado del numerador, cancela $(x - 4)$ y evalúa en tu hoja."
+          }
+        }
+      ]
+    },
+    {
+      "id": "pre_trigonometria",
+      "nombre": "Trigonometría",
+      "codigo": "PRE-TRIG",
+      "icono": "bi-triangle-fill",
+      "color": "green",
+      "descripcion": "Domina razones en los 4 cuadrantes, identidades pitagóricas, ángulo doble y ecuaciones trigonométricas.",
+      "skills": [
+        {
+          "id": "pre_trig_01_razones",
+          "ranking_criticidad": 1,
+          "frecuencia_examen": "96%",
+          "materia": "Trigonometría",
+          "nombre": "Razones y Cuadrantes",
+          "area": "Trigonometría",
+          "prerrequisito_id": null,
+          "xp": 100,
+          "tip_auxiliar": "Usa la regla mnemotécnica 'Todas las Señoritas Toman Café' (Q1 Todas +, Q2 Seno +, Q3 Tangente +, Q4 Coseno +) antes de poner signo al resultado.",
+          "paso1_concepto": {
+            "titulo": "Signos en el tercer cuadrante",
+            "enunciado_latex": "Si un ángulo $\\theta$ se ubica en el tercer cuadrante ($\\pi < \\theta < \\frac{3\\pi}{2}$), ¿qué funciones trigonométricas son positivas?",
+            "opciones": [
+              "Únicamente tangente y cotangente",
+              "Únicamente seno y cosecante",
+              "Únicamente coseno y secante",
+              "Todas las funciones son negativas"
+            ],
+            "respuesta_correcta": "Únicamente tangente y cotangente",
+            "explicacion": "En el tercer cuadrante tanto $x$ como $y$ son negativos, por lo que su cociente $\\tan(\\theta) = y/x$ y $\\cot(\\theta) = x/y$ son positivos."
+          },
+          "paso2_practica": {
+            "titulo": "Triángulo pitagórico en primer cuadrante",
+            "enunciado_latex": "Si $\\cos(\\alpha) = \\frac{5}{13}$ y $\\alpha$ es un ángulo agudo del primer cuadrante, escribe $\\tan(\\alpha)$ como fracción $a/b$.",
+            "respuesta_correcta": "12/5",
+            "respuestas_aceptadas": [
+              "12/5",
+              "2.4",
+              "2,4"
+            ],
+            "pista": "Por Pitágoras, el cateto opuesto mide $\\sqrt{13^2 - 5^2} = 12$."
+          },
+          "paso3_reto_foto": {
+            "titulo": "Reto de examen: Razones con signo por cuadrante",
+            "enunciado_latex": "Sabiendo que $\\tan(\\theta) = -\\frac{4}{3}$ y que $\\theta$ pertenece al cuarto cuadrante ($\\frac{3\\pi}{2} < \\theta < 2\\pi$), calcula el valor exacto de: $$M = \\sin(\\theta) + \\cos(\\theta)$$",
+            "prerrequisito_evaluado": "Teorema de Pitágoras, definición de razones trigonométricas y signos en el cuarto cuadrante.",
+            "instrucciones": "Dibuja el triángulo rectángulo de referencia en el cuarto cuadrante en tu hoja, asigna el signo correcto al seno y al coseno y suma las fracciones."
+          }
+        },
+        {
+          "id": "pre_trig_02_identidades",
+          "ranking_criticidad": 2,
+          "frecuencia_examen": "94%",
+          "materia": "Trigonometría",
+          "nombre": "Identidades Fundamentales",
+          "area": "Trigonometría",
+          "prerrequisito_id": "pre_trig_01_razones",
+          "xp": 120,
+          "tip_auxiliar": "Cuando una demostración parezca trabada, convierte todo a senos y cosenos y busca común denominador. Trabaja un solo miembro de la igualdad.",
+          "paso1_concepto": {
+            "titulo": "Identidad pitagórica derivada",
+            "enunciado_latex": "Al dividir $\\sin^2(\\theta) + \\cos^2(\\theta) = 1$ entre $\\cos^2(\\theta)$ ($\\cos(\\theta) \\neq 0$), ¿a qué equivale $1 + \\tan^2(\\theta)$?",
+            "opciones": [
+              "$\\sec^2(\\theta)$",
+              "$\\csc^2(\\theta)$",
+              "$\\cot^2(\\theta)$",
+              "$1$"
+            ],
+            "respuesta_correcta": "$\\sec^2(\\theta)$",
+            "explicacion": "Cada término dividido por $\\cos^2(\\theta)$ da $\\tan^2(\\theta) + 1 = \\frac{1}{\\cos^2(\\theta)} = \\sec^2(\\theta)$."
+          },
+          "paso2_practica": {
+            "titulo": "Evaluación con identidad pitagórica",
+            "enunciado_latex": "Calcula el valor numérico exacto de $$\\sin^2(37^\\circ) + \\cos^2(37^\\circ) + \\tan(45^\\circ)$$",
+            "respuesta_correcta": "2",
+            "respuestas_aceptadas": [
+              "2",
+              "2.0"
+            ],
+            "pista": "Recuerda que $\\sin^2(\\alpha) + \\cos^2(\\alpha) = 1$ para cualquier ángulo $\\alpha$."
+          },
+          "paso3_reto_foto": {
+            "titulo": "Reto de examen: Demostración trigonométrica",
+            "enunciado_latex": "Demuestra paso a paso, partiendo únicamente del miembro izquierdo (con $\\sin(x) \\neq 0$ y $\\cos(x) \\neq -1$), la identidad: $$\\frac{\\sin(x)}{1 + \\cos(x)} + \\frac{1 + \\cos(x)}{\\sin(x)} = 2\\csc(x)$$",
+            "prerrequisito_evaluado": "Suma de fracciones algebraicas, desarrollo de binomio al cuadrado e identidad $\\sin^2(x) + \\cos^2(x) = 1$.",
+            "instrucciones": "Suma las fracciones del lado izquierdo con mínimo común denominador, aplica la identidad pitagórica y factoriza hasta llegar exactamente a $2\\csc(x)$."
+          }
+        },
+        {
+          "id": "pre_trig_03_angulo_doble",
+          "ranking_criticidad": 3,
+          "frecuencia_examen": "91%",
+          "materia": "Trigonometría",
+          "nombre": "Ángulo Doble y Mitad",
+          "area": "Trigonometría",
+          "prerrequisito_id": "pre_trig_02_identidades",
+          "xp": 140,
+          "tip_auxiliar": "Memoriza las tres formas de $\\cos(2x)$: $\\cos^2(x)-\\sin^2(x)$, $1-2\\sin^2(x)$ y $2\\cos^2(x)-1$. Elegir la adecuada cancela el $1$ de inmediato.",
+          "paso1_concepto": {
+            "titulo": "Identidad del coseno del ángulo doble",
+            "enunciado_latex": "¿Cuál de las siguientes expresiones es idéntica a $\\cos(2\\theta)$?",
+            "opciones": [
+              "$1 - 2\\sin^2(\\theta)$",
+              "$2\\sin(\\theta)\\cos(\\theta)$",
+              "$1 + 2\\sin^2(\\theta)$",
+              "$\\cos^2(\\theta) + \\sin^2(\\theta)$"
+            ],
+            "respuesta_correcta": "$1 - 2\\sin^2(\\theta)$",
+            "explicacion": "Sustituyendo $\\cos^2(\\theta) = 1 - \\sin^2(\\theta)$ en $\\cos^2(\\theta) - \\sin^2(\\theta)$ resulta $1 - 2\\sin^2(\\theta)$."
+          },
+          "paso2_practica": {
+            "titulo": "Seno del ángulo doble",
+            "enunciado_latex": "Calcula el valor exacto (como fracción $a/b$) de $$2\\sin(15^\\circ)\\cos(15^\\circ)$$",
+            "respuesta_correcta": "1/2",
+            "respuestas_aceptadas": [
+              "1/2",
+              "0.5",
+              "0,5"
+            ],
+            "pista": "Aplica $\\sin(2\\theta) = 2\\sin(\\theta)\\cos(\\theta)$ con $\\theta = 15^\\circ$."
+          },
+          "paso3_reto_foto": {
+            "titulo": "Reto de examen: Simplificación con ángulo doble",
+            "enunciado_latex": "Demuestra paso a paso (para $\\cos(x) \\neq 0$ y $1 + \\cos(2x) \\neq 0$) la identidad: $$\\frac{\\sin(2x)}{1 + \\cos(2x)} = \\tan(x)$$",
+            "prerrequisito_evaluado": "Fórmulas de ángulo doble $\\sin(2x)$ y $\\cos(2x) = 2\\cos^2(x) - 1$.",
+            "instrucciones": "Reemplaza $\\sin(2x)$ y elige la forma de $\\cos(2x)$ que cancela el $1$ del denominador en tu hoja."
+          }
+        },
+        {
+          "id": "pre_trig_04_ecuaciones",
+          "ranking_criticidad": 4,
+          "frecuencia_examen": "87%",
+          "materia": "Trigonometría",
+          "nombre": "Ecuaciones y Límites Trigonométricos",
+          "area": "Trigonometría",
+          "prerrequisito_id": "pre_trig_03_angulo_doble",
+          "xp": 160,
+          "tip_auxiliar": "Al resolver ecuaciones en $[0, 2\\pi)$, verifica si hay dos cuadrantes que dan el mismo signo y no dividas por $\\sin(x)$ o $\\cos(x)$ porque pierdes raíces.",
+          "paso1_concepto": {
+            "titulo": "Número de soluciones en una vuelta",
+            "enunciado_latex": "En el intervalo $[0, 2\\pi)$, ¿cuáles son todas las soluciones de $\\sin(x) = \\frac{1}{2}$?",
+            "opciones": [
+              "Dos soluciones: $\\frac{\\pi}{6}$ y $\\frac{5\\pi}{6}$",
+              "Una sola solución: $\\frac{\\pi}{6}$",
+              "Dos soluciones: $\\frac{\\pi}{3}$ y $\\frac{2\\pi}{3}$",
+              "Dos soluciones: $\\frac{\\pi}{6}$ y $\\frac{11\\pi}{6}$"
+            ],
+            "respuesta_correcta": "Dos soluciones: $\\frac{\\pi}{6}$ y $\\frac{5\\pi}{6}$",
+            "explicacion": "El seno es positivo tanto en el primer cuadrante ($\\pi/6$) como en el segundo cuadrante ($\\pi - \\pi/6 = 5\\pi/6$)."
+          },
+          "paso2_practica": {
+            "titulo": "Límite trigonométrico básico",
+            "enunciado_latex": "Calcula el valor exacto del límite: $$\\lim_{x \\to 0} \\frac{\\sin(6x)}{2x}$$",
+            "respuesta_correcta": "3",
+            "respuestas_aceptadas": [
+              "3",
+              "3.0"
+            ],
+            "pista": "Multiplica por $\\frac{3}{3}$ para usar $\\lim_{u \\to 0} \\frac{\\sin(u)}{u} = 1$."
+          },
+          "paso3_reto_foto": {
+            "titulo": "Reto de examen: Ecuación cuadrática trigonométrica",
+            "enunciado_latex": "Halla todas las soluciones en radianes dentro del intervalo $x \\in [0, 2\\pi)$ para la ecuación: $$2\\cos^2(x) - \\cos(x) - 1 = 0$$",
+            "prerrequisito_evaluado": "Factorización de trinomio en $\\cos(x)$, valores notables del coseno y signos por cuadrante.",
+            "instrucciones": "Factoriza como trinomio cuadrático en $\\cos(x)$, despeja cada factor por separado y escribe todas las soluciones en $[0, 2\\pi)$ en tu hoja."
+          }
+        }
+      ]
+    }
+  ]
+}

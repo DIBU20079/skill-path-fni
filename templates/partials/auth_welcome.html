@@ -1,0 +1,120 @@
+      <!-- =========================================================
+           PANTALLA DE BIENVENIDA: PERFIL RÁPIDO + SELECTOR DE ETAPA
+           ========================================================= -->
+      <section id="view-stage-selector" class="app-view">
+        <div class="welcome-hero text-center mx-auto mb-4">
+          <div class="hero-emblem mx-auto mb-3">
+            <i class="bi bi-compass-fill"></i>
+          </div>
+          <span class="hero-kicker">SKILL-PATH FNI · TUTOR SOCRÁTICO CON IA</span>
+          <h1 class="hero-title mt-2 mb-3">Domina las Ciencias Básicas de Ingeniería paso a paso</h1>
+          <p class="hero-subtitle mx-auto">
+            Diagnostica tus brechas reales, explora tus materias críticas y recibe auditoría socrática línea por línea sobre fotos de tu cuaderno físico.
+          </p>
+        </div>
+
+        <!-- Banner opcional cuando existe progreso previo en localStorage -->
+        <div id="welcome-resume-banner" class="resume-banner mx-auto mb-4 d-none">
+          <div class="d-flex flex-column flex-sm-row align-items-sm-center justify-content-between gap-3">
+            <div class="d-flex align-items-center gap-3">
+              <div class="resume-icon">
+                <i class="bi bi-bookmark-check-fill"></i>
+              </div>
+              <div>
+                <div class="fw-bold text-dark">Tienes un progreso guardado en este navegador</div>
+                <div id="resume-banner-summary" class="small text-secondary">Continúa justo donde lo dejaste o inicia una nueva etapa.</div>
+              </div>
+            </div>
+            <button type="button" id="btn-resume-saved" class="btn btn-duo btn-duo-green btn-sm text-nowrap">
+              <i class="bi bi-play-fill me-1"></i>Continuar mi Camino
+            </button>
+          </div>
+        </div>
+
+        <!-- Perfil rápido sin login pesado -->
+        <div class="quick-name-card duo-card mx-auto mb-4 p-3 p-sm-4">
+          <label for="welcome-name-input" class="form-label fw-black mb-2 d-flex align-items-center gap-2">
+            <i class="bi bi-person-badge-fill text-primary"></i>
+            ¿Cómo te llamas?
+          </label>
+          <div class="input-group input-group-lg">
+            <span class="input-group-text bg-white border-2 border-end-0 rounded-start-4 text-secondary">
+              <i class="bi bi-smile"></i>
+            </span>
+            <input
+              type="text"
+              id="welcome-name-input"
+              class="form-control duo-input border-start-0 rounded-end-4"
+              maxlength="40"
+              placeholder="Escribe tu nombre o apodo (ej: Valeria)"
+              autocomplete="given-name"
+            >
+          </div>
+          <div id="welcome-name-error" class="text-danger small fw-semibold mt-2 d-none">
+            Por favor dinos tu nombre para personalizar tu camino antes de elegir etapa.
+          </div>
+        </div>
+
+        <!-- Dos tarjetas grandes clicables -->
+        <div class="row g-4 justify-content-center stage-cards-row mx-auto">
+          <div class="col-12 col-md-6">
+            <article
+              id="card-stage-pre-u"
+              class="stage-card stage-card-preu h-100"
+              data-stage="pre_u"
+              role="button"
+              tabindex="0"
+              aria-label="Seleccionar ruta Pre-U / Examen de Ingreso"
+            >
+              <div class="stage-card-top">
+                <span class="stage-emoji" aria-hidden="true">🎓</span>
+                <span class="stage-tag stage-tag-blue">RUTA PRE-U</span>
+              </div>
+              <h2 class="stage-card-title">Voy a postular (Pre-U / Examen de Ingreso)</h2>
+              <p class="stage-card-desc">
+                Blindaje intensivo en los temas filtro de ingreso universitario a través de dos materias completas: Álgebra Pre-U y Trigonometría.
+              </p>
+              <div class="stage-chips mb-4">
+                <span class="stage-chip">Álgebra Pre-U (5 temas)</span>
+                <span class="stage-chip">Trigonometría (4 temas)</span>
+              </div>
+              <div class="stage-card-footer mt-auto">
+                <span class="stage-meta"><i class="bi bi-stopwatch me-1"></i>6 preguntas · 2 materias</span>
+                <span class="btn btn-duo btn-duo-blue">
+                  Elegir Pre-U <i class="bi bi-arrow-right ms-1"></i>
+                </span>
+              </div>
+            </article>
+          </div>
+
+          <div class="col-12 col-md-6">
+            <article
+              id="card-stage-facultad"
+              class="stage-card stage-card-facultad h-100"
+              data-stage="facultad"
+              role="button"
+              tabindex="0"
+              aria-label="Seleccionar ruta Facultad de Ingeniería"
+            >
+              <div class="stage-card-top">
+                <span class="stage-emoji" aria-hidden="true">🚀</span>
+                <span class="stage-tag stage-tag-green">RUTA FACULTAD</span>
+              </div>
+              <h2 class="stage-card-title">Ya estoy en la Facultad (Materias Básicas)</h2>
+              <p class="stage-card-desc">
+                Ruta diseñada para aprobar los primeros parciales de Ingeniería con las materias de mayor criticidad: Cálculo I y Física I.
+              </p>
+              <div class="stage-chips mb-4">
+                <span class="stage-chip">Cálculo I (5 temas)</span>
+                <span class="stage-chip">Física I (4 temas)</span>
+              </div>
+              <div class="stage-card-footer mt-auto">
+                <span class="stage-meta"><i class="bi bi-stopwatch me-1"></i>6 preguntas · 2 materias</span>
+                <span class="btn btn-duo btn-duo-green">
+                  Elegir Facultad <i class="bi bi-arrow-right ms-1"></i>
+                </span>
+              </div>
+            </article>
+          </div>
+        </div>
+      </section>

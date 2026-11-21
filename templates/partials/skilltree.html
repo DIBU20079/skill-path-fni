@@ -1,0 +1,93 @@
+      <!-- =========================================================
+           SECCIÓN A: CAMINO (ÁRBOL DUOLINGO DE LA MATERIA ACTIVA)
+           ========================================================= -->
+      <section id="view-camino" class="app-view d-none">
+        <!-- Banner Alerta Roja de Rescate (nota < 51) -->
+        <div id="rescue-alert-banner" class="rescue-banner d-none mb-4" role="alert">
+          <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3">
+            <div class="d-flex align-items-start align-items-md-center gap-3">
+              <div class="rescue-icon-box">
+                <i class="bi bi-exclamation-octagon-fill"></i>
+              </div>
+              <div>
+                <div class="rescue-title">
+                  🚨 Alerta Roja de Rescate Activada (Nota registrada: <span id="rescue-grade-value">--</span>/100)
+                </div>
+                <p class="rescue-desc mb-0">
+                  Tu nota parcial estuvo debajo de 51. Marcamos en rojo tu tema crítico prioritario para levantar el promedio cuanto antes.
+                </p>
+              </div>
+            </div>
+            <button type="button" id="btn-start-rescue" class="btn btn-duo btn-duo-red text-nowrap">
+              <i class="bi bi-life-preserver me-1"></i>Atacar Bloqueo Prioritario
+            </button>
+          </div>
+        </div>
+
+        <div class="row g-4 align-items-start">
+          <!-- Columna izquierda (8 cols): Árbol vertical de la materia activa -->
+          <div class="col-12 col-xl-8">
+            <div class="duo-card p-3 p-sm-4">
+              <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-3">
+                <div>
+                  <span id="path-user-greeting" class="path-kicker">CAMINO DE ESTUDIO</span>
+                  <h2 id="path-route-title" class="h4 fw-black mb-1">Materia Activa</h2>
+                  <p id="path-route-desc" class="text-secondary small mb-0">
+                    Supera los 3 pasos de cada nodo para desbloquear el siguiente tema crítico.
+                  </p>
+                </div>
+                <button type="button" id="btn-go-subjects" class="btn btn-duo btn-duo-outline-primary btn-sm">
+                  <i class="bi bi-journals me-1"></i>Cambiar materia
+                </button>
+              </div>
+
+              <div class="node-legend mb-4" aria-label="Leyenda de estados de los nodos">
+                <span class="legend-item">
+                  <span class="legend-dot legend-dot-unlocked"></span>Desbloqueado
+                </span>
+                <span class="legend-item">
+                  <span class="legend-dot legend-dot-active"></span>Activo
+                </span>
+                <span class="legend-item">
+                  <span class="legend-dot legend-dot-blocker"></span>Bloqueo crítico
+                </span>
+                <span class="legend-item">
+                  <span class="legend-dot legend-dot-locked"></span>Bloqueado
+                </span>
+              </div>
+
+              <div id="duolingo-path-container" class="duolingo-path" aria-live="polite">
+                <div class="text-center py-5 text-secondary">
+                  <div class="spinner-border text-success mb-2" role="status">
+                    <span class="visually-hidden">Cargando ruta...</span>
+                  </div>
+                  <div class="small fw-semibold">Construyendo tu camino de nodos...</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Columna derecha (4 cols): Ranking de criticidad de la materia activa -->
+          <aside class="col-12 col-xl-4">
+            <div class="sidebar-sticky d-flex flex-column gap-4">
+              <div id="card-critical-ranking" class="duo-card panel-card p-4">
+                <div class="d-flex align-items-center justify-content-between mb-3">
+                  <h3 class="h6 fw-black mb-0 d-flex align-items-center gap-2">
+                    <span class="panel-icon panel-icon-amber">
+                      <i class="bi bi-trophy-fill"></i>
+                    </span>
+                    Ranking de Temas Críticos en Examen
+                  </h3>
+                  <span id="ranking-materia-code" class="badge rounded-pill text-bg-light border">Top</span>
+                </div>
+                <p class="small text-secondary mb-3">
+                  Temas de la materia activa ordenados por frecuencia en exámenes.
+                </p>
+                <div id="critical-ranking-list" class="d-flex flex-column gap-2">
+                  <div class="small text-secondary">Elige una materia para ver sus temas críticos.</div>
+                </div>
+              </div>
+            </div>
+          </aside>
+        </div>
+      </section>

@@ -1,0 +1,180 @@
+{
+  "pre_u": {
+    "tiempo_diagnostico_seg": 270,
+    "diagnostico": [
+      {
+        "id": "diag_pre_1",
+        "area": "Álgebra",
+        "tiempo_segundos": 45,
+        "enunciado_latex": "Simplifica completamente la expresión racional $$\\frac{x^2 - 9}{x^2 - 6x + 9}$$ para todo $x \\neq 3$.",
+        "opciones": [
+          "$\\frac{x + 3}{x - 3}$",
+          "$\\frac{x - 3}{x + 3}$",
+          "$\\frac{x + 3}{x - 6}$",
+          "$x + 3$"
+        ],
+        "respuesta_correcta": "$\\frac{x + 3}{x - 3}$",
+        "explicacion_breve": "El numerador es $(x - 3)(x + 3)$ y el denominador es $(x - 3)^2$. Al cancelar $(x - 3)$ queda $\\frac{x + 3}{x - 3}$."
+      },
+      {
+        "id": "diag_pre_2",
+        "area": "Álgebra",
+        "tiempo_segundos": 45,
+        "enunciado_latex": "Determina el conjunto solución real de la inecuación cuadrática $$x^2 - 5x + 6 < 0$$",
+        "opciones": [
+          "$(-\\infty, 2) \\cup (3, \\infty)$",
+          "$(2, 3)$",
+          "$[2, 3]$",
+          "$(-3, -2)$"
+        ],
+        "respuesta_correcta": "$(2, 3)$",
+        "explicacion_breve": "Al factorizar $(x - 2)(x - 3) < 0$, la expresión es estrictamente negativa entre sus raíces $x = 2$ y $x = 3$."
+      },
+      {
+        "id": "diag_pre_3",
+        "area": "Trigonometría",
+        "tiempo_segundos": 45,
+        "enunciado_latex": "Si $\\sin(\\theta) = \\frac{3}{5}$ y $\\theta$ pertenece al segundo cuadrante ($\\frac{\\pi}{2} < \\theta < \\pi$), ¿cuál es el valor exacto de $\\cos(\\theta)$?",
+        "opciones": [
+          "$\\frac{4}{5}$",
+          "$-\\frac{4}{5}$",
+          "$-\\frac{3}{4}$",
+          "$-\\frac{5}{4}$"
+        ],
+        "respuesta_correcta": "$-\\frac{4}{5}$",
+        "explicacion_breve": "Por identidad pitagórica $\\cos^2(\\theta) = 1 - \\frac{9}{25} = \\frac{16}{25}$; en el segundo cuadrante el coseno es negativo: $-\\frac{4}{5}$."
+      },
+      {
+        "id": "diag_pre_4",
+        "area": "Trigonometría",
+        "tiempo_segundos": 45,
+        "enunciado_latex": "¿A qué expresión trigonométrica equivale $$\\frac{1 - \\cos^2(x)}{\\sin(x)\\cos(x)}$$ asumiendo $\\sin(x)\\cos(x) \\neq 0$?",
+        "opciones": [
+          "$\\cot(x)$",
+          "$\\sec(x)$",
+          "$\\tan(x)$",
+          "$\\sin(x)$"
+        ],
+        "respuesta_correcta": "$\\tan(x)$",
+        "explicacion_breve": "Como $1 - \\cos^2(x) = \\sin^2(x)$, se simplifica a $\\frac{\\sin(x)}{\\cos(x)} = \\tan(x)$."
+      },
+      {
+        "id": "diag_pre_5",
+        "area": "Cálculo/Lógica",
+        "tiempo_segundos": 45,
+        "enunciado_latex": "Encuentra el dominio máximo en los reales de la función $$f(x) = \\frac{\\sqrt{x - 2}}{x - 5}$$",
+        "opciones": [
+          "$(2, 5) \\cup (5, \\infty)$",
+          "$[2, 5) \\cup (5, \\infty)$",
+          "$[2, \\infty)$",
+          "$\\mathbb{R} \\setminus \\{5\\}$"
+        ],
+        "respuesta_correcta": "$[2, 5) \\cup (5, \\infty)$",
+        "explicacion_breve": "La raíz exige $x - 2 \\ge 0$ ($x \\ge 2$) y el denominador exige $x \\neq 5$, resultando $[2, 5) \\cup (5, \\infty)$."
+      },
+      {
+        "id": "diag_pre_6",
+        "area": "Cálculo/Lógica",
+        "tiempo_segundos": 45,
+        "enunciado_latex": "Calcula el valor exacto del límite algebraico $$\\lim_{x \\to 3} \\frac{x^2 - 9}{x - 3}$$",
+        "opciones": [
+          "$0$",
+          "$3$",
+          "$6$",
+          "$9$"
+        ],
+        "respuesta_correcta": "$6$",
+        "explicacion_breve": "Factorizando $(x - 3)(x + 3)$ y simplificando $(x - 3)$, al evaluar en $x = 3$ se obtiene $6$."
+      }
+    ]
+  },
+  "facultad": {
+    "tiempo_diagnostico_seg": 360,
+    "diagnostico": [
+      {
+        "id": "diag_fac_1",
+        "area": "Álgebra y Trig.",
+        "tiempo_segundos": 60,
+        "enunciado_latex": "Si el polinomio $P(x) = x^3 - 4x^2 + kx - 6$ es divisible exactamente por $(x - 2)$, ¿cuál es el valor de $k$?",
+        "opciones": [
+          "$k = 7$",
+          "$k = -7$",
+          "$k = 5$",
+          "$k = 3$"
+        ],
+        "respuesta_correcta": "$k = 7$",
+        "explicacion_breve": "Por el Teorema del Resto, $P(2) = 8 - 16 + 2k - 6 = 0 \\implies 2k = 14 \\implies k = 7$."
+      },
+      {
+        "id": "diag_fac_2",
+        "area": "Álgebra y Trig.",
+        "tiempo_segundos": 60,
+        "enunciado_latex": "Si $\\sin(\\theta) = \\frac{3}{5}$, ¿cuál es el valor exacto de $\\cos(2\\theta)$?",
+        "opciones": [
+          "$\\frac{7}{25}$",
+          "$\\frac{16}{25}$",
+          "$\\frac{24}{25}$",
+          "$-\\frac{7}{25}$"
+        ],
+        "respuesta_correcta": "$\\frac{7}{25}$",
+        "explicacion_breve": "Usando $\\cos(2\\theta) = 1 - 2\\sin^2(\\theta) = 1 - 2\\left(\\frac{9}{25}\\right) = \\frac{7}{25}$."
+      },
+      {
+        "id": "diag_fac_3",
+        "area": "Cálculo I",
+        "tiempo_segundos": 60,
+        "enunciado_latex": "Calcula el límite trigonométrico fundamental $$\\lim_{x \\to 0} \\frac{\\sin(5x)}{2x}$$",
+        "opciones": [
+          "$\\frac{5}{2}$",
+          "$\\frac{2}{5}$",
+          "$1$",
+          "$0$"
+        ],
+        "respuesta_correcta": "$\\frac{5}{2}$",
+        "explicacion_breve": "Reescribiendo $\\frac{5}{2} \\cdot \\frac{\\sin(5x)}{5x}$ y aplicando $\\lim_{u \\to 0} \\frac{\\sin(u)}{u} = 1$, se obtiene $\\frac{5}{2}$."
+      },
+      {
+        "id": "diag_fac_4",
+        "area": "Cálculo I",
+        "tiempo_segundos": 60,
+        "enunciado_latex": "Aplica la regla de la cadena para hallar $f'(x)$ de $$f(x) = \\ln(3x^2 + 1)$$",
+        "opciones": [
+          "$\\frac{6x}{3x^2 + 1}$",
+          "$\\frac{1}{3x^2 + 1}$",
+          "$\\frac{3x}{3x^2 + 1}$",
+          "$\\frac{6x}{(3x^2 + 1)^2}$"
+        ],
+        "respuesta_correcta": "$\\frac{6x}{3x^2 + 1}$",
+        "explicacion_breve": "La derivada de $\\ln(u)$ es $\\frac{u'}{u}$, por lo tanto $f'(x) = \\frac{6x}{3x^2 + 1}$."
+      },
+      {
+        "id": "diag_fac_5",
+        "area": "Física I",
+        "tiempo_segundos": 60,
+        "enunciado_latex": "Si un vector $\\vec{A}$ en el plano tiene componentes $A_x = 6\\text{ u}$ y $A_y = 8\\text{ u}$, ¿cuál es su módulo $\\|\\vec{A}\\|$?",
+        "opciones": [
+          "$10\\text{ u}$",
+          "$14\\text{ u}$",
+          "$48\\text{ u}$",
+          "$\\sqrt{14}\\text{ u}$"
+        ],
+        "respuesta_correcta": "$10\\text{ u}$",
+        "explicacion_breve": "Por Pitágoras, $\\|\\vec{A}\\| = \\sqrt{6^2 + 8^2} = \\sqrt{36 + 64} = 10\\text{ u}$."
+      },
+      {
+        "id": "diag_fac_6",
+        "area": "Física I",
+        "tiempo_segundos": 60,
+        "enunciado_latex": "Un móvil parte del reposo con aceleración rectilínea constante $a = 4\\text{ m/s}^2$. ¿Qué distancia recorre en los primeros $t = 3\\text{ s}$?",
+        "opciones": [
+          "$18\\text{ m}$",
+          "$12\\text{ m}$",
+          "$36\\text{ m}$",
+          "$6\\text{ m}$"
+        ],
+        "respuesta_correcta": "$18\\text{ m}$",
+        "explicacion_breve": "Con $v_0 = 0$, la ecuación de MRUV da $d = \\frac{1}{2} a t^2 = \\frac{1}{2}(4)(3^2) = 18\\text{ m}$."
+      }
+    ]
+  }
+}

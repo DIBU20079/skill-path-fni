@@ -43,15 +43,29 @@ Abre http://127.0.0.1:5000 en el navegador.
 
 ```text
 .
-├── AGENTS.md              # Reglas de arquitectura y contratos
-├── app.py                 # Servidor Flask y endpoints /api/*
-├── ai_tutor.py            # Integración con Gemini (auditoría y generación)
+├── AGENTS.md                 # Reglas de arquitectura y contratos modulares
+├── app.py                    # Inicialización Flask, CORS y registro de Blueprints
 ├── requirements.txt
-├── data/skills_db.json    # Currículo: etapas, materias, skills y diagnóstico
-├── templates/index.html   # SPA
+├── routes/
+│   ├── views.py              # GET / -> index.html
+│   ├── api_skills.py         # GET /api/skills (combina los JSON de data/)
+│   ├── api_ai.py             # POST /api/evaluar y POST /api/generar-ejercicio
+│   └── api_auth.py           # Endpoints base para login y sync en nube
+├── services/
+│   ├── ai_client.py          # Cliente Gemini y manejo de fallback de modelos
+│   ├── ai_auditor.py         # Auditoría socrática por foto/texto
+│   ├── ai_generator.py       # Generación dinámica de ejercicios en LaTeX
+│   └── db_cloud.py           # Adaptador Supabase / fallback localStorage
+├── data/
+│   ├── diagnostico.json      # Bancos de examen diagnóstico
+│   ├── pre_u.json            # Materias y skills Pre-U
+│   └── facultad.json         # Materias y skills Facultad
+├── templates/
+│   ├── index.html            # Plantilla principal
+│   └── partials/             # Parciales Jinja2 independientes por sección/modal
 └── static/
-    ├── css/styles.css
-    └── js/app.js
+    ├── css/                  # base.css, skilltree.css, modals.css
+    └── js/                   # ES Modules: api, state, diagnostic, skilltree, challenge, main
 ```
 
 ## Endpoints
@@ -59,9 +73,10 @@ Abre http://127.0.0.1:5000 en el navegador.
 | Método | Ruta | Descripción |
 |---|---|---|
 | GET | `/` | Interfaz principal |
-| GET | `/api/skills` | Currículo completo (`data/skills_db.json`) |
+| GET | `/api/skills` | Currículo combinado desde `data/` |
 | POST | `/api/evaluar` | Auditoría socrática de foto/texto (JSON de 8 claves) |
 | POST | `/api/generar-ejercicio` | Ejercicio inédito de 3 pasos generado por IA |
+| GET/POST | `/api/auth/*` | Estado y base de sincronización futura con Supabase |
 
 ## Flujo de trabajo para colaboradores
 

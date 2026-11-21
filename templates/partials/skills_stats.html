@@ -1,0 +1,83 @@
+      <!-- =========================================================
+           SECCIÓN C: MIS SKILLS (RADAR, MEDALLAS, NOTA Y BAÚL IA)
+           ========================================================= -->
+      <section id="view-skills" class="app-view d-none">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+          <div>
+            <span class="path-kicker">DIAGNÓSTICO CONTINUO Y MEMORIA IA</span>
+            <h2 class="h3 fw-black mb-1">Mis Skills y Baúl de Errores</h2>
+            <p class="text-secondary small mb-0">
+              Revisa tu nivel Bronce, Plata u Oro por área, registra notas parciales y consulta tus fallas auditadas por la IA.
+            </p>
+          </div>
+          <button
+            type="button"
+            id="btn-skills-open-grade-modal"
+            class="btn btn-duo btn-duo-blue"
+            data-bs-toggle="modal"
+            data-bs-target="#partialGradeModal"
+          >
+            <i class="bi bi-clipboard2-pulse me-2"></i>Registrar Nota Parcial
+          </button>
+        </div>
+
+        <!-- Estado de Nota Parcial / Alerta Roja dentro de Mis Skills -->
+        <div id="skills-grade-card" class="duo-card p-4 mb-4">
+          <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3">
+            <div>
+              <h3 class="h6 fw-black mb-1">Estado Académico de Parciales</h3>
+              <p id="skills-grade-status" class="small text-secondary mb-0">
+                Aún no registraste ninguna nota parcial. Ingresa tu calificación (0 a 100) para activar alertas de rescate si es &lt; 51.
+              </p>
+            </div>
+            <span id="skills-grade-badge" class="badge rounded-pill text-bg-light border fs-6 px-3 py-2">
+              Sin nota
+            </span>
+          </div>
+        </div>
+
+        <div class="row g-4 align-items-start">
+          <!-- Radar + Medallas por área -->
+          <div class="col-12 col-lg-7">
+            <div class="duo-card p-4 h-100">
+              <h3 class="h5 fw-black mb-3">Radar de Dominio por Área</h3>
+              <div class="radar-canvas-wrap mb-4">
+                <canvas id="skills-radar-chart" aria-label="Gráfico radar de nivel de dominio en Mis Skills"></canvas>
+              </div>
+              <h4 class="h6 fw-bold text-uppercase text-secondary mb-3">Nivel de Dominio (Bronce / Plata / Oro)</h4>
+              <div id="skills-mastery-list" class="d-flex flex-column gap-2"></div>
+            </div>
+          </div>
+
+          <!-- Baúl de Errores (Memoria IA) -->
+          <div class="col-12 col-lg-5">
+            <div id="card-error-vault" class="duo-card panel-card p-4 h-100">
+              <div class="d-flex align-items-center justify-content-between mb-3">
+                <h3 class="h5 fw-black mb-0 d-flex align-items-center gap-2">
+                  <span class="panel-icon panel-icon-red">
+                    <i class="bi bi-journal-medical"></i>
+                  </span>
+                  Baúl de Errores (Memoria IA)
+                </h3>
+                <span id="error-vault-count" class="badge rounded-pill text-bg-danger">0</span>
+              </div>
+              <p class="small text-secondary mb-3">
+                El tutor IA consulta estas fallas guardadas en <code>localStorage</code> cada vez que audita una foto tuya o genera un nuevo ejercicio.
+              </p>
+
+              <div id="error-vault-empty" class="vault-empty-state text-center p-4">
+                <i class="bi bi-shield-check fs-3 text-success d-block mb-2"></i>
+                <span class="small text-secondary">Aún no hay errores guardados. Resuelve un reto en el Paso 3 para activar la memoria longitudinal.</span>
+              </div>
+
+              <ul id="error-vault-list" class="vault-list list-unstyled mb-0 d-flex flex-column gap-2"></ul>
+
+              <div class="mt-3 text-end">
+                <button type="button" id="btn-clear-vault" class="btn btn-link btn-sm text-decoration-none text-secondary p-0 d-none">
+                  <i class="bi bi-trash3 me-1"></i>Limpiar historial de errores
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>

@@ -1,0 +1,378 @@
+{
+  "id": "facultad",
+  "nombre": "Ruta Facultad de Ingeniería (FNI)",
+  "descripcion": "Domina los temas de mayor reprobación en primeros semestres de Ingeniería: Cálculo I y Física I.",
+  "materias": [
+    {
+      "id": "fac_calculo1",
+      "nombre": "Cálculo I",
+      "codigo": "MAT-1101",
+      "icono": "bi-infinity",
+      "color": "blue",
+      "descripcion": "Domina los temas de mayor reprobación en MAT-1101: inecuaciones, límites, derivación implícita y optimización.",
+      "skills": [
+        {
+          "id": "fac_cal_01_inecuaciones_func",
+          "ranking_criticidad": 1,
+          "frecuencia_examen": "97%",
+          "materia": "Cálculo I",
+          "nombre": "Inecuaciones y Dominios",
+          "area": "Álgebra y Trig.",
+          "prerrequisito_id": null,
+          "xp": 120,
+          "tip_auxiliar": "Un factor con potencia par como $(x - 2)^2$ no cambia de signo al cruzar $x = 2$, y en logaritmos dentro de un denominador nunca olvides que $\\ln(1) = 0$.",
+          "paso1_concepto": {
+            "titulo": "Multiplicidad par en inecuaciones",
+            "enunciado_latex": "Al analizar los signos de $\\frac{(x - 2)^2(x + 1)}{x - 4} > 0$, ¿qué ocurre en $x = 2$?",
+            "opciones": [
+              "No cambia de signo en $x = 2$, pero el punto $x = 2$ queda excluido por ser $>$ estricto",
+              "Cambia de positivo a negativo obligatoriamente",
+              "El punto $x = 2$ se incluye porque $(x - 2)^2 \\ge 0$",
+              "Se cancela $(x - 2)^2$ sin excluir $x = 2$"
+            ],
+            "respuesta_correcta": "No cambia de signo en $x = 2$, pero el punto $x = 2$ queda excluido por ser $>$ estricto",
+            "explicacion": "Todo factor cuadrado es positivo a ambos lados de su raíz, pero en $x = 2$ vale $0$ y no cumple la desigualdad estricta."
+          },
+          "paso2_practica": {
+            "titulo": "Enteros con valor absoluto",
+            "enunciado_latex": "¿Cuántos números enteros satisfacen la inecuación $|x - 3| \\le 2$?",
+            "respuesta_correcta": "5",
+            "respuestas_aceptadas": [
+              "5",
+              "5.0"
+            ],
+            "pista": "Reescribe como $-2 \\le x - 3 \\le 2$, despeja $x$ y cuenta los enteros del intervalo cerrado."
+          },
+          "paso3_reto_foto": {
+            "titulo": "Reto de examen: Dominio con radical y logaritmo",
+            "enunciado_latex": "Halla analíticamente el dominio máximo real en intervalos de: $$f(x) = \\frac{\\sqrt{16 - x^2}}{\\ln(x + 2)}$$",
+            "prerrequisito_evaluado": "Inecuaciones cuadráticas, existencia del logaritmo, exclusión de ceros del denominador e intersección de intervalos.",
+            "instrucciones": "Plantea cada restricción en tu cuaderno, resuelve las desigualdades e intersecta los intervalos en la recta real antes de subir tu foto."
+          }
+        },
+        {
+          "id": "fac_cal_02_limites_alg",
+          "ranking_criticidad": 2,
+          "frecuencia_examen": "95%",
+          "materia": "Cálculo I",
+          "nombre": "Límites Algebraicos",
+          "area": "Cálculo I",
+          "prerrequisito_id": "fac_cal_01_inecuaciones_func",
+          "xp": 140,
+          "tip_auxiliar": "Ante límites $\\frac{0}{0}$ con raíces y polinomios mixtos, racionaliza la raíz y factoriza el polinomio por separado antes de cancelar.",
+          "paso1_concepto": {
+            "titulo": "Indeterminación infinito menos infinito",
+            "enunciado_latex": "Para resolver $\\lim_{x \\to \\infty} \\left(\\sqrt{x^2 + bx} - x\\right)$ (forma $\\infty - \\infty$), ¿cuál es el paso estándar?",
+            "opciones": [
+              "Multiplicar y dividir por el conjugado $\\sqrt{x^2 + bx} + x$ para pasar a forma $\\frac{\\infty}{\\infty}$",
+              "Sustituir $\\sqrt{x^2 + bx}$ directamente por $x$",
+              "Evaluar $x = \\infty$ dentro del radical",
+              "Elevar al cuadrado sin dividir"
+            ],
+            "respuesta_correcta": "Multiplicar y dividir por el conjugado $\\sqrt{x^2 + bx} + x$ para pasar a forma $\\frac{\\infty}{\\infty}$",
+            "explicacion": "El conjugado transforma la resta de raíces en un cociente racionalizable entre términos de igual orden."
+          },
+          "paso2_practica": {
+            "titulo": "Límite racional al infinito",
+            "enunciado_latex": "Calcula el valor exacto de $$\\lim_{x \\to \\infty} \\frac{6x^2 - 3x + 1}{2x^2 + 5}$$",
+            "respuesta_correcta": "3",
+            "respuestas_aceptadas": [
+              "3",
+              "3.0"
+            ],
+            "pista": "Divide numerador y denominador entre $x^2$."
+          },
+          "paso3_reto_foto": {
+            "titulo": "Reto de examen: Racionalización y factorización simultánea",
+            "enunciado_latex": "Calcula paso a paso el valor exacto del límite: $$\\lim_{x \\to 1} \\frac{\\sqrt{x + 3} - 2}{x^2 - 1}$$",
+            "prerrequisito_evaluado": "Racionalización por conjugado, diferencia de cuadrados $x^2 - 1$ y simplificación de $(x - 1)$.",
+            "instrucciones": "Verifica la indeterminación $0/0$, multiplica por el conjugado del numerador, factoriza $x^2 - 1$, simplifica y evalúa en $x = 1$."
+          }
+        },
+        {
+          "id": "fac_cal_03_limites_trig",
+          "ranking_criticidad": 3,
+          "frecuencia_examen": "93%",
+          "materia": "Cálculo I",
+          "nombre": "Límites Trigonométricos y Continuidad",
+          "area": "Cálculo I",
+          "prerrequisito_id": "fac_cal_02_limites_alg",
+          "xp": 160,
+          "tip_auxiliar": "Cuando veas $1 - \\cos(kx)$ en un límite cuando $x \\to 0$, usa $1 - \\cos(kx) = 2\\sin^2(kx/2)$ o multiplica por su conjugado $1 + \\cos(kx)$.",
+          "paso1_concepto": {
+            "titulo": "Límite notable con coseno cuadrático",
+            "enunciado_latex": "¿Cuál es el valor exacto del límite trigonométrico notable $$\\lim_{x \\to 0} \\frac{1 - \\cos(x)}{x^2}$$",
+            "opciones": [
+              "$\\frac{1}{2}$",
+              "$1$",
+              "$0$",
+              "$2$"
+            ],
+            "respuesta_correcta": "$\\frac{1}{2}$",
+            "explicacion": "Multiplicando por $1 + \\cos(x)$ resulta $\\left(\\frac{\\sin(x)}{x}\\right)^2 \\cdot \\frac{1}{1 + \\cos(x)} \\to 1 \\cdot \\frac{1}{2} = \\frac{1}{2}$."
+          },
+          "paso2_practica": {
+            "titulo": "Límite notable con tangente",
+            "enunciado_latex": "Calcula el valor exacto de $$\\lim_{x \\to 0} \\frac{\\tan(4x)}{x}$$",
+            "respuesta_correcta": "4",
+            "respuestas_aceptadas": [
+              "4",
+              "4.0"
+            ],
+            "pista": "Reescribe $\\tan(4x) = \\frac{\\sin(4x)}{\\cos(4x)}$ y ajusta el denominador a $4x$."
+          },
+          "paso3_reto_foto": {
+            "titulo": "Reto de examen: Límite trigonométrico mixto",
+            "enunciado_latex": "Calcula paso a paso el valor exacto del límite: $$\\lim_{x \\to 0} \\frac{1 - \\cos(2x)}{x \\sin(3x)}$$",
+            "prerrequisito_evaluado": "Identidades trigonométricas y límites notables $\\lim_{u \\to 0} \\frac{\\sin(u)}{u} = 1$.",
+            "instrucciones": "Transforma $1 - \\cos(2x)$, agrupa factores de la forma $\\frac{\\sin(kx)}{kx}$ y simplifica el valor exacto en tu hoja."
+          }
+        },
+        {
+          "id": "fac_cal_04_derivadas",
+          "ranking_criticidad": 4,
+          "frecuencia_examen": "96%",
+          "materia": "Cálculo I",
+          "nombre": "Derivación y Regla de la Cadena",
+          "area": "Cálculo I",
+          "prerrequisito_id": "fac_cal_03_limites_trig",
+          "xp": 180,
+          "tip_auxiliar": "Cada vez que derives un término con $y$ respecto a $x$, multiplica por $\\frac{dy}{dx}$ (regla de la cadena) y no olvides la regla del producto en términos mixtos como $x^2 y$.",
+          "paso1_concepto": {
+            "titulo": "Derivada implícita de un producto",
+            "enunciado_latex": "Si $y = y(x)$ es derivable respecto a $x$, ¿cuál es la derivada correcta de $\\frac{d}{dx}(x^2 y^3)$?",
+            "opciones": [
+              "$2x y^3 + 3x^2 y^2 \\frac{dy}{dx}$",
+              "$2x y^3 + 3x^2 y^2$",
+              "$6x y^2 \\frac{dy}{dx}$",
+              "$2x y^3 + x^2 y^3 \\frac{dy}{dx}$"
+            ],
+            "respuesta_correcta": "$2x y^3 + 3x^2 y^2 \\frac{dy}{dx}$",
+            "explicacion": "Por regla del producto y cadena: $(x^2)'y^3 + x^2(y^3)' = 2xy^3 + 3x^2 y^2 \\frac{dy}{dx}$."
+          },
+          "paso2_practica": {
+            "titulo": "Regla de la cadena exponencial",
+            "enunciado_latex": "Si $f(x) = e^{3x^2 - 3}$, calcula el valor exacto de $f'(1)$.",
+            "respuesta_correcta": "6",
+            "respuestas_aceptadas": [
+              "6",
+              "6.0"
+            ],
+            "pista": "Deriva como $e^u \\cdot u'$ con $u = 3x^2 - 3$ y sustituye $x = 1$."
+          },
+          "paso3_reto_foto": {
+            "titulo": "Reto de examen: Recta tangente por derivación implícita",
+            "enunciado_latex": "Dada la curva implícita $$x^2 y + y^3 = 10$$ halla $\\frac{dy}{dx}$ por derivación implícita y calcula la pendiente de la recta tangente en $(1, 2)$.",
+            "prerrequisito_evaluado": "Regla del producto, regla de la cadena para $y(x)$ y despeje algebraico de $\\frac{dy}{dx}$.",
+            "instrucciones": "Deriva ambos lados respecto a $x$, agrupa los términos con $\\frac{dy}{dx}$, despeja y evalúa en $(1, 2)$."
+          }
+        },
+        {
+          "id": "fac_cal_05_optimizacion",
+          "ranking_criticidad": 5,
+          "frecuencia_examen": "91%",
+          "materia": "Cálculo I",
+          "nombre": "Optimización de Funciones",
+          "area": "Cálculo I",
+          "prerrequisito_id": "fac_cal_04_derivadas",
+          "xp": 200,
+          "tip_auxiliar": "Todo problema de optimización usa dos ecuaciones: restricción (para dejar una variable) y objetivo (la que derivas). Justifica siempre con $f''(c)$.",
+          "paso1_concepto": {
+            "titulo": "Criterio de la segunda derivada",
+            "enunciado_latex": "Si $f'(c) = 0$ y $f''(c) < 0$, ¿qué garantiza el criterio de la segunda derivada en $x = c$?",
+            "opciones": [
+              "Un máximo relativo en $x = c$",
+              "Un mínimo relativo en $x = c$",
+              "Un punto de inflexión obligatorio",
+              "Que la función crece en $x = c$"
+            ],
+            "respuesta_correcta": "Un máximo relativo en $x = c$",
+            "explicacion": "Pendiente horizontal ($f'(c)=0$) con concavidad hacia abajo ($f''(c)<0$) indica máximo local."
+          },
+          "paso2_practica": {
+            "titulo": "Abscisa del mínimo local",
+            "enunciado_latex": "Halla la coordenada $x > 0$ donde $f(x) = x^3 - 12x + 5$ alcanza un mínimo relativo.",
+            "respuesta_correcta": "2",
+            "respuestas_aceptadas": [
+              "2",
+              "2.0"
+            ],
+            "pista": "Resuelve $f'(x) = 3x^2 - 12 = 0$ y verifica $f''(x) = 6x > 0$."
+          },
+          "paso3_reto_foto": {
+            "titulo": "Reto de examen: Optimización de caja abierta",
+            "enunciado_latex": "Se construye una caja abierta por arriba de base cuadrada de lado $x$ y altura $h$ con volumen fijo $V = 32\\text{ cm}^3$. Plantea el área superficial $A(x)$, halla las dimensiones óptimas $x, h$ y justifica con $A''(x)$.",
+            "prerrequisito_evaluado": "Modelado geométrico, derivación de potencias negativas y criterio de la segunda derivada.",
+            "instrucciones": "Despeja $h = 32/x^2$, sustituye en $A = x^2 + 4xh$, deriva $A(x)$, iguala a cero y verifica $A''(x) > 0$ en tu hoja."
+          }
+        }
+      ]
+    },
+    {
+      "id": "fac_fisica1",
+      "nombre": "Física I",
+      "codigo": "FIS-1100",
+      "icono": "bi-rocket-takeoff-fill",
+      "color": "green",
+      "descripcion": "Asegura la base de Física Universitaria: vectores, cinemática 2D, leyes de Newton con fricción y energía mecánica.",
+      "skills": [
+        {
+          "id": "fac_fis_01_vectores",
+          "ranking_criticidad": 1,
+          "frecuencia_examen": "96%",
+          "materia": "Física I",
+          "nombre": "Vectores y Descomposición",
+          "area": "Álgebra y Trig.",
+          "prerrequisito_id": null,
+          "xp": 120,
+          "tip_auxiliar": "Dibuja siempre el ángulo respecto al eje elegido antes de asignar $\\cos(\\theta)$ y $\\sin(\\theta)$: no siempre $x$ lleva coseno si el ángulo se mide desde la vertical.",
+          "paso1_concepto": {
+            "titulo": "Condición de perpendicularidad",
+            "enunciado_latex": "Si dos vectores no nulos $\\vec{A}$ y $\\vec{B}$ cumplen que su producto escalar es $\\vec{A} \\cdot \\vec{B} = 0$, ¿qué ángulo forman entre sí?",
+            "opciones": [
+              "$90^\\circ$ (son perpendiculares)",
+              "$0^\\circ$ (son paralelos)",
+              "$180^\\circ$ (son opuestos)",
+              "$45^\\circ$"
+            ],
+            "respuesta_correcta": "$90^\\circ$ (son perpendiculares)",
+            "explicacion": "Como $\\vec{A} \\cdot \\vec{B} = \\|\\vec{A}\\|\\|\\vec{B}\\|\\cos(\\theta) = 0$ con módulos no nulos, necesariamente $\\cos(\\theta) = 0 \\implies \\theta = 90^\\circ$."
+          },
+          "paso2_practica": {
+            "titulo": "Módulo en 3D",
+            "enunciado_latex": "Calcula el módulo numérico exacto del vector $\\vec{R} = 3\\hat{\\imath} - 4\\hat{\\jmath} + 12\\hat{k}$.",
+            "respuesta_correcta": "13",
+            "respuestas_aceptadas": [
+              "13",
+              "13.0"
+            ],
+            "pista": "Calcula $\\sqrt{3^2 + (-4)^2 + 12^2}$."
+          },
+          "paso3_reto_foto": {
+            "titulo": "Reto de examen: Resultante vectorial",
+            "enunciado_latex": "Dados los vectores fuerza $\\vec{A} = (3, 4)\\text{ N}$ y $\\vec{B} = (-2, 2)\\text{ N}$, determina las componentes del vector resultante $\\vec{R} = 2\\vec{A} - \\vec{B}$, su módulo $\\|\\vec{R}\\|$ y el ángulo $\\theta$ respecto al semieje $+x$.",
+            "prerrequisito_evaluado": "Álgebra vectorial por componentes, Teorema de Pitágoras y función inversa $\\arctan(R_y/R_x)$.",
+            "instrucciones": "Calcula componente a componente $2\\vec{A} - \\vec{B}$ en tu hoja, halla $\\|\\vec{R}\\|$ y determina el ángulo de dirección."
+          }
+        },
+        {
+          "id": "fac_fis_02_cinematica",
+          "ranking_criticidad": 2,
+          "frecuencia_examen": "94%",
+          "materia": "Física I",
+          "nombre": "Cinemática y Tiro Parabólico",
+          "area": "Física I",
+          "prerrequisito_id": "fac_fis_01_vectores",
+          "xp": 140,
+          "tip_auxiliar": "El tiempo $t$ es el puente que une el eje $x$ (MRU: $x = v_{0x}t$) con el eje $y$ (MRUV: $y = v_{0y}t - \\frac{1}{2}gt^2$). En altura máxima, $v_y = 0$, pero $v_x$ NO es cero.",
+          "paso1_concepto": {
+            "titulo": "Velocidad en movimiento parabólico",
+            "enunciado_latex": "En un tiro parabólico ideal sin resistencia del aire, ¿cómo se comporta la componente horizontal de la velocidad $v_x$ durante todo el vuelo?",
+            "opciones": [
+              "Permanece constante porque $a_x = 0$",
+              "Se hace cero en el punto de altura máxima",
+              "Disminuye linealmente por efecto de la gravedad",
+              "Aumenta de manera constante hasta impactar"
+            ],
+            "respuesta_correcta": "Permanece constante porque $a_x = 0$",
+            "explicacion": "La aceleración gravitatoria apunta únicamente en dirección vertical, por lo que no hay aceleración horizontal."
+          },
+          "paso2_practica": {
+            "titulo": "Tiempo de subida vertical",
+            "enunciado_latex": "Se lanza una piedra verticalmente hacia arriba con rapidez inicial $v_0 = 20\\text{ m/s}$ (usa $g = 10\\text{ m/s}^2$). ¿Cuántos segundos tarda en alcanzar su altura máxima?",
+            "respuesta_correcta": "2",
+            "respuestas_aceptadas": [
+              "2",
+              "2.0"
+            ],
+            "pista": "En la altura máxima $v_y = 0$, usa $v_y = v_0 - g t$."
+          },
+          "paso3_reto_foto": {
+            "titulo": "Reto de examen: Lanzamiento de proyectil",
+            "enunciado_latex": "Un proyectil se dispara desde el nivel del suelo con rapidez inicial $v_0 = 20\\text{ m/s}$ y ángulo $\\theta = 30^\\circ$ sobre la horizontal (usa $g = 10\\text{ m/s}^2$). Calcula $v_{0x}$, $v_{0y}$, el tiempo total de vuelo $T$ y el alcance horizontal máximo $R$.",
+            "prerrequisito_evaluado": "Descomposición trigonométrica de velocidad inicial y ecuaciones independientes de MRU y caída libre.",
+            "instrucciones": "Descompón $v_0$ en tu hoja usando $\\sin(30^\\circ) = 0.5$ y $\\cos(30^\\circ) = \\frac{\\sqrt{3}}{2}$, halla el tiempo total cuando $y = 0$ y calcula el alcance $R = v_{0x} T$."
+          }
+        },
+        {
+          "id": "fac_fis_03_dinamica",
+          "ranking_criticidad": 3,
+          "frecuencia_examen": "92%",
+          "materia": "Física I",
+          "nombre": "Leyes de Newton y Plano Inclinado",
+          "area": "Física I",
+          "prerrequisito_id": "fac_fis_02_cinematica",
+          "xp": 160,
+          "tip_auxiliar": "Nunca asumas $N = mg$ en un plano inclinado o si hay fuerzas diagonales. Haz siempre $\\sum F_y = 0$ en el eje perpendicular al plano para hallar la normal $N$ primero.",
+          "paso1_concepto": {
+            "titulo": "Componentes del peso en plano inclinado",
+            "enunciado_latex": "Para un bloque de masa $m$ sobre un plano inclinado ángulo $\\theta$ respecto a la horizontal, ¿cuál es la expresión de la fuerza normal $N$ si no hay otras fuerzas perpendiculares al plano?",
+            "opciones": [
+              "$N = mg\\cos(\\theta)$",
+              "$N = mg\\sin(\\theta)$",
+              "$N = mg$",
+              "$N = mg\\tan(\\theta)$"
+            ],
+            "respuesta_correcta": "$N = mg\\cos(\\theta)$",
+            "explicacion": "La componente perpendicular al plano del peso es $mg\\cos(\\theta)$, que se equilibra con la normal $N$ al no haber aceleración normal."
+          },
+          "paso2_practica": {
+            "titulo": "Segunda Ley de Newton",
+            "enunciado_latex": "Un bloque de $m = 5\\text{ kg}$ sobre un piso horizontal sin fricción recibe $F_1 = 22\\text{ N}$ hacia la derecha y $F_2 = 7\\text{ N}$ hacia la izquierda. ¿Cuál es la magnitud de su aceleración en $\\text{m/s}^2$?",
+            "respuesta_correcta": "3",
+            "respuestas_aceptadas": [
+              "3",
+              "3.0"
+            ],
+            "pista": "Aplica $a = \\frac{F_{\\text{neta}}}{m}$."
+          },
+          "paso3_reto_foto": {
+            "titulo": "Reto de examen: Plano inclinado con fricción",
+            "enunciado_latex": "Un bloque de $m = 4\\text{ kg}$ desciende por un plano inclinado $\\theta = 37^\\circ$ ($\\sin 37^\\circ \\approx 0.6$, $\\cos 37^\\circ \\approx 0.8$) con coeficiente de rozamiento cinético $\\mu_k = 0.25$ ($g = 10\\text{ m/s}^2$). Dibuja el diagrama de cuerpo libre (DCL) y calcula la normal $N$, la fuerza de fricción $f_k$ y la aceleración $a$.",
+            "prerrequisito_evaluado": "Descomposición del peso en plano inclinado, diagrama de cuerpo libre y fuerza de fricción $f_k = \\mu_k N$.",
+            "instrucciones": "Dibuja el DCL con ejes rotados en tu cuaderno, plantea $\\sum F_y = 0$ para hallar $N$, calcula $f_k$ y aplica $\\sum F_x = ma$."
+          }
+        },
+        {
+          "id": "fac_fis_04_energia",
+          "ranking_criticidad": 4,
+          "frecuencia_examen": "89%",
+          "materia": "Física I",
+          "nombre": "Trabajo y Conservación de la Energía",
+          "area": "Física I",
+          "prerrequisito_id": "fac_fis_03_dinamica",
+          "xp": 180,
+          "tip_auxiliar": "Define claramente tu nivel de referencia $h = 0$ antes de escribir $E_M = K + U_g + U_e$. Si hay fricción, recuerda que $W_{f} = -f_k d = \\Delta E_M$.",
+          "paso1_concepto": {
+            "titulo": "Teorema del Trabajo y la Energía Cinética",
+            "enunciado_latex": "Según el Teorema Trabajo-Energía, ¿a qué equivale el trabajo neto $W_{\\text{neto}}$ realizado sobre una partícula?",
+            "opciones": [
+              "A la variación de su energía cinética $\\Delta K = K_f - K_0$",
+              "A su energía potencial gravitatoria final $mgh_f$",
+              "A la suma de su masa y su aceleración",
+              "Siempre a cero si actúa la gravedad"
+            ],
+            "respuesta_correcta": "A la variación de su energía cinética $\\Delta K = K_f - K_0$",
+            "explicacion": "El trabajo neto de todas las fuerzas que actúan sobre un cuerpo iguala el cambio en su energía cinética $\\frac{1}{2}mv_f^2 - \\frac{1}{2}mv_0^2$."
+          },
+          "paso2_practica": {
+            "titulo": "Caída libre por conservación de energía",
+            "enunciado_latex": "Un cuerpo de $m = 2\\text{ kg}$ cae desde el reposo desde una altura $h = 5\\text{ m}$ sin rozamiento ($g = 10\\text{ m/s}^2$). ¿Con qué rapidez (en $\\text{m/s}$) llega al nivel del suelo?",
+            "respuesta_correcta": "10",
+            "respuestas_aceptadas": [
+              "10",
+              "10.0"
+            ],
+            "pista": "Iguala $mgh = \\frac{1}{2}mv^2$ y despeja $v = \\sqrt{2gh}$."
+          },
+          "paso3_reto_foto": {
+            "titulo": "Reto de examen: Rampa lisa y resorte",
+            "enunciado_latex": "Un bloque de $m = 2\\text{ kg}$ se suelta desde el reposo en una rampa lisa a altura $h = 2.5\\text{ m}$ sobre un tramo horizontal sin fricción, hasta comprimir un resorte ideal de constante $k = 400\\text{ N/m}$ ($g = 10\\text{ m/s}^2$). Calcula la compresión máxima $x$ del resorte por conservación de la energía mecánica.",
+            "prerrequisito_evaluado": "Energía potencial gravitatoria $mgh$, energía potencial elástica $\\frac{1}{2}kx^2$ y planteo de conservación energética.",
+            "instrucciones": "Identifica los estados inicial y final en tu hoja, plantea $E_{M,0} = E_{M,f}$ explicando qué energías se anulan y despeja la compresión máxima $x$."
+          }
+        }
+      ]
+    }
+  ]
+}

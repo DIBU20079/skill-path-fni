@@ -1,28 +1,20 @@
-"""Módulo de auditoría pedagógica socrática para Skill-Path FNI con Gemini."""
+"""Servicio de auditoría pedagógica socrática por foto/texto usando Gemini."""
 
 from __future__ import annotations
 
 import io
-import json
-import os
-import re
 from typing import Any, Optional, Union
 
-from dotenv import load_dotenv
-from google import genai
 from google.genai import types
 from PIL import Image, ImageOps, UnidentifiedImageError
 
-load_dotenv()
-
-MODEL_NAME = "gemini-2.5-flash"
-FALLBACK_MODELS = (
-    "gemini-3.8-flash",
-    "gemini-3.5-flash-lite",
-    "gemini-3.1-flash-lite",
+from services.ai_client import (
+    _extraer_items_texto,
+    _formatear_historial,
+    _invocar_gemini_json,
 )
+
 MAX_IMAGE_SIDE = 2048
-REQUEST_TIMEOUT_MS = 15000
 
 ALLOWED_IMAGE_MIMES = {
     "JPEG": "image/jpeg",
@@ -129,92 +121,6 @@ FORMATO DE RESPUESTA OBLIGATORIO EN JSON (8 CLAVES EXACTAS):
   * "resumen_baul": ""
 - Responde SIEMPRE en español y estrictamente en JSON válido con esas 8 claves exactas."""
 
-DYNAMIC_EXERCISE_SCHEMA = {
-    "type": "OBJECT",
-    "properties": {
-        "paso1_concepto": {
-            "type": "OBJECT",
-            "properties": {
-                "titulo": {"type": "STRING"},
-                "enunciado_latex": {"type": "STRING"},
-                "opciones": {
-                    "type": "ARRAY",
-                    "items": {"type": "STRING"},
-                },
-                "respuesta_correcta": {"type": "STRING"},
-                "explicacion": {"type": "STRING"},
-            },
-            "required": [
-                "titulo",
-                "enunciado_latex",
-                "opciones",
-                "respuesta_correcta",
-                "explicacion",
-            ],
-        },
-        "paso2_practica": {
-            "type": "OBJECT",
-            "properties": {
-                "titulo": {"type": "STRING"},
-                "enunciado_latex": {"type": "STRING"},
-                "respuesta_correcta": {"type": "STRING"},
-                "respuestas_aceptadas": {
-                    "type": "ARRAY",
-                    "items": {"type": "STRING"},
-                },
-                "pista": {"type": "STRING"},
-            },
-            "required": [
-                "titulo",
-                "enunciado_latex",
-                "respuesta_correcta",
-                "respuestas_aceptadas",
-                "pista",
-            ],
-        },
-        "paso3_reto_foto": {
-            "type": "OBJECT",
-            "properties": {
-                "titulo": {"type": "STRING"},
-                "enunciado_latex": {"type": "STRING"},
-                "prerrequisito_evaluado": {"type": "STRING"},
-                "instrucciones": {"type": "STRING"},
-            },
-            "required": [
-                "titulo",
-                "enunciado_latex",
-                "prerrequisito_evaluado",
-                "instrucciones",
-            ],
-        },
-    },
-    "required": ["paso1_concepto", "paso2_practica", "paso3_reto_foto"],
-}
-
-EXERCISE_GEN_SYSTEM_INSTRUCTION = """Eres un docente universitario de Ciencias Básicas de Ingeniería (FNI) creando retos inéditos en español.
-
-REGLAS ESTRICTAS DE GENERACIÓN:
-1. Genera un ejercicio completamente nuevo y distinto a los ejemplos estándar, adaptado exactamente a la materia y tema solicitados, reforzando las fallas del historial de errores si existen.
-2. Usa formato LaTeX válido compatible con KaTeX encerrando TODA fórmula entre `$ ... $` (inline) o `$$ ... $$` (display). Nunca dejes comandos LaTeX sueltos sin signos `$`.
-3. `paso1_concepto`: pregunta conceptual rápida con exactamente 4 `opciones` distintas y verosímiles. La cadena `respuesta_correcta` debe ser EXACTAMENTE idéntica carácter por carácter a una de las 4 entradas de `opciones`.
-4. `paso2_practica`: ejercicio corto de respuesta única numérica o fracción simple (ej. "8", "-3", "1/2", "5"). Incluye en `respuestas_aceptadas` la respuesta exacta y variantes equivalentes (ej. ["1/2", "0.5", "0,5"]).
-5. `paso3_reto_foto`: problema tipo examen universitario desafiante y bien planteado (con solución algebraica/física limpia, sin datos contradictorios) para que el estudiante lo resuelva paso a paso en una hoja de papel y suba la foto.
-6. Devuelve estrictamente JSON válido según el esquema."""
-
-
-def _get_client() -> genai.Client:
-    """Inicializa el cliente de Google GenAI leyendo GEMINI_API_KEY desde .env."""
-    load_dotenv(override=False)
-    api_key = (os.getenv("GEMINI_API_KEY") or "").strip()
-    if not api_key:
-        raise ValueError(
-            "Falta GEMINI_API_KEY. Configura tu clave de API en el archivo .env antes de evaluar."
-        )
-    return genai.Client(
-        api_key=api_key,
-        http_options=types.HttpOptions(timeout=REQUEST_TIMEOUT_MS),
-    )
-
 
 def _preparar_imagen(imagen_bytes: bytes, mime_type: Optional[str]) -> tuple[bytes, str]:
     """Valida, corrige orientación EXIF y optimiza la imagen para enviarla a Gemini."""
@@ -276,52 +182,6 @@ def _preparar_imagen(imagen_bytes: bytes, mime_type: Optional[str]) -> tuple[byt
         ) from exc
 
 
-def _extraer_items_texto(entrada: Optional[Union[str, list]]) -> list[str]:
-    """Convierte listas o JSON strings de errores/intentos en líneas de texto limpias."""
-    if not entrada:
-        return []
-
-    items: Any = entrada
-    if isinstance(entrada, str):
-        texto = entrada.strip()
-        if not texto:
-            return []
-        if texto.startswith("["):
-            try:
-                items = json.loads(texto)
-            except json.JSONDecodeError:
-                return [texto]
-        else:
-            return [texto]
-
-    if isinstance(items, list):
-        lineas: list[str] = []
-        for item in items:
-            if isinstance(item, dict):
-                partes = [
-                    str(item.get(campo) or "").strip()
-                    for campo in ("ubicacion_error", "explicacion_error", "resumen_baul", "resumen")
-                    if str(item.get(campo) or "").strip()
-                ]
-                texto_item = " | ".join(partes) if partes else json.dumps(item, ensure_ascii=False)
-            else:
-                texto_item = str(item).strip()
-            if texto_item:
-                lineas.append(texto_item)
-        return lineas
-
-    texto_unico = str(items).strip()
-    return [texto_unico] if texto_unico else []
-
-
-def _formatear_historial(historial_errores: Optional[Union[str, list]]) -> str:
-    """Normaliza el historial de errores del Baúl de Errores para memoria longitudinal."""
-    limpios = _extraer_items_texto(historial_errores)
-    if not limpios:
-        return "Sin errores previos registrados en el Baúl de Errores."
-    return "\n".join(f"- {entrada}" for entrada in limpios[-10:])
-
-
 def _formatear_intentos_previos(
     intentos_previos_ejercicio: Optional[Union[str, list]],
 ) -> tuple[str, bool]:
@@ -337,18 +197,6 @@ def _formatear_intentos_previos(
         for idx, detalle in enumerate(limpios[-8:], start=1)
     ]
     return "\n".join(lineas), True
-
-
-def _extraer_json(texto_respuesta: str) -> dict[str, Any]:
-    """Parsea el JSON devuelto por el modelo limpiando cercas Markdown si existieran."""
-    limpio = (texto_respuesta or "").strip()
-    if limpio.startswith("```"):
-        limpio = re.sub(r"^```(?:json)?\s*", "", limpio, flags=re.IGNORECASE)
-        limpio = re.sub(r"\s*```$", "", limpio)
-    data = json.loads(limpio)
-    if not isinstance(data, dict):
-        raise ValueError("La respuesta del modelo no es un objeto JSON.")
-    return data
 
 
 def _a_booleano(valor: Any) -> bool:
@@ -396,7 +244,9 @@ def _normalizar_respuesta(
     else:
         tipo_error = "error_operativo"
 
-    requiere_repetir = bool(tiene_prerrequisito_id and tipo_error == "fallo_prerrequisito")
+    requiere_repetir = bool(
+        tiene_prerrequisito_id and tipo_error == "fallo_prerrequisito"
+    )
 
     ubicacion = str(payload.get("ubicacion_error") or "Desarrollo enviado").strip()
     explicacion = str(
@@ -427,153 +277,6 @@ def _normalizar_respuesta(
     }
 
 
-def _obtener_modelos_candidatos() -> list[str]:
-    """Construye la lista ordenada de modelos iniciando por GEMINI_MODEL o MODEL_NAME."""
-    load_dotenv(override=False)
-    primario = (os.getenv("GEMINI_MODEL") or MODEL_NAME).strip() or MODEL_NAME
-    candidatos = [primario]
-    for fallback in FALLBACK_MODELS:
-        if fallback not in candidatos:
-            candidatos.append(fallback)
-    return candidatos
-
-
-def _es_error_recuperable_modelo(exc: Exception) -> bool:
-    """Detecta errores transitorios o de disponibilidad de modelo para probar fallback."""
-    msg = str(exc).upper()
-    indicadores = (
-        "404",
-        "NOT_FOUND",
-        "503",
-        "UNAVAILABLE",
-        "429",
-        "RESOURCE_EXHAUSTED",
-        "TIMED OUT",
-        "TIMEOUT",
-        "DEADLINE_EXCEEDED",
-    )
-    return any(ind in msg for ind in indicadores)
-
-
-def _invocar_gemini_json(
-    contents: list[Any],
-    config: types.GenerateContentConfig,
-) -> dict[str, Any]:
-    """Ejecuta generate_content con fallback controlado y devuelve el dict JSON."""
-    client = _get_client()
-    modelos = _obtener_modelos_candidatos()
-    response = None
-    ultimo_error: Optional[Exception] = None
-    modelo_usado = modelos[0]
-
-    for idx, modelo in enumerate(modelos):
-        modelo_usado = modelo
-        try:
-            response = client.models.generate_content(
-                model=modelo,
-                contents=contents,
-                config=config,
-            )
-            break
-        except Exception as exc:
-            ultimo_error = exc
-            quedan_modelos = idx + 1 < len(modelos)
-            if quedan_modelos and _es_error_recuperable_modelo(exc):
-                continue
-            raise RuntimeError(
-                f"Error al consultar el modelo {modelo_usado}: {exc}"
-            ) from exc
-
-    if response is None:
-        raise RuntimeError(
-            f"Error al consultar el modelo {modelo_usado}: {ultimo_error}"
-        )
-
-    respuesta_texto = getattr(response, "text", None)
-    if not respuesta_texto:
-        raise RuntimeError(
-            "El tutor de IA devolvió una respuesta vacía. Intenta nuevamente."
-        )
-
-    try:
-        return _extraer_json(respuesta_texto)
-    except Exception as exc:
-        raise RuntimeError(
-            f"La respuesta del tutor de IA no tuvo formato JSON válido: {exc}"
-        ) from exc
-
-
-def _normalizar_ejercicio_dinamico(payload: dict[str, Any]) -> dict[str, Any]:
-    """Valida y normaliza los 3 pasos generados por IA antes de enviarlos al cliente."""
-    p1_raw = payload.get("paso1_concepto")
-    p2_raw = payload.get("paso2_practica")
-    p3_raw = payload.get("paso3_reto_foto")
-
-    if not isinstance(p1_raw, dict) or not isinstance(p2_raw, dict) or not isinstance(p3_raw, dict):
-        raise RuntimeError("El ejercicio generado no incluye los 3 pasos completos.")
-
-    opciones = [str(opt).strip() for opt in (p1_raw.get("opciones") or []) if str(opt).strip()]
-    if len(opciones) < 2:
-        raise RuntimeError("El paso 1 generado no contiene suficientes opciones.")
-    opciones = opciones[:4]
-
-    resp1 = str(p1_raw.get("respuesta_correcta") or "").strip()
-    if resp1 not in opciones:
-        compact = lambda s: re.sub(r"\s+", "", s)
-        match = next((o for o in opciones if compact(o) == compact(resp1)), None)
-        if match is None:
-            raise RuntimeError("La respuesta correcta del paso 1 no coincide con ninguna opción.")
-        resp1 = match
-
-    enun1 = str(p1_raw.get("enunciado_latex") or "").strip()
-    enun2 = str(p2_raw.get("enunciado_latex") or "").strip()
-    resp2 = str(p2_raw.get("respuesta_correcta") or "").strip()
-    enun3 = str(p3_raw.get("enunciado_latex") or "").strip()
-
-    if not enun1 or not enun2 or not resp2 or not enun3:
-        raise RuntimeError("El ejercicio generado contiene enunciados o respuestas vacías.")
-
-    aceptadas = [
-        str(val).strip()
-        for val in (p2_raw.get("respuestas_aceptadas") or [])
-        if str(val).strip()
-    ]
-    if resp2 not in aceptadas:
-        aceptadas.insert(0, resp2)
-
-    return {
-        "paso1_concepto": {
-            "titulo": str(p1_raw.get("titulo") or "Concepto clave (IA)").strip(),
-            "enunciado_latex": enun1,
-            "opciones": opciones,
-            "respuesta_correcta": resp1,
-            "explicacion": str(
-                p1_raw.get("explicacion") or "Aplica directamente la propiedad fundamental del tema."
-            ).strip(),
-        },
-        "paso2_practica": {
-            "titulo": str(p2_raw.get("titulo") or "Práctica rápida (IA)").strip(),
-            "enunciado_latex": enun2,
-            "respuesta_correcta": resp2,
-            "respuestas_aceptadas": aceptadas,
-            "pista": str(
-                p2_raw.get("pista") or "Descompón el problema paso a paso antes de operar."
-            ).strip(),
-        },
-        "paso3_reto_foto": {
-            "titulo": str(p3_raw.get("titulo") or "Reto de examen en papel (IA)").strip(),
-            "enunciado_latex": enun3,
-            "prerrequisito_evaluado": str(
-                p3_raw.get("prerrequisito_evaluado") or "Dominio operativo y conceptual del tema."
-            ).strip(),
-            "instrucciones": str(
-                p3_raw.get("instrucciones")
-                or "Desarrolla todos los pasos en una hoja de papel con letra legible y sube la foto para auditoría socrática."
-            ).strip(),
-        },
-    }
-
-
 def auditar_resolucion(
     enunciado: str,
     prerrequisito: str = "",
@@ -587,7 +290,9 @@ def auditar_resolucion(
     """Audita el procedimiento escrito o fotografiado del estudiante sin dar la respuesta final."""
     enunciado_limpio = (enunciado or "").strip()
     if not enunciado_limpio:
-        raise ValueError("El campo 'enunciado' es obligatorio para auditar la resolución.")
+        raise ValueError(
+            "El campo 'enunciado' es obligatorio para auditar la resolución."
+        )
 
     texto_limpio = (texto_usuario or "").strip()
     tiene_imagen = bool(imagen_bytes)
@@ -647,35 +352,3 @@ def auditar_resolucion(
         tiene_intentos_previos=tiene_intentos_previos,
         tiene_prerrequisito_id=bool(prerrequisito_id_limpio),
     )
-
-
-def generar_ejercicio_dinamico(
-    materia: str,
-    tema: str,
-    historial_errores: Optional[Union[str, list]] = None,
-) -> dict[str, Any]:
-    """Genera un ejercicio inédito de 3 pasos en LaTeX para la materia y tema dados."""
-    materia_limpia = (materia or "").strip()
-    tema_limpio = (tema or "").strip()
-
-    if not materia_limpia or not tema_limpio:
-        raise ValueError("Los campos 'materia' y 'tema' son obligatorios para generar un ejercicio.")
-
-    historial_texto = _formatear_historial(historial_errores)
-    prompt_generacion = (
-        "Genera un ejercicio universitario completamente nuevo y original de 3 sub-pasos.\n\n"
-        f"MATERIA: {materia_limpia}\n"
-        f"TEMA: {tema_limpio}\n"
-        f"ERRORES RECIENTES DEL ESTUDIANTE (BAÚL DE ERRORES):\n{historial_texto}\n\n"
-        "Diseña el Paso 1 (concepto con 4 opciones), el Paso 2 (práctica corta numérica/fraccionaria) "
-        "y el Paso 3 (reto completo en papel con LaTeX) enfocado en reforzar este tema sin repetir ejercicios triviales."
-    )
-
-    config = types.GenerateContentConfig(
-        system_instruction=EXERCISE_GEN_SYSTEM_INSTRUCTION,
-        response_mime_type="application/json",
-        response_schema=DYNAMIC_EXERCISE_SCHEMA,
-        temperature=0.8,
-    )
-    payload = _invocar_gemini_json([prompt_generacion], config)
-    return _normalizar_ejercicio_dinamico(payload)
