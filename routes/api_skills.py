@@ -1,4 +1,4 @@
-"""Endpoints de lectura y combinación del currículo multi-materia."""
+"""Endpoints de lectura y combinación del currículo multi-materia por etapa."""
 
 from __future__ import annotations
 
@@ -11,7 +11,6 @@ from flask import Blueprint, jsonify
 api_skills_bp = Blueprint("api_skills", __name__)
 
 DATA_DIR = Path(__file__).resolve().parent.parent / "data"
-DIAGNOSTICO_PATH = DATA_DIR / "diagnostico.json"
 PRE_U_PATH = DATA_DIR / "pre_u.json"
 FACULTAD_PATH = DATA_DIR / "facultad.json"
 
@@ -25,25 +24,34 @@ def _leer_json(ruta: Path) -> dict[str, Any]:
     return data
 
 
+def _construir_banco_etapa(materias: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Reúne las preguntas de examen de las materias de la etapa para compatibilidad de /api/skills."""
+    preguntas: list[dict[str, Any]] = []
+    for mat in materias:
+        for q in mat.get("preguntas_examen") or []:
+            if isinstance(q, dict):
+                preguntas.append(q)
+    return preguntas
+
+
 def cargar_skills_combinados() -> dict[str, Any]:
-    """Une diagnostico.json, pre_u.json y facultad.json conservando el contrato del frontend."""
-    diag_data = _leer_json(DIAGNOSTICO_PATH)
+    """Lee pre_u.json y facultad.json manteniendo la estructura esperada por el frontend."""
     etapas_archivos = (
-        ("pre_u", PRE_U_PATH),
-        ("facultad", FACULTAD_PATH),
+        ("pre_u", PRE_U_PATH, 270),
+        ("facultad", FACULTAD_PATH, 360),
     )
 
     combinado: dict[str, Any] = {}
-    for stage_key, stage_path in etapas_archivos:
+    for stage_key, stage_path, default_time in etapas_archivos:
         stage_info = _leer_json(stage_path)
-        stage_diag = diag_data[stage_key]
+        materias = stage_info["materias"]
         combinado[stage_key] = {
             "id": stage_info["id"],
             "nombre": stage_info["nombre"],
             "descripcion": stage_info["descripcion"],
-            "tiempo_diagnostico_seg": stage_diag["tiempo_diagnostico_seg"],
-            "diagnostico": stage_diag["diagnostico"],
-            "materias": stage_info["materias"],
+            "tiempo_diagnostico_seg": default_time,
+            "diagnostico": _construir_banco_etapa(materias),
+            "materias": materias,
         }
 
     return combinado
@@ -51,7 +59,7 @@ def cargar_skills_combinados() -> dict[str, Any]:
 
 @api_skills_bp.get("/api/skills")
 def get_skills():
-    """Devuelve el árbol de rutas, diagnósticos y skills combinados en JSON."""
+    """Devuelve el árbol de rutas, preguntas de examen por materia y skills en JSON."""
     try:
         data = cargar_skills_combinados()
         return jsonify(data), 200

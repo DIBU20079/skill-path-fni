@@ -206,6 +206,93 @@
             "instrucciones": "Despeja $h = 32/x^2$, sustituye en $A = x^2 + 4xh$, deriva $A(x)$, iguala a cero y verifica $A''(x) > 0$ en tu hoja."
           }
         }
+      ],
+      "preguntas_examen": [
+        {
+          "id": "exam_fac_cal_1",
+          "skill_id": "fac_cal_01_inecuaciones_func",
+          "nivel_nodo": 1,
+          "tema": "Inecuaciones y Dominios",
+          "area": "Álgebra y Trig.",
+          "tiempo_segundos": 60,
+          "enunciado_latex": "Halla el dominio real de la función logarítmica $$f(x) = \\ln(9 - x^2)$$",
+          "opciones": [
+            "$(-3, 3)$",
+            "$[-3, 3]$",
+            "$(-\\infty, -3) \\cup (3, \\infty)$",
+            "$(0, 3)$"
+          ],
+          "respuesta_correcta": "$(-3, 3)$",
+          "explicacion_breve": "El argumento del logaritmo natural debe ser estrictamente positivo: $9 - x^2 > 0 \\iff x^2 < 9 \\iff x \\in (-3, 3)$."
+        },
+        {
+          "id": "exam_fac_cal_2",
+          "skill_id": "fac_cal_02_limites_alg",
+          "nivel_nodo": 2,
+          "tema": "Límites Algebraicos",
+          "area": "Cálculo I",
+          "tiempo_segundos": 60,
+          "enunciado_latex": "Evalúa el límite con radicales $$\\lim_{x \\to 4} \\frac{\\sqrt{x} - 2}{x - 4}$$",
+          "opciones": [
+            "$\\frac{1}{4}$",
+            "$\\frac{1}{2}$",
+            "$4$",
+            "$0$"
+          ],
+          "respuesta_correcta": "$\\frac{1}{4}$",
+          "explicacion_breve": "Racionalizando o factorizando $x - 4 = (\\sqrt{x} - 2)(\\sqrt{x} + 2)$, queda $\\lim_{x \\to 4} \\frac{1}{\\sqrt{x} + 2} = \\frac{1}{4}$."
+        },
+        {
+          "id": "exam_fac_cal_3",
+          "skill_id": "fac_cal_03_limites_trig",
+          "nivel_nodo": 3,
+          "tema": "Límites Trigonométricos y Continuidad",
+          "area": "Cálculo I",
+          "tiempo_segundos": 60,
+          "enunciado_latex": "Calcula el límite trigonométrico fundamental $$\\lim_{x \\to 0} \\frac{\\sin(5x)}{2x}$$",
+          "opciones": [
+            "$\\frac{5}{2}$",
+            "$\\frac{2}{5}$",
+            "$1$",
+            "$0$"
+          ],
+          "respuesta_correcta": "$\\frac{5}{2}$",
+          "explicacion_breve": "Reescribiendo $\\frac{5}{2} \\cdot \\frac{\\sin(5x)}{5x}$ y aplicando $\\lim_{u \\to 0} \\frac{\\sin(u)}{u} = 1$, se obtiene $\\frac{5}{2}$."
+        },
+        {
+          "id": "exam_fac_cal_4",
+          "skill_id": "fac_cal_04_derivadas",
+          "nivel_nodo": 4,
+          "tema": "Derivación y Regla de la Cadena",
+          "area": "Cálculo I",
+          "tiempo_segundos": 60,
+          "enunciado_latex": "Aplica la regla de la cadena para hallar $f'(x)$ de $$f(x) = \\ln(3x^2 + 1)$$",
+          "opciones": [
+            "$\\frac{6x}{3x^2 + 1}$",
+            "$\\frac{1}{3x^2 + 1}$",
+            "$\\frac{3x}{3x^2 + 1}$",
+            "$\\frac{6x}{(3x^2 + 1)^2}$"
+          ],
+          "respuesta_correcta": "$\\frac{6x}{3x^2 + 1}$",
+          "explicacion_breve": "La derivada de $\\ln(u)$ es $\\frac{u'}{u}$, por lo tanto $f'(x) = \\frac{6x}{3x^2 + 1}$."
+        },
+        {
+          "id": "exam_fac_cal_5",
+          "skill_id": "fac_cal_05_optimizacion",
+          "nivel_nodo": 5,
+          "tema": "Optimización de Funciones",
+          "area": "Cálculo I",
+          "tiempo_segundos": 60,
+          "enunciado_latex": "¿En qué valor de $x$ alcanza su máximo absoluto la función cuadrática $$f(x) = -2x^2 + 12x - 7$$?",
+          "opciones": [
+            "$x = 3$",
+            "$x = -3$",
+            "$x = 6$",
+            "$x = 11$"
+          ],
+          "respuesta_correcta": "$x = 3$",
+          "explicacion_breve": "Derivando e igualando a cero: $f'(x) = -4x + 12 = 0 \\implies x = 3$, con $f''(x) = -4 < 0$ (máximo)."
+        }
       ]
     },
     {
@@ -371,6 +458,93 @@
             "prerrequisito_evaluado": "Energía potencial gravitatoria $mgh$, energía potencial elástica $\\frac{1}{2}kx^2$ y planteo de conservación energética.",
             "instrucciones": "Identifica los estados inicial y final en tu hoja, plantea $E_{M,0} = E_{M,f}$ explicando qué energías se anulan y despeja la compresión máxima $x$."
           }
+        }
+      ],
+      "preguntas_examen": [
+        {
+          "id": "exam_fac_fis_1",
+          "skill_id": "fac_fis_01_vectores",
+          "nivel_nodo": 1,
+          "tema": "Vectores y Descomposición",
+          "area": "Álgebra y Trig.",
+          "tiempo_segundos": 60,
+          "enunciado_latex": "Si un vector $\\vec{A}$ en el plano tiene componentes $A_x = 6\\text{ u}$ y $A_y = 8\\text{ u}$, ¿cuál es su módulo $\\|\\vec{A}\\|$?",
+          "opciones": [
+            "$10\\text{ u}$",
+            "$14\\text{ u}$",
+            "$48\\text{ u}$",
+            "$\\sqrt{14}\\text{ u}$"
+          ],
+          "respuesta_correcta": "$10\\text{ u}$",
+          "explicacion_breve": "Por el teorema de Pitágoras, $\\|\\vec{A}\\| = \\sqrt{6^2 + 8^2} = \\sqrt{36 + 64} = 10\\text{ u}$."
+        },
+        {
+          "id": "exam_fac_fis_2",
+          "skill_id": "fac_fis_02_cinematica",
+          "nivel_nodo": 2,
+          "tema": "Cinemática y Tiro Parabólico",
+          "area": "Física I",
+          "tiempo_segundos": 60,
+          "enunciado_latex": "Un móvil parte del reposo con aceleración rectilínea constante $a = 4\\text{ m/s}^2$. ¿Qué distancia recorre en los primeros $t = 3\\text{ s}$?",
+          "opciones": [
+            "$18\\text{ m}$",
+            "$12\\text{ m}$",
+            "$36\\text{ m}$",
+            "$6\\text{ m}$"
+          ],
+          "respuesta_correcta": "$18\\text{ m}$",
+          "explicacion_breve": "Con $v_0 = 0$, la ecuación de MRUV da $d = \\frac{1}{2} a t^2 = \\frac{1}{2}(4)(3^2) = 18\\text{ m}$."
+        },
+        {
+          "id": "exam_fac_fis_3",
+          "skill_id": "fac_fis_03_dinamica",
+          "nivel_nodo": 3,
+          "tema": "Leyes de Newton y Plano Inclinado",
+          "area": "Física I",
+          "tiempo_segundos": 60,
+          "enunciado_latex": "Sobre un bloque de masa $m = 5\\text{ kg}$ en una mesa horizontal sin fricción actúa una fuerza neta horizontal de $20\\text{ N}$. ¿Cuál es su aceleración?",
+          "opciones": [
+            "$4\\text{ m/s}^2$",
+            "$100\\text{ m/s}^2$",
+            "$2.5\\text{ m/s}^2$",
+            "$9.8\\text{ m/s}^2$"
+          ],
+          "respuesta_correcta": "$4\\text{ m/s}^2$",
+          "explicacion_breve": "Por la segunda ley de Newton, $a = \\frac{F_{\\text{neta}}}{m} = \\frac{20}{5} = 4\\text{ m/s}^2$."
+        },
+        {
+          "id": "exam_fac_fis_4",
+          "skill_id": "fac_fis_04_energia",
+          "nivel_nodo": 4,
+          "tema": "Trabajo y Conservación de la Energía",
+          "area": "Física I",
+          "tiempo_segundos": 60,
+          "enunciado_latex": "Calcula la energía cinética de una partícula de masa $m = 2\\text{ kg}$ cuando se mueve con rapidez $v = 5\\text{ m/s}$.",
+          "opciones": [
+            "$25\\text{ J}$",
+            "$50\\text{ J}$",
+            "$10\\text{ J}$",
+            "$5\\text{ J}$"
+          ],
+          "respuesta_correcta": "$25\\text{ J}$",
+          "explicacion_breve": "La energía cinética es $K = \\frac{1}{2}mv^2 = \\frac{1}{2}(2)(5^2) = 25\\text{ J}$."
+        },
+        {
+          "id": "exam_fac_fis_5",
+          "skill_id": "fac_fis_04_energia",
+          "nivel_nodo": 4,
+          "tema": "Trabajo y Conservación de la Energía",
+          "area": "Física I",
+          "tiempo_segundos": 60,
+          "enunciado_latex": "Se suelta un bloque desde el reposo a una altura $h = 5\\text{ m}$ en una rampa sin fricción ($g = 10\\text{ m/s}^2$). ¿Con qué rapidez llega a la base?",
+          "opciones": [
+            "$10\\text{ m/s}$",
+            "$5\\text{ m/s}$",
+            "$50\\text{ m/s}$",
+            "$100\\text{ m/s}$"
+          ],
+          "respuesta_correcta": "$10\\text{ m/s}$",
+          "explicacion_breve": "Por conservación de la energía mecánica, $mgh = \\frac{1}{2}mv^2 \\implies v = \\sqrt{2gh} = \\sqrt{2(10)(5)} = 10\\text{ m/s}$."
         }
       ]
     }

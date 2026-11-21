@@ -1,40 +1,34 @@
 /* ==========================================================================
-   Vista 3: Camino Duolingo + Alerta Roja + Panel Lateral
+   Vista 3: Camino Duolingo + Inicio de Materia + Panel Lateral
    ========================================================================== */
 
-.rescue-banner {
-  background: linear-gradient(135deg, #fff1f2 0%, #fee2e2 100%);
-  border: 2px solid var(--duo-red);
-  border-bottom: 5px solid var(--duo-red-dark);
+.subject-onboarding-shell {
+  max-width: 780px;
+}
+
+.onboarding-option-card {
+  background-color: #f8fafc;
+  border: 2px solid var(--border-soft);
+  border-bottom-width: 5px;
   border-radius: 20px;
-  padding: 1.15rem 1.4rem;
-  box-shadow: 0 10px 26px rgba(255, 75, 75, 0.16);
+  transition: transform 0.16s ease, border-color 0.16s ease, box-shadow 0.16s ease;
 }
 
-.rescue-icon-box {
-  width: 48px;
-  height: 48px;
-  border-radius: 14px;
-  background-color: var(--duo-red);
-  color: #ffffff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.45rem;
-  flex-shrink: 0;
-  animation: pulse-blocker 1.8s infinite;
+.onboarding-option-card:hover {
+  transform: translateY(-3px);
+  border-color: var(--duo-green);
+  box-shadow: 0 10px 24px rgba(88, 204, 2, 0.12);
 }
 
-.rescue-title {
-  font-family: "Nunito", sans-serif;
-  font-weight: 900;
-  font-size: 1.08rem;
-  color: #991b1b;
+.onboarding-option-placement:hover {
+  border-color: var(--duo-blue);
+  box-shadow: 0 10px 24px rgba(28, 176, 246, 0.14);
 }
 
-.rescue-desc {
-  font-size: 0.92rem;
-  color: #7f1d1d;
+.btn-skip-level {
+  font-size: 0.76rem;
+  padding: 0.28rem 0.72rem;
+  border-radius: 999px;
 }
 
 .path-kicker {
@@ -504,18 +498,27 @@
   }
 }
 
-@media (max-width: 575.98px) {
+@media (max-width: 768px) {
+  .path-node-wrapper {
+    max-width: 240px;
+  }
+
   .path-node-wrapper:nth-child(4n + 2) {
-    transform: translateX(22px);
+    transform: translateX(14px);
   }
 
   .path-node-wrapper:nth-child(4n + 4) {
-    transform: translateX(-22px);
+    transform: translateX(-14px);
   }
 
   .path-node-btn {
     width: 78px;
     height: 78px;
     font-size: 1.7rem;
+  }
+
+  .node-label-card {
+    max-width: 100%;
+    padding: 0.65rem 0.8rem;
   }
 }

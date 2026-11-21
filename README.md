@@ -57,9 +57,8 @@ Abre http://127.0.0.1:5000 en el navegador.
 │   ├── ai_generator.py       # Generación dinámica de ejercicios en LaTeX
 │   └── db_cloud.py           # Adaptador Supabase / fallback localStorage
 ├── data/
-│   ├── diagnostico.json      # Bancos de examen diagnóstico
-│   ├── pre_u.json            # Materias y skills Pre-U
-│   └── facultad.json         # Materias y skills Facultad
+│   ├── pre_u.json            # Materias, preguntas_examen y skills Pre-U
+│   └── facultad.json         # Materias, preguntas_examen y skills Facultad
 ├── templates/
 │   ├── index.html            # Plantilla principal
 │   └── partials/             # Parciales Jinja2 independientes por sección/modal

@@ -21,10 +21,10 @@ _FALLBACK_LOCK = threading.Lock()
 
 
 def _supabase_credentials() -> tuple[str, str]:
-    """Obtiene SUPABASE_URL y SUPABASE_KEY desde el entorno."""
+    """Obtiene SUPABASE_URL y SUPABASE_KEY desde el entorno limpiando paréntesis, comillas y barra final."""
     load_dotenv(override=False)
-    url = (os.getenv("SUPABASE_URL") or "").strip().rstrip("/")
-    key = (os.getenv("SUPABASE_KEY") or "").strip()
+    url = (os.getenv("SUPABASE_URL") or "").strip().strip("()\"'").rstrip("/")
+    key = (os.getenv("SUPABASE_KEY") or "").strip().strip("()\"'")
     return url, key
 
 
@@ -36,7 +36,9 @@ def _endpoint_usuarios() -> str:
 
 def _build_headers(key: Optional[str] = None) -> dict[str, str]:
     """Construye los headers HTTPS para Supabase respetando claves `sb_secret_`."""
-    resolved_key = (key if key is not None else _supabase_credentials()[1]).strip()
+    resolved_key = (
+        key if key is not None else _supabase_credentials()[1]
+    ).strip().strip("()\"'")
     headers = {
         "apikey": resolved_key,
         "Content-Type": "application/json",

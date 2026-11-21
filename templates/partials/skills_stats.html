@@ -1,38 +1,14 @@
       <!-- =========================================================
-           SECCIÓN C: MIS SKILLS (RADAR, MEDALLAS, NOTA Y BAÚL IA)
+           SECCIÓN C: MIS SKILLS (RADAR, MEDALLAS Y BAÚL IA)
            ========================================================= -->
       <section id="view-skills" class="app-view d-none">
         <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
           <div>
-            <span class="path-kicker">DIAGNÓSTICO CONTINUO Y MEMORIA IA</span>
+            <span class="path-kicker">PROGRESO POR ÁREA Y MEMORIA IA</span>
             <h2 class="h3 fw-black mb-1">Mis Skills y Baúl de Errores</h2>
             <p class="text-secondary small mb-0">
-              Revisa tu nivel Bronce, Plata u Oro por área, registra notas parciales y consulta tus fallas auditadas por la IA.
+              Revisa tu nivel Bronce, Plata u Oro por área y consulta tus fallas auditadas por la IA.
             </p>
-          </div>
-          <button
-            type="button"
-            id="btn-skills-open-grade-modal"
-            class="btn btn-duo btn-duo-blue"
-            data-bs-toggle="modal"
-            data-bs-target="#partialGradeModal"
-          >
-            <i class="bi bi-clipboard2-pulse me-2"></i>Registrar Nota Parcial
-          </button>
-        </div>
-
-        <!-- Estado de Nota Parcial / Alerta Roja dentro de Mis Skills -->
-        <div id="skills-grade-card" class="duo-card p-4 mb-4">
-          <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3">
-            <div>
-              <h3 class="h6 fw-black mb-1">Estado Académico de Parciales</h3>
-              <p id="skills-grade-status" class="small text-secondary mb-0">
-                Aún no registraste ninguna nota parcial. Ingresa tu calificación (0 a 100) para activar alertas de rescate si es &lt; 51.
-              </p>
-            </div>
-            <span id="skills-grade-badge" class="badge rounded-pill text-bg-light border fs-6 px-3 py-2">
-              Sin nota
-            </span>
           </div>
         </div>
 
@@ -62,7 +38,7 @@
                 <span id="error-vault-count" class="badge rounded-pill text-bg-danger">0</span>
               </div>
               <p class="small text-secondary mb-3">
-                El tutor IA consulta estas fallas guardadas en <code>localStorage</code> cada vez que audita una foto tuya o genera un nuevo ejercicio.
+                El tutor IA consulta estas fallas guardadas en tu cuenta cada vez que audita una foto tuya o genera un nuevo ejercicio.
               </p>
 
               <div id="error-vault-empty" class="vault-empty-state text-center p-4">

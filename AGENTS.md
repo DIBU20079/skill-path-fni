@@ -17,8 +17,8 @@ Guía de arquitectura, restricciones técnicas, reglas pedagógicas y contratos 
   - Prohibido usar React, Vue, Angular, npm, bundlers o `onclick="..."` inline en HTML.
   - CDNs permitidos exclusivamente: **Bootstrap 5**, **Bootstrap Icons**, **KaTeX** (con extensión `auto-render`) y **Chart.js** (solo para gráficos radar).
   - **Sin pizarra digital**: Prohibido implementar `<canvas>` de dibujo o pizarras interactivas; la práctica del Paso 3 se basa en foto del cuaderno físico (`<input type="file" accept="image/*" capture="environment">`) y/o explicación escrita en texto.
-- **Persistencia**: Persistencia híbrida multi-dispositivo: caché inmediata en `localStorage` bajo la clave `skillpath_fni_progress_v1` + sincronización en la nube vía HTTPS REST (`services/db_cloud.py` -> tabla `usuarios` en **Supabase** usando `requests`, con headers `apikey` + `Content-Type` + `Prefer: return=representation` y **sin** `Authorization: Bearer` cuando `SUPABASE_KEY` comienza con `sb_secret_`). Si faltan variables de Supabase, usa `data/usuarios_fallback.json` como respaldo local:
-  - `nombre`, `etapa`, `materia_activa`, `xp`, `racha`, `nodos_estado`, `historial_errores`, `notas_parciales`, `nota_parcial`, `diagnostico_completado`, `diagnostico_resultados`, `alerta_rescate`, `xp_otorgado_nodos`, `nodo_retorno`.
+- **Persistencia**: Persistencia híbrida multi-dispositivo: caché inmediata en `localStorage` bajo la clave `skillpath_fni_progress_v1` + sincronización en la nube vía HTTPS REST (`services/db_cloud.py` -> tabla `usuarios` en **Supabase** usando `requests`, limpiando `SUPABASE_URL` y `SUPABASE_KEY` con `.strip().strip("()\"'")` y `.rstrip("/")`, con headers `apikey` + `Content-Type` + `Prefer: return=representation` y **sin** `Authorization: Bearer` cuando `SUPABASE_KEY` comienza con `sb_secret_`). Si faltan variables de Supabase, usa `data/usuarios_fallback.json` como respaldo local:
+  - `nombre`, `etapa`, `materia_activa`, `materias_iniciadas`, `xp`, `racha`, `nodos_estado`, `historial_errores`, `diagnostico_completado`, `diagnostico_resultados`, `xp_otorgado_nodos`, `nodo_retorno`.
 - **Calidad**: Cero funciones vacías, cero `// TODO`, cero placeholders o datos truncados.
 
 ---
@@ -37,7 +37,7 @@ Guía de arquitectura, restricciones técnicas, reglas pedagógicas y contratos 
 ├── routes/
 │   ├── __init__.py               # Exporta los 4 Blueprints
 │   ├── views.py                  # GET / -> renderiza index.html
-│   ├── api_skills.py             # GET /api/skills (combina diagnostico + pre_u + facultad)
+│   ├── api_skills.py             # GET /api/skills (combina pre_u.json + facultad.json)
 │   ├── api_ai.py                 # POST /api/evaluar y POST /api/generar-ejercicio
 │   └── api_auth.py               # POST /api/{register,login,demo-login,logout,progreso} y GET /api/me
 ├── services/
@@ -47,30 +47,29 @@ Guía de arquitectura, restricciones técnicas, reglas pedagógicas y contratos 
 │   ├── ai_generator.py           # Generación dinámica de ejercicios de 3 pasos en LaTeX
 │   └── db_cloud.py               # Cliente HTTPS Supabase REST (`usuarios`) + respaldo data/usuarios_fallback.json
 ├── data/
-│   ├── diagnostico.json          # Bancos de diagnóstico y tiempos de pre_u y facultad
-│   ├── pre_u.json                # Materias y skills de la etapa Pre-U
-│   └── facultad.json             # Materias y skills de la etapa Facultad
+│   ├── pre_u.json                # Materias, preguntas_examen y skills de la etapa Pre-U
+│   └── facultad.json             # Materias, preguntas_examen y skills de la etapa Facultad
 ├── templates/
 │   ├── index.html                # Shell HTML, CDNs, CSS modulares e entry ES Module (main.js)
 │   └── partials/
-│       ├── navbar.html           # Navegación Duolingo, topbar con saludo y botón Salir
+│       ├── navbar.html           # Navegación Duolingo, topbar con saludo, Ubicación y botón Salir
 │       ├── auth_welcome.html     # Login, Registro (Pre-U/Facultad) y Acceso Rápido Demo (Jurados)
-│       ├── diagnostic.html       # Quiz diagnóstico con cronómetro y radar inicial
-│       ├── skilltree.html        # Camino vertical de nodos, Alerta Roja y ranking crítico
+│       ├── diagnostic.html       # Motor de examen reutilizable (Ubicación por materia + Salto de Nivel)
+│       ├── skilltree.html        # Inicio de materia, camino vertical de nodos, "⚡ Saltar aquí" y ranking
 │       ├── materias.html         # Catálogo curricular multi-materia
-│       ├── skills_stats.html     # Mis Skills: radar, medallas, nota parcial y Baúl IA
-│       ├── profile.html          # Sección Perfil: nombre, etapa, repetir diag y Demo
-│       └── challenge_modal.html  # Modal de 3 pasos (Concepto, Práctica, Reto Foto) + Nota Parcial
+│       ├── skills_stats.html     # Mis Skills: radar, medallas Bronce/Plata/Oro y Baúl de Errores IA
+│       ├── profile.html          # Sección Perfil: nombre, etapa, repetir ubicación y Demo
+│       └── challenge_modal.html  # Modal de 3 pasos (Concepto, Práctica, Reto Foto)
 └── static/
     ├── css/
-    │   ├── base.css              # Design tokens, botones 3D, navbar, bienvenida y diagnóstico
-    │   ├── skilltree.css         # Árbol de nodos, conectores, animaciones, catálogo y medallas
+    │   ├── base.css              # Design tokens, botones 3D, navbar, bienvenida y motor de examen
+    │   ├── skilltree.css         # Inicio de materia, árbol de nodos, "⚡ Saltar aquí", catálogo y medallas
     │   └── modals.css            # Modal 3 pasos, dropzone, tarjeta IA, historial e intentos
     └── js/
-        ├── api.js                # Llamadas fetch tipadas (/api/skills, /api/evaluar, etc.)
-        ├── state.js              # Estado localStorage, caché DOM, helpers currículo y KaTeX
-        ├── diagnostic.js         # Cuestionario diagnóstico, temporizador, calibración y radar
-        ├── skilltree.js          # Camino de nodos, ranking, catálogo Materias, Mis Skills y Baúl
+        ├── api.js                # Llamadas fetch tipadas (/api/skills, /api/evaluar, auth y sync)
+        ├── state.js              # Estado localStorage + Supabase, materias_iniciadas, caché DOM y KaTeX
+        ├── diagnostic.js         # Motor de examen reutilizable: Ubicación por materia y Salto de Nivel
+        ├── skilltree.js          # Inicio de materia, Camino de nodos, Materias, Mis Skills y Baúl
         ├── challenge.js          # Modal 3 pasos, generación IA, subida foto, auditoría continua
         └── main.js               # Orquestador inicialización, navegación, perfil y eventos
 ```
@@ -113,7 +112,7 @@ La función `auditar_resolucion(enunciado, prerrequisito, texto_usuario, imagen_
 ## 4. Contratos de API (`routes/*.py`)
 
 - **`GET /` (`routes/views.py`)**: Renderiza `templates/index.html`.
-- **`GET /api/skills` (`routes/api_skills.py`)**: Lee y combina `data/diagnostico.json`, `data/pre_u.json` y `data/facultad.json` en UTF-8 devolviendo exactamente el objeto unificado `{ "pre_u": ..., "facultad": ... }` (HTTP 200).
+- **`GET /api/skills` (`routes/api_skills.py`)**: Lee y combina `data/pre_u.json` y `data/facultad.json` en UTF-8 devolviendo exactamente el objeto unificado `{ "pre_u": ..., "facultad": ... }` (HTTP 200).
 - **`POST /api/evaluar` (`routes/api_ai.py`)**:
   - Acepta `multipart/form-data` (y fallback JSON) con:
     - `enunciado` (obligatorio)
@@ -136,15 +135,16 @@ La función `auditar_resolucion(enunciado, prerrequisito, texto_usuario, imagen_
 
 ---
 
-## 5. Contrato Curricular (`data/{diagnostico,pre_u,facultad}.json`) y Flujo UI
+## 5. Contrato Curricular (`data/{pre_u,facultad}.json`) y Flujo UI
 
 - Dos etapas de primer nivel: `pre_u` y `facultad`.
-- Cada etapa contiene:
-  - `diagnostico`: 6 preguntas de opción múltiple (2 por área) con `id`, `area`, `tiempo_segundos`, `enunciado_latex`, `opciones`, `respuesta_correcta`, `explicacion_breve`.
-  - `materias`: catálogo multi-materia por etapa (`pre_u`: **Álgebra Pre-U** y **Trigonometría**; `facultad`: **Cálculo I** y **Física I**).
-  - Cada materia contiene `id`, `nombre`, `codigo`, `icono`, `color`, `descripcion` y `skills` (4 a 5 temas ordenados por `ranking_criticidad` y encadenados por `prerrequisito_id`).
-  - Campos de cada skill: `id`, `ranking_criticidad`, `frecuencia_examen`, `materia`, `nombre`, `area`, `prerrequisito_id`, `xp`, `tip_auxiliar`, `paso1_concepto` (`titulo`, `enunciado_latex`, `opciones`, `respuesta_correcta`, `explicacion`), `paso2_practica` (`titulo`, `enunciado_latex`, `respuesta_correcta`, `respuestas_aceptadas`, `pista`), `paso3_reto_foto` (`titulo`, `enunciado_latex`, `prerrequisito_evaluado`, `instrucciones`).
-- **Navegación estilo Duolingo**: barra lateral izquierda en escritorio y barra inferior fija en móvil con 4 secciones: **Camino**, **Materias**, **Mis Skills** (radar Chart.js, medallas Bronce/Plata/Oro, Nota Parcial y Baúl de Errores) y **Perfil** (editar nombre, cambiar etapa, repetir diagnóstico y **Cargar Perfil Demo**).
-- **Calibración diagnóstica**: Skills pertenecientes a áreas con `>= 80%` pasan a `unlocked` (verde); en cada materia, el primer nodo pendiente queda en `active` (amarillo) y los siguientes en `locked` (gris).
-- **Alerta Roja de Rescate**: Si se registra una nota parcial `< 51`, se activa el banner superior de alerta roja y el nodo pendiente de mayor criticidad se marca como `blocker` (rojo).
+- Cada etapa contiene `materias`: catálogo multi-materia por etapa (`pre_u`: **Álgebra Pre-U** y **Trigonometría**; `facultad`: **Cálculo I** y **Física I**).
+- Cada materia contiene `id`, `nombre`, `codigo`, `icono`, `color`, `descripcion`, `preguntas_examen` (5 preguntas de opción múltiple en LaTeX vinculadas por `skill_id` y `nivel_nodo` de básico a avanzado) y `skills` (4 a 5 temas ordenados por `ranking_criticidad` y encadenados por `prerrequisito_id`).
+- Campos de cada skill: `id`, `ranking_criticidad`, `frecuencia_examen`, `materia`, `nombre`, `area`, `prerrequisito_id`, `xp`, `tip_auxiliar`, `paso1_concepto` (`titulo`, `enunciado_latex`, `opciones`, `respuesta_correcta`, `explicacion`), `paso2_practica` (`titulo`, `enunciado_latex`, `respuesta_correcta`, `respuestas_aceptadas`, `pista`), `paso3_reto_foto` (`titulo`, `enunciado_latex`, `prerrequisito_evaluado`, `instrucciones`).
+- **Navegación estilo Duolingo**: barra lateral izquierda en escritorio y barra inferior fija en móvil con 4 secciones: **Camino**, **Materias**, **Mis Skills** (radar Chart.js, medallas Bronce/Plata/Oro y Baúl de Errores) y **Perfil** (editar nombre, cambiar etapa, repetir examen de ubicación y **Cargar Perfil Demo**). Se eliminó por completo la función de "Registrar Nota Parcial".
+- **Inicio por materia (`materias_iniciadas`)**: Al iniciar sesión o registrarse no existe diagnóstico global obligatorio; el usuario va a **Materias** (o a su última materia activa iniciada). Al elegir una materia no iniciada, elige entre **"🚀 Empezar desde cero"** (Nodo 1 en `active`, demás en `locked`) o **"🎯 Hacer Examen de Ubicación"**.
+- **Motor de examen reutilizable (`static/js/diagnostic.js` + `templates/partials/diagnostic.html`)**:
+  - **Modo 1 — Examen de Ubicación**: Evalúa las preguntas de básico a avanzado de esa materia, desbloquea en `unlocked` (verde) los nodos dominados, deja el siguiente en `active` (amarillo) y los posteriores en `locked` (gris), suma XP y guarda en Supabase.
+  - **Modo 2 — Salto de Nivel ("⚡ Saltar aquí")**: En nodos bloqueados (`locked`) a partir del Nodo 3 en adelante, el botón **"⚡ Saltar aquí"** evalúa 3 a 4 preguntas de los nodos anteriores. Con `>= 75%` desbloquea los nodos previos en verde, activa el nodo destino en amarillo y otorga bono de XP; con `< 75%` indica qué temas reforzar.
+- **Estado Rojo (`blocker`)**: Cuando la auditoría IA por foto detecta `requiere_repetir_modulo: true` (`fallo_prerrequisito`), el nodo prerrequisito se marca en rojo (`blocker`) para refuerzo guiado con retorno automático.
 - **KaTeX**: Ejecutar `renderMathInElement` tras cada renderizado dinámico con fórmulas matemáticas.

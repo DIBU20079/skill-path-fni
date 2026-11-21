@@ -1,5 +1,6 @@
 /**
- * Renderizado de Camino vertical, Catálogo Multi-Materia, Mis Skills (Radar/Medallas) y Baúl de Errores.
+ * Renderizado de Camino vertical (con Inicio de Materia y "⚡ Saltar aquí"),
+ * Catálogo Multi-Materia, Mis Skills (Radar/Medallas) y Baúl de Errores.
  */
 
 import { renderRadarOnCanvas } from "./diagnostic.js";
@@ -8,28 +9,65 @@ import {
   dom,
   ensureConsistentNodeStatesForStage,
   escapeHtml,
-  findSkillGlobal,
   getActiveMateria,
   getActiveMateriaSkills,
   getAllStageSkills,
   getDiagnosticAreasForStage,
   getMateriaSkills,
   getStageMaterias,
+  isMateriaIniciada,
   saveState,
   state,
 } from "./state.js";
 
 let openNodeHandler = () => {};
 let enterSectionHandler = () => {};
+let skipToNodeHandler = () => {};
 
-export function configureSkilltreeHandlers({ onOpenNode, onEnterSection } = {}) {
+export function configureSkilltreeHandlers({
+  onOpenNode,
+  onEnterSection,
+  onSkipToNode,
+} = {}) {
   if (typeof onOpenNode === "function") openNodeHandler = onOpenNode;
   if (typeof onEnterSection === "function") enterSectionHandler = onEnterSection;
+  if (typeof onSkipToNode === "function") skipToNodeHandler = onSkipToNode;
 }
 
 /* ========================================================================
-   Sección A: Camino (Árbol Vertical de la Materia Activa)
+   Sección A: Camino (Tarjeta de Inicio de Materia + Árbol Vertical)
    ======================================================================== */
+
+function renderSubjectOnboardingCard(materia, skills) {
+  if (dom["onboarding-subject-code"]) {
+    dom["onboarding-subject-code"].textContent =
+      `${materia.codigo || "FNI"} · ${skills.length} TEMAS CRÍTICOS`;
+  }
+  if (dom["onboarding-subject-title"]) {
+    dom["onboarding-subject-title"].textContent = materia.nombre;
+  }
+  if (dom["onboarding-subject-desc"]) {
+    dom["onboarding-subject-desc"].textContent =
+      materia.descripcion ||
+      "Elige si deseas comenzar desde el Nodo #1 o realizar un Examen de Ubicación para desbloquear lo que ya sabes.";
+  }
+  if (dom["onboarding-subject-icon"]) {
+    const colorClass =
+      materia.color === "green" ? "subject-icon-green" : "subject-icon-blue";
+    dom["onboarding-subject-icon"].className =
+      `subject-icon-box ${colorClass} mx-auto mb-3`;
+    dom["onboarding-subject-icon"].innerHTML =
+      `<i class="bi ${escapeHtml(materia.icono || "bi-book-fill")}"></i>`;
+  }
+  if (dom["onboarding-topics-preview"]) {
+    dom["onboarding-topics-preview"].innerHTML = skills
+      .map(
+        (s) =>
+          `<span class="badge rounded-pill text-bg-light border text-secondary px-3 py-2">#${escapeHtml(s.ranking_criticidad)} ${escapeHtml(s.nombre)}</span>`
+      )
+      .join("");
+  }
+}
 
 export function renderCaminoSection() {
   const materia = getActiveMateria();
@@ -37,26 +75,27 @@ export function renderCaminoSection() {
   const container = dom["duolingo-path-container"];
   if (!materia || !container) return;
 
+  const initiated = isMateriaIniciada(materia.id);
+  dom["subject-onboarding-card"]?.classList.toggle("d-none", initiated);
+  dom["camino-main-row"]?.classList.toggle("d-none", !initiated);
+
+  if (!initiated) {
+    renderSubjectOnboardingCard(materia, skills);
+    return;
+  }
+
+  ensureConsistentNodeStatesForStage(state.etapa);
+
   if (dom["path-route-title"]) {
     dom["path-route-title"].textContent = `${materia.nombre} (${materia.codigo || ""})`;
   }
   if (dom["path-route-desc"]) {
     dom["path-route-desc"].textContent =
       materia.descripcion ||
-      "Supera los 3 pasos de cada nodo para desbloquear el siguiente tema crítico.";
+      "Supera los 3 pasos de cada nodo o usa '⚡ Saltar aquí' para adelantar niveles.";
   }
   if (dom["ranking-materia-code"]) {
     dom["ranking-materia-code"].textContent = materia.codigo || materia.nombre;
-  }
-
-  const showRescue = Boolean(
-    state.alerta_rescate &&
-      state.nota_parcial !== null &&
-      Number(state.nota_parcial) < 51
-  );
-  dom["rescue-alert-banner"]?.classList.toggle("d-none", !showRescue);
-  if (dom["rescue-grade-value"] && state.nota_parcial !== null) {
-    dom["rescue-grade-value"].textContent = String(state.nota_parcial);
   }
 
   container.innerHTML = "";
@@ -130,6 +169,20 @@ export function renderCaminoSection() {
       </div>
     `;
 
+    // Nodos bloqueados a partir del Nodo 3 (idx >= 2) ofrecen "⚡ Saltar aquí"
+    if (status === "locked" && idx >= 2) {
+      const skipBtn = document.createElement("button");
+      skipBtn.type = "button";
+      skipBtn.className = "btn btn-duo btn-duo-amber btn-skip-level mt-2";
+      skipBtn.textContent = "⚡ Saltar aquí";
+      skipBtn.setAttribute(
+        "aria-label",
+        `Hacer examen de salto de nivel hacia ${skill.nombre}`
+      );
+      skipBtn.addEventListener("click", () => skipToNodeHandler(skill.id));
+      labelCard.appendChild(skipBtn);
+    }
+
     wrapper.appendChild(labelCard);
     container.appendChild(wrapper);
   });
@@ -156,7 +209,7 @@ export function renderCriticalRanking(skills = getActiveMateriaSkills()) {
     const badgeMap = {
       unlocked: '<span class="badge rounded-pill text-bg-success">Dominado</span>',
       active: '<span class="badge rounded-pill text-bg-warning">Activo</span>',
-      blocker: '<span class="badge rounded-pill text-bg-danger">Bloqueo</span>',
+      blocker: '<span class="badge rounded-pill text-bg-danger">Refuerzo</span>',
       locked: '<span class="badge rounded-pill text-bg-secondary">Pendiente</span>',
     };
 
@@ -179,31 +232,6 @@ export function renderCriticalRanking(skills = getActiveMateriaSkills()) {
     `;
     listEl.appendChild(item);
   });
-}
-
-export function handleStartRescueClick() {
-  const stageSkills = getAllStageSkills(state.etapa);
-  const activeSkills = getActiveMateriaSkills();
-  const target =
-    activeSkills.find((s) => state.nodos_estado[s.id] === "blocker") ||
-    stageSkills.find((s) => state.nodos_estado[s.id] === "blocker") ||
-    activeSkills.find((s) => state.nodos_estado[s.id] === "active") ||
-    activeSkills.find((s) => state.nodos_estado[s.id] !== "unlocked") ||
-    activeSkills[0];
-
-  if (!target) return;
-
-  const info = findSkillGlobal(target.id);
-  if (info && info.materia.id !== state.materia_activa) {
-    state.etapa = info.stageKey;
-    state.materia_activa = info.materia.id;
-  }
-  if (state.nodos_estado[target.id] === "locked") {
-    state.nodos_estado[target.id] = "blocker";
-  }
-  saveState();
-  enterSectionHandler("camino");
-  openNodeHandler(target.id);
 }
 
 /* ========================================================================
@@ -250,7 +278,9 @@ export function renderMateriasSection() {
       const total = skills.length;
       const done = skills.filter((s) => state.nodos_estado[s.id] === "unlocked").length;
       const pct = total > 0 ? Math.round((done / total) * 100) : 0;
-      const isCurrentActive = state.etapa === key && state.materia_activa === mat.id;
+      const initiated = isMateriaIniciada(mat.id);
+      const isCurrentActive =
+        initiated && state.etapa === key && state.materia_activa === mat.id;
 
       const col = document.createElement("div");
       col.className = "col-12 col-md-6";
@@ -263,7 +293,7 @@ export function renderMateriasSection() {
 
       const topicsHtml = skills
         .map((skill) => {
-          const st = state.nodos_estado[skill.id] || "locked";
+          const st = initiated ? state.nodos_estado[skill.id] || "locked" : "locked";
           const statusDot =
             st === "unlocked"
               ? "✅"
@@ -285,6 +315,15 @@ export function renderMateriasSection() {
         })
         .join("");
 
+      const statusBadgeHtml = isCurrentActive
+        ? '<span class="badge rounded-pill text-bg-primary">En curso</span>'
+        : initiated
+          ? '<span class="badge rounded-pill text-bg-success">Iniciada</span>'
+          : '<span class="badge rounded-pill text-bg-light border text-secondary">Nueva</span>';
+
+      const btnLabel = initiated ? "Ir al Camino" : "Comenzar Materia";
+      const btnIcon = initiated ? "bi-map-fill" : "bi-rocket-takeoff-fill";
+
       card.innerHTML = `
         <div class="d-flex align-items-start justify-content-between gap-3 mb-3">
           <div class="d-flex align-items-center gap-3">
@@ -296,11 +335,7 @@ export function renderMateriasSection() {
               <h3 class="h5 fw-black mb-0">${escapeHtml(mat.nombre)}</h3>
             </div>
           </div>
-          ${
-            isCurrentActive
-              ? '<span class="badge rounded-pill text-bg-primary">Activa</span>'
-              : ""
-          }
+          ${statusBadgeHtml}
         </div>
 
         <p class="small text-secondary mb-3">${escapeHtml(mat.descripcion || "")}</p>
@@ -318,8 +353,8 @@ export function renderMateriasSection() {
         <div class="subject-topics-list mb-4">${topicsHtml}</div>
 
         <div class="mt-auto pt-2">
-          <button type="button" class="btn btn-duo ${isCurrentActive ? "btn-duo-green" : "btn-duo-blue"} w-100 btn-go-subject-path">
-            <i class="bi bi-map-fill me-2"></i>Ir al Camino
+          <button type="button" class="btn btn-duo ${initiated ? "btn-duo-green" : "btn-duo-blue"} w-100 btn-go-subject-path">
+            <i class="bi ${btnIcon} me-2"></i>${btnLabel}
           </button>
         </div>
       `;
@@ -327,8 +362,9 @@ export function renderMateriasSection() {
       card.querySelector(".btn-go-subject-path")?.addEventListener("click", () => {
         state.etapa = key;
         state.materia_activa = mat.id;
-        state.diagnostico_completado = true;
-        ensureConsistentNodeStatesForStage(key);
+        if (initiated) {
+          ensureConsistentNodeStatesForStage(key);
+        }
         saveState();
         enterSectionHandler("camino");
       });
@@ -343,7 +379,7 @@ export function renderMateriasSection() {
 }
 
 /* ========================================================================
-   Sección C: Mis Skills (Radar, Bronce/Plata/Oro, Nota Parcial y Baúl)
+   Sección C: Mis Skills (Radar, Bronce/Plata/Oro y Baúl de Errores)
    ======================================================================== */
 
 export function getAreaMasteryScores() {
@@ -403,42 +439,6 @@ export function renderSkillsSection() {
       `;
       masteryList.appendChild(row);
     });
-  }
-
-  // Estado de Nota Parcial
-  const hasGrade = state.nota_parcial !== null && state.nota_parcial !== undefined;
-  const isRisk = Boolean(hasGrade && Number(state.nota_parcial) < 51);
-
-  if (dom["skills-grade-card"]) {
-    dom["skills-grade-card"].style.borderColor = isRisk
-      ? "var(--duo-red)"
-      : hasGrade
-        ? "#a3e635"
-        : "var(--border-soft)";
-  }
-  if (dom["skills-grade-badge"]) {
-    dom["skills-grade-badge"].className = `badge rounded-pill fs-6 px-3 py-2 ${
-      isRisk
-        ? "text-bg-danger"
-        : hasGrade
-          ? "text-bg-success"
-          : "text-bg-light border"
-    }`;
-    dom["skills-grade-badge"].textContent = hasGrade
-      ? `${state.nota_parcial}/100`
-      : "Sin nota";
-  }
-  if (dom["skills-grade-status"]) {
-    if (!hasGrade) {
-      dom["skills-grade-status"].textContent =
-        "Aún no registraste ninguna nota parcial. Ingresa tu calificación (0 a 100) para activar alertas de rescate si es < 51.";
-    } else if (isRisk) {
-      dom["skills-grade-status"].innerHTML =
-        `🚨 <strong>Alerta Roja Activa:</strong> Tu nota parcial (${state.nota_parcial}/100) está por debajo de 51. Ve al Camino para reforzar tu nodo bloqueador.`;
-    } else {
-      dom["skills-grade-status"].innerHTML =
-        `✅ <strong>Buen ritmo:</strong> Último parcial registrado con ${state.nota_parcial}/100. Mantén tu racha completando nodos.`;
-    }
   }
 
   renderErrorVault();

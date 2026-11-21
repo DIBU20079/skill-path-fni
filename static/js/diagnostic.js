@@ -1,5 +1,7 @@
 /**
- * Flujo del Examen Diagnóstico, calibración multi-materia y gráfico Radar Chart.js.
+ * Motor de Examen Reutilizable:
+ * - Modo 1 ("placement"): Examen de Ubicación por materia (4-6 preguntas de básico a avanzado).
+ * - Modo 2 ("skip"): Examen de Salto de Nivel ("⚡ Saltar aquí", 3-4 preguntas de nodos anteriores, aprueba con >= 75%).
  */
 
 import { fetchSkillsDB } from "./api.js";
@@ -9,9 +11,12 @@ import {
   appContext,
   dom,
   escapeHtml,
+  findMateriaById,
+  findSkillGlobal,
+  getActiveMateria,
+  getAllStageSkills,
   getDiagnosticAreasForStage,
   getMateriaSkills,
-  getStageMaterias,
   renderMath,
   renderSkillsLoadError,
   resetState,
@@ -22,7 +27,13 @@ import {
   updateTopbar,
 } from "./state.js";
 
-const diagSession = {
+const examSession = {
+  mode: "placement", // "placement" | "skip"
+  materia: null,
+  stageKey: null,
+  targetSkill: null,
+  targetIdx: -1,
+  evaluatedSkills: [],
   questions: [],
   currentIndex: 0,
   selectedOption: null,
@@ -33,35 +44,168 @@ const diagSession = {
   totalSeconds: 45,
 };
 
-export async function startDiagnosticForStage(stageKey) {
-  if (!appContext.skillsDB) {
-    try {
-      appContext.skillsDB = await fetchSkillsDB();
-      appContext.skillsLoadFailed = false;
-    } catch (error) {
-      console.error(error);
-      renderSkillsLoadError(error.message);
-      return;
-    }
+async function ensureSkillsLoaded() {
+  if (appContext.skillsDB) return true;
+  try {
+    appContext.skillsDB = await fetchSkillsDB();
+    appContext.skillsLoadFailed = false;
+    return true;
+  } catch (error) {
+    console.error(error);
+    renderSkillsLoadError(error.message);
+    return false;
+  }
+}
+
+function buildPlacementQuestionsForMateria(materia) {
+  const skills = getMateriaSkills(materia);
+  const bank = Array.isArray(materia?.preguntas_examen) ? materia.preguntas_examen : [];
+
+  if (bank.length >= 4) {
+    return bank.slice(0, 6).map((q, idx) => ({
+      id: q.id || `placement_${materia.id}_${idx + 1}`,
+      skill_id: q.skill_id || skills[Math.min(idx, skills.length - 1)]?.id || "",
+      nivel_nodo: Number(q.nivel_nodo || idx + 1),
+      tema: q.tema || skills[Math.min(idx, skills.length - 1)]?.nombre || materia.nombre,
+      area: q.area || skills[Math.min(idx, skills.length - 1)]?.area || materia.nombre,
+      tiempo_segundos: Number(q.tiempo_segundos) || 45,
+      enunciado_latex: q.enunciado_latex || "",
+      opciones: Array.isArray(q.opciones) ? q.opciones : [],
+      respuesta_correcta: q.respuesta_correcta || "",
+      explicacion_breve: q.explicacion_breve || "",
+    }));
   }
 
-  const route = appContext.skillsDB[stageKey];
-  if (!route || !Array.isArray(route.diagnostico) || route.diagnostico.length === 0) {
-    console.error("Ruta inválida o sin preguntas de diagnóstico:", stageKey);
-    return;
+  return skills.map((s, idx) => {
+    const p1 = s.paso1_concepto || {};
+    return {
+      id: `placement_fallback_${s.id}`,
+      skill_id: s.id,
+      nivel_nodo: idx + 1,
+      tema: s.nombre,
+      area: s.area || materia.nombre,
+      tiempo_segundos: 45,
+      enunciado_latex: p1.enunciado_latex || "",
+      opciones: Array.isArray(p1.opciones) ? p1.opciones : [],
+      respuesta_correcta: p1.respuesta_correcta || "",
+      explicacion_breve: p1.explicacion || "",
+    };
+  });
+}
+
+function buildSkipQuestionsForTarget(materia, targetIdx) {
+  const skills = getMateriaSkills(materia);
+  const activeIdx = skills.findIndex((s) => {
+    const st = state.nodos_estado[s.id];
+    return st === "active" || st === "blocker";
+  });
+
+  const startIdx = activeIdx >= 0 && activeIdx < targetIdx ? activeIdx : 0;
+  let priorSkills = skills.slice(startIdx, targetIdx);
+  if (priorSkills.length === 0) {
+    priorSkills = skills.slice(0, targetIdx);
   }
+
+  const priorIds = new Set(priorSkills.map((s) => s.id));
+  const bank = Array.isArray(materia?.preguntas_examen) ? materia.preguntas_examen : [];
+  const selected = [];
+  const usedPrompts = new Set();
+
+  // 1. Preguntas del banco asociadas a los nodos previos a N
+  bank.forEach((q) => {
+    if (priorIds.has(q.skill_id) && !usedPrompts.has(q.enunciado_latex)) {
+      usedPrompts.add(q.enunciado_latex);
+      selected.push({
+        id: q.id || `skip_bank_${selected.length + 1}`,
+        skill_id: q.skill_id,
+        tema: q.tema || materia.nombre,
+        area: q.area || materia.nombre,
+        tiempo_segundos: Number(q.tiempo_segundos) || 45,
+        enunciado_latex: q.enunciado_latex,
+        opciones: Array.isArray(q.opciones) ? q.opciones : [],
+        respuesta_correcta: q.respuesta_correcta,
+        explicacion_breve: q.explicacion_breve || "",
+      });
+    }
+  });
+
+  // 2. Completar hasta 3-4 preguntas usando paso1_concepto de los nodos previos
+  priorSkills.forEach((s) => {
+    if (selected.length >= 4) return;
+    const p1 = s.paso1_concepto;
+    if (p1 && p1.enunciado_latex && !usedPrompts.has(p1.enunciado_latex)) {
+      usedPrompts.add(p1.enunciado_latex);
+      selected.push({
+        id: `skip_p1_${s.id}`,
+        skill_id: s.id,
+        tema: s.nombre,
+        area: s.area || materia.nombre,
+        tiempo_segundos: 45,
+        enunciado_latex: p1.enunciado_latex,
+        opciones: Array.isArray(p1.opciones) ? p1.opciones : [],
+        respuesta_correcta: p1.respuesta_correcta,
+        explicacion_breve: p1.explicacion || "",
+      });
+    }
+  });
+
+  // 3. Si aún hay menos de 3 preguntas, completar con nodos anteriores desde 0..targetIdx-1
+  if (selected.length < 3) {
+    skills.slice(0, targetIdx).forEach((s) => {
+      if (selected.length >= 4) return;
+      const p1 = s.paso1_concepto;
+      if (p1 && p1.enunciado_latex && !usedPrompts.has(p1.enunciado_latex)) {
+        usedPrompts.add(p1.enunciado_latex);
+        selected.push({
+          id: `skip_extra_${s.id}`,
+          skill_id: s.id,
+          tema: s.nombre,
+          area: s.area || materia.nombre,
+          tiempo_segundos: 45,
+          enunciado_latex: p1.enunciado_latex,
+          opciones: Array.isArray(p1.opciones) ? p1.opciones : [],
+          respuesta_correcta: p1.respuesta_correcta,
+          explicacion_breve: p1.explicacion || "",
+        });
+      }
+    });
+  }
+
+  return {
+    questions: selected.slice(0, 4),
+    evaluatedSkills: priorSkills,
+  };
+}
+
+export async function startPlacementExam(materiaId = state.materia_activa) {
+  if (!(await ensureSkillsLoaded())) return;
+
+  const found =
+    findMateriaById(materiaId) ||
+    (() => {
+      const active = getActiveMateria();
+      return active ? { materia: active, stageKey: state.etapa || "pre_u" } : null;
+    })();
+
+  if (!found || !found.materia) return;
+
+  const { materia, stageKey } = found;
+  const questions = buildPlacementQuestionsForMateria(materia);
+  if (questions.length === 0) return;
 
   stopDiagnosticTimer();
-  const materias = getStageMaterias(stageKey);
   state.etapa = stageKey;
-  state.materia_activa = materias[0]?.id || null;
-  state.diagnostico_completado = false;
-  state.diagnostico_resultados = null;
-  state.alerta_rescate = false;
+  state.materia_activa = materia.id;
   saveState();
 
-  Object.assign(diagSession, {
-    questions: route.diagnostico,
+  Object.assign(examSession, {
+    mode: "placement",
+    materia,
+    stageKey,
+    targetSkill: null,
+    targetIdx: -1,
+    evaluatedSkills: getMateriaSkills(materia),
+    questions,
     currentIndex: 0,
     selectedOption: null,
     confirmed: false,
@@ -71,27 +215,105 @@ export async function startDiagnosticForStage(stageKey) {
     totalSeconds: 45,
   });
 
+  if (dom["diag-mode-kicker"]) {
+    dom["diag-mode-kicker"].textContent = `🎯 EXAMEN DE UBICACIÓN · ${materia.codigo || materia.nombre.toUpperCase()}`;
+  }
+  if (dom["diag-exam-title"]) {
+    dom["diag-exam-title"].textContent = `Ubicación en ${materia.nombre}`;
+  }
+  if (dom["diag-footer-hint"]) {
+    dom["diag-footer-hint"].innerHTML =
+      `<i class="bi bi-lightning-charge-fill text-warning me-1"></i>Responde de básico a avanzado para desbloquear en verde los temas que ya dominas.`;
+  }
+
   dom["diagnostic-quiz-panel"]?.classList.remove("d-none");
   dom["diagnostic-results-panel"]?.classList.add("d-none");
 
   updateGreetingUI();
   updateTopbar();
   showView("diagnostic");
-  renderDiagnosticQuestion();
+  renderExamQuestion();
 }
 
-function renderDiagnosticQuestion() {
-  const questions = diagSession.questions;
-  const idx = diagSession.currentIndex;
+export async function startSkipExam(targetSkillId) {
+  if (!(await ensureSkillsLoaded())) return;
+
+  const found = findSkillGlobal(targetSkillId);
+  if (!found) return;
+
+  const { skill: targetSkill, materia, stageKey } = found;
+  const skills = getMateriaSkills(materia);
+  const targetIdx = skills.findIndex((s) => s.id === targetSkill.id);
+  if (targetIdx < 1) return;
+
+  const { questions, evaluatedSkills } = buildSkipQuestionsForTarget(materia, targetIdx);
+  if (questions.length === 0) return;
+
+  stopDiagnosticTimer();
+  state.etapa = stageKey;
+  state.materia_activa = materia.id;
+  saveState();
+
+  Object.assign(examSession, {
+    mode: "skip",
+    materia,
+    stageKey,
+    targetSkill,
+    targetIdx,
+    evaluatedSkills,
+    questions,
+    currentIndex: 0,
+    selectedOption: null,
+    confirmed: false,
+    answers: [],
+    timerId: null,
+    secondsLeft: 0,
+    totalSeconds: 45,
+  });
+
+  if (dom["diag-mode-kicker"]) {
+    dom["diag-mode-kicker"].textContent = `⚡ SALTO DE NIVEL · NODO #${targetSkill.ranking_criticidad}`;
+  }
+  if (dom["diag-exam-title"]) {
+    dom["diag-exam-title"].textContent = `Saltar a: ${targetSkill.nombre}`;
+  }
+  if (dom["diag-footer-hint"]) {
+    dom["diag-footer-hint"].innerHTML =
+      `<i class="bi bi-shield-fill-check text-primary me-1"></i>Aprueba con <strong>&ge; 75%</strong> para desbloquear los temas anteriores y activar este nodo.`;
+  }
+
+  dom["diagnostic-quiz-panel"]?.classList.remove("d-none");
+  dom["diagnostic-results-panel"]?.classList.add("d-none");
+
+  updateGreetingUI();
+  updateTopbar();
+  showView("diagnostic");
+  renderExamQuestion();
+}
+
+export async function startDiagnosticForStage(stageKey = state.etapa || "pre_u") {
+  if (!(await ensureSkillsLoaded())) return;
+  state.etapa = stageKey;
+  const mat = getActiveMateria();
+  if (mat) {
+    await startPlacementExam(mat.id);
+  }
+}
+
+function renderExamQuestion() {
+  const questions = examSession.questions;
+  const idx = examSession.currentIndex;
   const q = questions[idx];
   if (!q) return;
 
-  diagSession.selectedOption = null;
-  diagSession.confirmed = false;
+  examSession.selectedOption = null;
+  examSession.confirmed = false;
 
   if (dom["diag-current-num"]) dom["diag-current-num"].textContent = String(idx + 1);
   if (dom["diag-total-num"]) dom["diag-total-num"].textContent = String(questions.length);
-  if (dom["diag-area-badge"]) dom["diag-area-badge"].textContent = q.area || "General";
+  if (dom["diag-area-badge"]) {
+    dom["diag-area-badge"].textContent = q.tema || q.area || "General";
+  }
 
   renderDiagnosticDots();
 
@@ -132,8 +354,8 @@ function renderDiagnosticQuestion() {
       btn.appendChild(textSpan);
 
       btn.addEventListener("click", () => {
-        if (diagSession.confirmed) return;
-        diagSession.selectedOption = optionText;
+        if (examSession.confirmed) return;
+        examSession.selectedOption = optionText;
         Array.from(optionsContainer.children).forEach((el) => {
           el.classList.toggle("selected", el === btn);
         });
@@ -154,13 +376,13 @@ function renderDiagnosticDots() {
   if (!container) return;
   container.innerHTML = "";
 
-  diagSession.questions.forEach((_q, i) => {
+  examSession.questions.forEach((_q, i) => {
     const dot = document.createElement("span");
     dot.className = "diag-dot";
-    const prevAnswer = diagSession.answers[i];
+    const prevAnswer = examSession.answers[i];
     if (prevAnswer) {
       dot.classList.add(prevAnswer.isCorrect ? "is-correct" : "is-wrong");
-    } else if (i === diagSession.currentIndex) {
+    } else if (i === examSession.currentIndex) {
       dot.classList.add("is-current");
     }
     container.appendChild(dot);
@@ -169,32 +391,32 @@ function renderDiagnosticDots() {
 
 function startQuestionTimer(seconds) {
   stopDiagnosticTimer();
-  diagSession.totalSeconds = seconds;
-  diagSession.secondsLeft = seconds;
+  examSession.totalSeconds = seconds;
+  examSession.secondsLeft = seconds;
   updateTimerUI();
 
-  diagSession.timerId = window.setInterval(() => {
-    diagSession.secondsLeft = Math.max(0, diagSession.secondsLeft - 1);
+  examSession.timerId = window.setInterval(() => {
+    examSession.secondsLeft = Math.max(0, examSession.secondsLeft - 1);
     updateTimerUI();
-    if (diagSession.secondsLeft <= 0) {
+    if (examSession.secondsLeft <= 0) {
       stopDiagnosticTimer();
-      if (!diagSession.confirmed) {
-        evaluateCurrentDiagnosticQuestion(true);
+      if (!examSession.confirmed) {
+        evaluateCurrentExamQuestion(true);
       }
     }
   }, 1000);
 }
 
 export function stopDiagnosticTimer() {
-  if (diagSession.timerId !== null) {
-    window.clearInterval(diagSession.timerId);
-    diagSession.timerId = null;
+  if (examSession.timerId !== null) {
+    window.clearInterval(examSession.timerId);
+    examSession.timerId = null;
   }
 }
 
 function updateTimerUI() {
-  const left = diagSession.secondsLeft;
-  const total = Math.max(1, diagSession.totalSeconds);
+  const left = examSession.secondsLeft;
+  const total = Math.max(1, examSession.totalSeconds);
   const pct = Math.max(0, Math.min(100, Math.round((left / total) * 100)));
 
   if (dom["diag-timer-text"]) dom["diag-timer-text"].textContent = `${left}s`;
@@ -210,30 +432,34 @@ function updateTimerUI() {
 }
 
 export function handleDiagnosticNext() {
-  if (!diagSession.confirmed) {
-    if (diagSession.selectedOption === null) return;
-    evaluateCurrentDiagnosticQuestion(false);
+  if (!examSession.confirmed) {
+    if (examSession.selectedOption === null) return;
+    evaluateCurrentExamQuestion(false);
     return;
   }
 
-  if (diagSession.currentIndex + 1 < diagSession.questions.length) {
-    diagSession.currentIndex += 1;
-    renderDiagnosticQuestion();
+  if (examSession.currentIndex + 1 < examSession.questions.length) {
+    examSession.currentIndex += 1;
+    renderExamQuestion();
+  } else if (examSession.mode === "skip") {
+    finishSkipExam();
   } else {
-    finishDiagnostic();
+    finishPlacementExam();
   }
 }
 
-function evaluateCurrentDiagnosticQuestion(timedOut) {
+function evaluateCurrentExamQuestion(timedOut) {
   stopDiagnosticTimer();
-  diagSession.confirmed = true;
+  examSession.confirmed = true;
 
-  const q = diagSession.questions[diagSession.currentIndex];
-  const selected = timedOut ? null : diagSession.selectedOption;
+  const q = examSession.questions[examSession.currentIndex];
+  const selected = timedOut ? null : examSession.selectedOption;
   const isCorrect = Boolean(selected && selected === q.respuesta_correcta);
 
-  diagSession.answers[diagSession.currentIndex] = {
+  examSession.answers[examSession.currentIndex] = {
     id: q.id,
+    skill_id: q.skill_id,
+    tema: q.tema,
     area: q.area,
     isCorrect,
     timedOut,
@@ -274,100 +500,312 @@ function evaluateCurrentDiagnosticQuestion(timedOut) {
   renderDiagnosticDots();
 
   if (dom["btn-diag-next"]) {
-    const isLast = diagSession.currentIndex + 1 >= diagSession.questions.length;
+    const isLast = examSession.currentIndex + 1 >= examSession.questions.length;
     dom["btn-diag-next"].disabled = false;
     dom["btn-diag-next"].innerHTML = isLast
-      ? 'Ver Mapa Radar <i class="bi bi-radar ms-1"></i>'
+      ? 'Ver Resultados <i class="bi bi-award-fill ms-1"></i>'
       : 'Siguiente Pregunta <i class="bi bi-arrow-right ms-1"></i>';
   }
 }
 
-function finishDiagnostic() {
-  stopDiagnosticTimer();
-
+function computeUpdatedStageAreaScores() {
   const diagAreas = getDiagnosticAreasForStage(state.etapa);
-  const areaTotals = {};
+  const stageSkills = getAllStageSkills(state.etapa);
+  const prevScores = state.diagnostico_resultados?.areaScores || {};
+  const areaScores = {};
+
   diagAreas.forEach((area) => {
-    areaTotals[area] = { correct: 0, total: 0 };
+    const areaSkills = stageSkills.filter((s) => s.area === area);
+    const unlockedCount = areaSkills.filter(
+      (s) => state.nodos_estado[s.id] === "unlocked"
+    ).length;
+    const unlockedPct =
+      areaSkills.length > 0 ? Math.round((unlockedCount / areaSkills.length) * 100) : 0;
+    areaScores[area] = Math.max(Number(prevScores[area] || 0), unlockedPct);
   });
 
-  let correctCount = 0;
-  diagSession.answers.forEach((ans) => {
-    if (!ans) return;
-    const area = ans.area || diagAreas[0];
-    if (!areaTotals[area]) areaTotals[area] = { correct: 0, total: 0 };
-    areaTotals[area].total += 1;
-    if (ans.isCorrect) {
-      areaTotals[area].correct += 1;
-      correctCount += 1;
+  return { diagAreas, areaScores };
+}
+
+function finishPlacementExam() {
+  stopDiagnosticTimer();
+
+  const materia = examSession.materia || getActiveMateria();
+  const skills = getMateriaSkills(materia);
+  const totalCount = examSession.questions.length || 1;
+  const correctCount = examSession.answers.filter((a) => a?.isCorrect).length;
+  const overallPercent = Math.round((correctCount / totalCount) * 100);
+
+  // Evalúa aciertos consecutivos desde el nodo 1 o porcentaje global logrado
+  const skillPassMap = {};
+  skills.forEach((s) => {
+    const related = examSession.answers.filter((a) => a && a.skill_id === s.id);
+    if (related.length > 0) {
+      skillPassMap[s.id] = related.every((a) => a.isCorrect);
     }
   });
 
-  const areaScores = {};
-  Object.entries(areaTotals).forEach(([area, stats]) => {
-    areaScores[area] =
-      stats.total > 0 ? Math.round((stats.correct / stats.total) * 100) : 0;
+  let consecutiveUnlocked = 0;
+  for (const s of skills) {
+    if (skillPassMap[s.id]) {
+      consecutiveUnlocked += 1;
+    } else {
+      break;
+    }
+  }
+
+  const proportionalUnlocked =
+    overallPercent >= 60 ? Math.floor((correctCount / totalCount) * skills.length) : 0;
+  const unlockedCount =
+    overallPercent === 100
+      ? skills.length
+      : Math.min(skills.length, Math.max(consecutiveUnlocked, proportionalUnlocked));
+
+  skills.forEach((skill, idx) => {
+    if (idx < unlockedCount) {
+      state.nodos_estado[skill.id] = "unlocked";
+      state.xp_otorgado_nodos[skill.id] = true;
+    } else if (idx === unlockedCount) {
+      state.nodos_estado[skill.id] = "active";
+    } else {
+      state.nodos_estado[skill.id] = "locked";
+    }
   });
 
-  const totalCount = diagSession.questions.length || 1;
-  const overallPercent = Math.round((correctCount / totalCount) * 100);
-
-  // Calibra cada materia de la etapa: área >= 80% => unlocked; 1er pendiente => active; resto => locked
-  getStageMaterias(state.etapa).forEach((mat) => {
-    let firstPendingAssigned = false;
-    getMateriaSkills(mat).forEach((skill) => {
-      const score = Number(areaScores[skill.area] || 0);
-      if (score >= 80) {
-        state.nodos_estado[skill.id] = "unlocked";
-      } else if (!firstPendingAssigned) {
-        state.nodos_estado[skill.id] = "active";
-        firstPendingAssigned = true;
-      } else {
-        state.nodos_estado[skill.id] = "locked";
-      }
-    });
-  });
-
+  if (!state.materias_iniciadas || typeof state.materias_iniciadas !== "object") {
+    state.materias_iniciadas = {};
+  }
+  state.materias_iniciadas[materia.id] = true;
   state.diagnostico_completado = true;
+
+  const bonusXp = unlockedCount * 25;
+  state.xp += bonusXp;
+  state.racha = Math.max(1, state.racha);
+
+  const { diagAreas, areaScores } = computeUpdatedStageAreaScores();
   state.diagnostico_resultados = {
     overallPercent,
     areaScores,
     correctCount,
     totalCount,
   };
-  state.racha = Math.max(1, state.racha);
+
   saveState();
   updateTopbar();
 
-  renderDiagnosticResults(state.diagnostico_resultados, diagAreas);
+  renderPlacementResults({
+    materia,
+    skills,
+    unlockedCount,
+    overallPercent,
+    correctCount,
+    totalCount,
+    bonusXp,
+    diagAreas,
+    areaScores,
+  });
 }
 
-function renderDiagnosticResults(results, diagAreas) {
+function renderPlacementResults({
+  materia,
+  skills,
+  unlockedCount,
+  overallPercent,
+  correctCount,
+  totalCount,
+  bonusXp,
+  diagAreas,
+  areaScores,
+}) {
   dom["diagnostic-quiz-panel"]?.classList.add("d-none");
   dom["diagnostic-results-panel"]?.classList.remove("d-none");
 
+  if (dom["diag-result-pill"]) {
+    dom["diag-result-pill"].textContent = `🎯 UBICACIÓN COMPLETADA · ${materia.nombre.toUpperCase()}`;
+  }
+  if (dom["diag-result-title"]) {
+    dom["diag-result-title"].textContent = `Tu Punto de Partida en ${materia.nombre}`;
+  }
   if (dom["diag-overall-score"]) {
     dom["diag-overall-score"].textContent =
-      `${results.overallPercent}% (${results.correctCount}/${results.totalCount})`;
+      `${overallPercent}% (${correctCount}/${totalCount} aciertos) · ${unlockedCount}/${skills.length} temas desbloqueados (+${bonusXp} XP)`;
   }
+  if (dom["diag-breakdown-heading"]) {
+    dom["diag-breakdown-heading"].textContent = `Estado de Nodos en ${materia.nombre}`;
+  }
+
+  dom["diag-radar-col"]?.classList.remove("d-none");
 
   const summaryEl = dom["diag-area-summary"];
   if (summaryEl) {
     summaryEl.innerHTML = "";
-    diagAreas.forEach((area) => {
-      const score = Number(results.areaScores[area] || 0);
-      const passed = score >= 80;
+    skills.forEach((skill) => {
+      const st = state.nodos_estado[skill.id];
+      const badgeClass =
+        st === "unlocked"
+          ? "text-bg-success"
+          : st === "active"
+            ? "text-bg-warning"
+            : "text-bg-secondary";
+      const badgeLabel =
+        st === "unlocked"
+          ? "🟢 Dominado"
+          : st === "active"
+            ? "🟡 Activo ahora"
+            : "🔒 Pendiente";
+
       const row = document.createElement("div");
       row.className = "area-score-row d-flex justify-content-between align-items-center";
       row.innerHTML = `
         <div>
-          <div class="fw-bold small">${escapeHtml(area)}</div>
-          <div class="text-secondary" style="font-size: 0.76rem;">
-            ${passed ? "Base sólida (nodos desbloqueados)" : "Requiere refuerzo guiado"}
-          </div>
+          <div class="fw-bold small">#${escapeHtml(skill.ranking_criticidad)} ${escapeHtml(skill.nombre)}</div>
+          <div class="text-secondary" style="font-size: 0.75rem;">${escapeHtml(skill.area || materia.nombre)}</div>
         </div>
-        <span class="badge rounded-pill ${passed ? "text-bg-success" : "text-bg-warning"} fs-6">
-          ${score}%
+        <span class="badge rounded-pill ${badgeClass}">${badgeLabel}</span>
+      `;
+      summaryEl.appendChild(row);
+    });
+  }
+
+  if (dom["diag-recommendation-text"]) {
+    const activeSkill = skills.find((s) => state.nodos_estado[s.id] === "active");
+    if (!activeSkill) {
+      dom["diag-recommendation-text"].innerHTML =
+        `<strong>¡Dominio total!</strong> Desbloqueaste todos los nodos de <strong>${escapeHtml(materia.nombre)}</strong> en verde.`;
+    } else if (unlockedCount > 0) {
+      dom["diag-recommendation-text"].innerHTML =
+        `<strong>¡Buen avance!</strong> Saltaste ${unlockedCount} tema(s) base y tu camino comienza directamente en <strong>#${escapeHtml(activeSkill.ranking_criticidad)} ${escapeHtml(activeSkill.nombre)}</strong>.`;
+    } else {
+      dom["diag-recommendation-text"].innerHTML =
+        `<strong>Ruta paso a paso activada:</strong> Empezarás desde el <strong>Nodo #1 (${escapeHtml(activeSkill.nombre)})</strong> para construir una base sólida.`;
+    }
+  }
+
+  if (dom["btn-go-to-path"]) {
+    dom["btn-go-to-path"].innerHTML =
+      `<i class="bi bi-signpost-split-fill me-2"></i>Ir al Camino de ${escapeHtml(materia.nombre)}`;
+  }
+
+  appContext.diagRadarChartInstance = renderRadarOnCanvas(
+    dom["diagnostic-radar-chart"],
+    appContext.diagRadarChartInstance,
+    diagAreas,
+    areaScores
+  );
+}
+
+function finishSkipExam() {
+  stopDiagnosticTimer();
+
+  const materia = examSession.materia || getActiveMateria();
+  const targetSkill = examSession.targetSkill;
+  const skills = getMateriaSkills(materia);
+  const targetIdx =
+    examSession.targetIdx >= 0
+      ? examSession.targetIdx
+      : skills.findIndex((s) => s.id === targetSkill?.id);
+
+  const totalCount = examSession.questions.length || 1;
+  const correctCount = examSession.answers.filter((a) => a?.isCorrect).length;
+  const overallPercent = Math.round((correctCount / totalCount) * 100);
+  const passed = overallPercent >= 75;
+
+  if (!state.materias_iniciadas || typeof state.materias_iniciadas !== "object") {
+    state.materias_iniciadas = {};
+  }
+  state.materias_iniciadas[materia.id] = true;
+
+  if (passed && targetIdx > 0 && targetSkill) {
+    skills.forEach((s, idx) => {
+      if (idx < targetIdx) {
+        state.nodos_estado[s.id] = "unlocked";
+        state.xp_otorgado_nodos[s.id] = true;
+      } else if (idx === targetIdx) {
+        state.nodos_estado[s.id] = "active";
+      }
+    });
+    state.xp += 60;
+    state.racha += 1;
+    state.diagnostico_completado = true;
+  }
+
+  const { diagAreas, areaScores } = computeUpdatedStageAreaScores();
+  state.diagnostico_resultados = {
+    overallPercent,
+    areaScores,
+    correctCount,
+    totalCount,
+  };
+
+  saveState();
+  updateTopbar();
+
+  renderSkipResults({
+    passed,
+    materia,
+    targetSkill,
+    overallPercent,
+    correctCount,
+    totalCount,
+    diagAreas,
+    areaScores,
+  });
+}
+
+function renderSkipResults({
+  passed,
+  materia,
+  targetSkill,
+  overallPercent,
+  correctCount,
+  totalCount,
+  diagAreas,
+  areaScores,
+}) {
+  dom["diagnostic-quiz-panel"]?.classList.add("d-none");
+  dom["diagnostic-results-panel"]?.classList.remove("d-none");
+
+  if (dom["diag-result-pill"]) {
+    dom["diag-result-pill"].textContent = passed
+      ? "⚡ ¡NIVEL DESBLOQUEADO!"
+      : "🔒 SALTO NO ALCANZADO (MÍNIMO 75%)";
+  }
+  if (dom["diag-result-title"]) {
+    dom["diag-result-title"].textContent = passed
+      ? `¡Salto exitoso a #${targetSkill?.ranking_criticidad} ${targetSkill?.nombre}!`
+      : `Aún debes reforzar temas previos antes de saltar`;
+  }
+  if (dom["diag-overall-score"]) {
+    dom["diag-overall-score"].textContent = passed
+      ? `${overallPercent}% (${correctCount}/${totalCount} aciertos · Bono +60 XP)`
+      : `${overallPercent}% (${correctCount}/${totalCount} aciertos · Se requiere ≥ 75%)`;
+  }
+  if (dom["diag-breakdown-heading"]) {
+    dom["diag-breakdown-heading"].textContent = "Temas Previos Evaluados";
+  }
+
+  dom["diag-radar-col"]?.classList.remove("d-none");
+
+  const summaryEl = dom["diag-area-summary"];
+  const failedTopics = [];
+  if (summaryEl) {
+    summaryEl.innerHTML = "";
+    examSession.answers.forEach((ans, idx) => {
+      if (!ans) return;
+      if (!ans.isCorrect && ans.tema && !failedTopics.includes(ans.tema)) {
+        failedTopics.push(ans.tema);
+      }
+      const row = document.createElement("div");
+      row.className = "area-score-row d-flex justify-content-between align-items-center";
+      row.innerHTML = `
+        <div>
+          <div class="fw-bold small">Pregunta #${idx + 1}: ${escapeHtml(ans.tema || materia.nombre)}</div>
+          <div class="text-secondary" style="font-size: 0.75rem;">${
+            ans.isCorrect ? "Concepto validado correctamente" : "Requiere repaso de este módulo"
+          }</div>
+        </div>
+        <span class="badge rounded-pill ${ans.isCorrect ? "text-bg-success" : "text-bg-danger"}">
+          ${ans.isCorrect ? "✅ Correcto" : "❌ Falló"}
         </span>
       `;
       summaryEl.appendChild(row);
@@ -375,21 +813,28 @@ function renderDiagnosticResults(results, diagAreas) {
   }
 
   if (dom["diag-recommendation-text"]) {
-    const weakAreas = diagAreas.filter((area) => Number(results.areaScores[area] || 0) < 80);
-    if (weakAreas.length === 0) {
+    if (passed) {
       dom["diag-recommendation-text"].innerHTML =
-        "<strong>¡Excelente base!</strong> Superaste el 80% en todas las áreas. Tus nodos quedaron desbloqueados en verde para entrenar retos tipo examen.";
+        `<strong>¡Nivel desbloqueado!</strong> Todos los nodos anteriores a <strong>#${escapeHtml(targetSkill?.ranking_criticidad)} ${escapeHtml(targetSkill?.nombre)}</strong> quedaron marcados en verde y tu nuevo nodo destino ya está activo en amarillo.`;
     } else {
+      const topicsText =
+        failedTopics.length > 0 ? failedTopics.join(", ") : "los módulos anteriores";
       dom["diag-recommendation-text"].innerHTML =
-        `<strong>Foco inicial:</strong> Detectamos brechas clave en <strong>${escapeHtml(weakAreas.join(", "))}</strong>. Tu primer nodo pendiente ya está activo en amarillo.`;
+        `<strong>Temas a reforzar:</strong> Repasa <strong>${escapeHtml(topicsText)}</strong> en tu nodo activo actual antes de volver a intentar el salto de nivel.`;
     }
+  }
+
+  if (dom["btn-go-to-path"]) {
+    dom["btn-go-to-path"].innerHTML = passed
+      ? `<i class="bi bi-lightning-charge-fill me-2"></i>Continuar en #${escapeHtml(targetSkill?.ranking_criticidad)} ${escapeHtml(targetSkill?.nombre)}`
+      : '<i class="bi bi-arrow-left-circle-fill me-2"></i>Volver a mi Nodo Activo Actual';
   }
 
   appContext.diagRadarChartInstance = renderRadarOnCanvas(
     dom["diagnostic-radar-chart"],
     appContext.diagRadarChartInstance,
     diagAreas,
-    results.areaScores
+    areaScores
   );
 }
 
@@ -455,10 +900,17 @@ export function renderRadarOnCanvas(canvas, previousInstance, labels, scoreMap) 
 }
 
 export function handleResetDiagnostic() {
+  const activeMat = getActiveMateria();
+  if (activeMat) {
+    startPlacementExam(activeMat.id);
+  }
+}
+
+export function handleFullProgressReset() {
   const confirmed = window.confirm(
-    "¿Reiniciar tu diagnóstico y progreso académico? Se recalibrará tu ruta desde cero."
+    "¿Reiniciar todo tu progreso académico en todas las materias? Se limpiará tu avance actual."
   );
-  if (!confirmed) return;
+  if (!confirmed) return false;
 
   stopDiagnosticTimer();
   if (appContext.diagRadarChartInstance) {
@@ -470,8 +922,6 @@ export function handleResetDiagnostic() {
     appContext.skillsRadarChartInstance = null;
   }
 
-  dom["rescue-alert-banner"]?.classList.add("d-none");
-
   if (appContext.currentUser) {
     const preservedName = appContext.currentUser.nombre || state.nombre || "";
     const preservedStage = state.etapa || appContext.currentUser.etapa || "pre_u";
@@ -480,8 +930,7 @@ export function handleResetDiagnostic() {
     saveState();
     updateGreetingUI();
     updateTopbar();
-    startDiagnosticForStage(preservedStage);
-    return;
+    return true;
   }
 
   resetState("");
@@ -494,4 +943,5 @@ export function handleResetDiagnostic() {
   updateGreetingUI();
   updateTopbar();
   showView("stage-selector");
+  return false;
 }

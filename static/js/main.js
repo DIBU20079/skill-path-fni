@@ -1,5 +1,5 @@
 /**
- * Punto de entrada ES Module: inicialización, navegación de secciones, perfil y nota parcial.
+ * Punto de entrada ES Module: inicialización, autenticación, navegación de secciones y perfil.
  */
 
 import {
@@ -27,13 +27,13 @@ import {
 } from "./challenge.js";
 import {
   handleDiagnosticNext,
-  handleResetDiagnostic,
-  startDiagnosticForStage,
+  handleFullProgressReset,
+  startPlacementExam,
+  startSkipExam,
   stopDiagnosticTimer,
 } from "./diagnostic.js";
 import {
   configureSkilltreeHandlers,
-  handleStartRescueClick,
   renderCaminoSection,
   renderErrorVault,
   renderMateriasSection,
@@ -46,17 +46,18 @@ import {
   dom,
   ensureConsistentNodeStatesForStage,
   getActiveMateria,
-  getActiveMateriaSkills,
   getAllStageSkills,
   getDiagnosticAreasForStage,
   getMateriaSkills,
   getStageMaterias,
   hideBootstrapModal,
   hydrateStateFromUser,
+  isMateriaIniciada,
   renderMath,
   renderSkillsLoadError,
   saveState,
   showView,
+  startMateriaFromScratch,
   state,
   updateGreetingUI,
   updateTopbar,
@@ -71,7 +72,7 @@ function refreshActiveSection() {
 
 export function enterAppSection(sectionName) {
   const validSections = ["camino", "materias", "skills", "perfil"];
-  const target = validSections.includes(sectionName) ? sectionName : "camino";
+  const target = validSections.includes(sectionName) ? sectionName : "materias";
   appContext.activeSection = target;
 
   if (!state.etapa || !appContext.skillsDB?.[state.etapa]) {
@@ -154,9 +155,9 @@ function switchStageFromProfile(targetStage) {
   state.etapa = targetStage;
   if (appContext.currentUser) appContext.currentUser.etapa = targetStage;
   if (!materias.some((m) => m.id === state.materia_activa)) {
-    state.materia_activa = materias[0]?.id || null;
+    const initiatedMat = materias.find((m) => isMateriaIniciada(m.id));
+    state.materia_activa = (initiatedMat || materias[0])?.id || null;
   }
-  state.diagnostico_completado = true;
   ensureConsistentNodeStatesForStage(targetStage);
   saveState();
 
@@ -174,13 +175,16 @@ function loadDemoProfile() {
   state.nombre = state.nombre || "Alex FNI";
   state.etapa = targetStage;
   state.materia_activa = primaryMat?.id || null;
+  if (!state.materias_iniciadas || typeof state.materias_iniciadas !== "object") {
+    state.materias_iniciadas = {};
+  }
+  if (primaryMat) {
+    state.materias_iniciadas[primaryMat.id] = true;
+  }
   state.xp = 460;
   state.racha = 6;
   state.diagnostico_completado = true;
-  state.nota_parcial = 68;
-  state.alerta_rescate = false;
   state.nodo_retorno = null;
-  state.notas_parciales = [{ nota: 68, fecha: "Hoy" }];
 
   const areas = getDiagnosticAreasForStage(targetStage);
   const areaScores = {};
@@ -206,7 +210,7 @@ function loadDemoProfile() {
       if (matIdx === 0 && idx < 2) {
         state.nodos_estado[s.id] = "unlocked";
         state.xp_otorgado_nodos[s.id] = true;
-      } else if ((matIdx === 0 && idx === 2) || (matIdx > 0 && idx === 0)) {
+      } else if (matIdx === 0 && idx === 2) {
         state.nodos_estado[s.id] = "active";
       } else {
         state.nodos_estado[s.id] = "locked";
@@ -255,63 +259,6 @@ function loadDemoProfile() {
 }
 
 /* ========================================================================
-   Mini Modal: Registrar Nota Parcial (< 51 => Alerta Roja + Blocker)
-   ======================================================================== */
-
-function handlePartialGradeSubmit(event) {
-  event.preventDefault();
-  const input = dom["partial-grade-input"];
-  const errorEl = dom["partial-grade-error"];
-  const rawVal = (input?.value || "").trim();
-  const grade = Number(rawVal);
-
-  if (rawVal === "" || Number.isNaN(grade) || grade < 0 || grade > 100) {
-    errorEl?.classList.remove("d-none");
-    return;
-  }
-
-  errorEl?.classList.add("d-none");
-  state.nota_parcial = Math.round(grade);
-  state.notas_parciales.push({
-    nota: state.nota_parcial,
-    fecha: new Date().toLocaleDateString("es-ES", {
-      day: "2-digit",
-      month: "short",
-    }),
-  });
-
-  const activeSkills = getActiveMateriaSkills();
-  const allStageSkills = getAllStageSkills(state.etapa);
-
-  if (state.nota_parcial < 51) {
-    state.alerta_rescate = true;
-    const target =
-      activeSkills.find((s) => state.nodos_estado[s.id] !== "unlocked") ||
-      allStageSkills.find((s) => state.nodos_estado[s.id] !== "unlocked") ||
-      activeSkills[0];
-    if (target) {
-      state.nodos_estado[target.id] = "blocker";
-    }
-  } else {
-    state.alerta_rescate = false;
-    allStageSkills.forEach((s) => {
-      if (state.nodos_estado[s.id] === "blocker") {
-        state.nodos_estado[s.id] = "active";
-      }
-    });
-  }
-
-  saveState();
-  hideBootstrapModal(dom["partialGradeModal"]);
-
-  if (state.diagnostico_completado && state.etapa) {
-    enterAppSection(appContext.activeSection);
-  } else {
-    updateTopbar();
-  }
-}
-
-/* ========================================================================
    Autenticación Cloud, Sesiones y Enlace de Eventos
    ======================================================================== */
 
@@ -356,10 +303,20 @@ async function applyAuthenticatedUser(userData) {
   updateGreetingUI();
   updateTopbar();
 
-  if (state.diagnostico_completado && appContext.skillsDB?.[state.etapa]) {
+  const stageMaterias = getStageMaterias(state.etapa);
+  const activeInitiated =
+    state.materia_activa && isMateriaIniciada(state.materia_activa);
+  const anyInitiated = stageMaterias.find((m) => isMateriaIniciada(m.id));
+
+  if (activeInitiated) {
+    enterAppSection("camino");
+  } else if (anyInitiated) {
+    state.materia_activa = anyInitiated.id;
+    saveState();
     enterAppSection("camino");
   } else {
-    await startDiagnosticForStage(state.etapa || "pre_u");
+    // Sin diagnóstico global obligatorio: lleva directo al catálogo de Materias
+    enterAppSection("materias");
   }
 }
 
@@ -464,7 +421,6 @@ async function handleLogoutClick() {
   }
 
   clearSessionLocalState();
-  dom["rescue-alert-banner"]?.classList.add("d-none");
   dom["auth-login-error"]?.classList.add("d-none");
   dom["auth-reg-error"]?.classList.add("d-none");
   updateGreetingUI();
@@ -482,13 +438,15 @@ function bindEvents() {
   dom["btn-auth-demo-login"]?.addEventListener("click", handleDemoLoginClick);
   dom["btn-auth-retry"]?.addEventListener("click", () => window.location.reload());
 
-  dom["btn-nav-logout"]?.addEventListener("click", handleLogoutClick);
-  dom["btn-sidebar-logout"]?.addEventListener("click", handleLogoutClick);
+  dom["btn-profile-logout"]?.addEventListener("click", handleLogoutClick);
+  dom["btn-topbar-subject"]?.addEventListener("click", () =>
+    enterAppSection("materias")
+  );
 
   const goHome = (event) => {
     event.preventDefault();
     if (appContext.currentUser) {
-      enterAppSection("camino");
+      enterAppSection("materias");
     } else {
       stopDiagnosticTimer();
       showView("stage-selector");
@@ -506,14 +464,37 @@ function bindEvents() {
   });
 
   dom["btn-go-subjects"]?.addEventListener("click", () => enterAppSection("materias"));
+  dom["btn-onboarding-back-subjects"]?.addEventListener("click", () =>
+    enterAppSection("materias")
+  );
 
-  // Diagnóstico y acciones globales
-  dom["btn-reset-diagnostic"]?.addEventListener("click", handleResetDiagnostic);
+  // Inicio de materia nueva: Empezar desde cero vs Hacer Examen de Ubicación
+  dom["btn-start-from-scratch"]?.addEventListener("click", () => {
+    const activeMat = getActiveMateria();
+    if (activeMat) {
+      startMateriaFromScratch(activeMat.id);
+      enterAppSection("camino");
+    }
+  });
+
+  const launchActiveMateriaPlacement = () => {
+    const activeMat = getActiveMateria();
+    if (activeMat) {
+      startPlacementExam(activeMat.id);
+    }
+  };
+  dom["btn-start-placement-exam"]?.addEventListener("click", launchActiveMateriaPlacement);
+  dom["btn-path-placement"]?.addEventListener("click", launchActiveMateriaPlacement);
+
+  // Motor de examen reutilizable (Ubicación y Salto de nivel)
   dom["btn-diag-next"]?.addEventListener("click", handleDiagnosticNext);
+  dom["btn-diag-cancel"]?.addEventListener("click", () => {
+    stopDiagnosticTimer();
+    enterAppSection("camino");
+  });
   dom["btn-go-to-path"]?.addEventListener("click", () => enterAppSection("camino"));
 
-  // Rescate y Baúl
-  dom["btn-start-rescue"]?.addEventListener("click", handleStartRescueClick);
+  // Baúl de Errores
   dom["btn-clear-vault"]?.addEventListener("click", () => {
     state.historial_errores = [];
     saveState();
@@ -524,11 +505,13 @@ function bindEvents() {
   dom["profile-name-form"]?.addEventListener("submit", handleProfileNameSave);
   dom["btn-profile-stage-preu"]?.addEventListener("click", () => switchStageFromProfile("pre_u"));
   dom["btn-profile-stage-facultad"]?.addEventListener("click", () => switchStageFromProfile("facultad"));
-  dom["btn-profile-repeat-diag"]?.addEventListener("click", () => {
-    startDiagnosticForStage(state.etapa || "pre_u");
-  });
+  dom["btn-profile-repeat-diag"]?.addEventListener("click", launchActiveMateriaPlacement);
   dom["btn-load-demo-profile"]?.addEventListener("click", loadDemoProfile);
-  dom["btn-profile-reset-all"]?.addEventListener("click", handleResetDiagnostic);
+  dom["btn-profile-reset-all"]?.addEventListener("click", () => {
+    if (handleFullProgressReset()) {
+      enterAppSection("materias");
+    }
+  });
 
   // Modal de 3 pasos + Generación IA
   dom["btn-generate-ai-exercise"]?.addEventListener("click", handleGenerateDynamicExercise);
@@ -573,18 +556,6 @@ function bindEvents() {
   dom["nodeLessonModal"]?.addEventListener("hidden.bs.modal", () => {
     revokePreviewUrl();
   });
-
-  // Modal Nota Parcial
-  dom["partialGradeModal"]?.addEventListener("show.bs.modal", () => {
-    dom["partial-grade-error"]?.classList.add("d-none");
-    if (dom["partial-grade-input"]) {
-      dom["partial-grade-input"].value =
-        state.nota_parcial !== null && state.nota_parcial !== undefined
-          ? String(state.nota_parcial)
-          : "";
-    }
-  });
-  dom["partial-grade-form"]?.addEventListener("submit", handlePartialGradeSubmit);
 }
 
 async function init() {
@@ -592,6 +563,7 @@ async function init() {
   configureSkilltreeHandlers({
     onOpenNode: openNodeModal,
     onEnterSection: enterAppSection,
+    onSkipToNode: startSkipExam,
   });
   configureChallengeHandlers({
     onRefreshActiveSection: refreshActiveSection,

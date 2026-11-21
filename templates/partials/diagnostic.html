@@ -1,17 +1,29 @@
       <!-- =========================================================
-           EXAMEN DIAGNÓSTICO Y RADAR INICIAL
+           MOTOR DE EXAMEN REUTILIZABLE (UBICACIÓN POR MATERIA + SALTO DE NIVEL)
            ========================================================= -->
       <section id="view-diagnostic" class="app-view d-none">
         <div class="diagnostic-shell mx-auto">
 
           <!-- Panel A: Cuestionario paso a paso -->
           <div id="diagnostic-quiz-panel" class="duo-card p-4 p-lg-5">
+            <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2">
+              <div>
+                <span id="diag-mode-kicker" class="path-kicker d-block">🎯 EXAMEN DE UBICACIÓN</span>
+                <h2 id="diag-exam-title" class="h5 fw-black mb-0">Evaluación de Materia</h2>
+              </div>
+              <button type="button" id="btn-diag-cancel" class="btn btn-duo btn-duo-outline-secondary btn-sm">
+                <i class="bi bi-arrow-left me-1"></i>Volver
+              </button>
+            </div>
+
+            <hr class="my-3">
+
             <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
               <div class="d-flex align-items-center gap-2">
                 <span class="badge-step-counter">
-                  Pregunta <span id="diag-current-num">1</span> de <span id="diag-total-num">6</span>
+                  Pregunta <span id="diag-current-num">1</span> de <span id="diag-total-num">5</span>
                 </span>
-                <span id="diag-area-badge" class="badge-area">Álgebra</span>
+                <span id="diag-area-badge" class="badge-area">Tema</span>
               </div>
               <div class="timer-pill" id="diag-timer-pill">
                 <i class="bi bi-clock-fill me-1"></i>
@@ -26,7 +38,7 @@
             <div id="diag-step-dots" class="diag-dots mb-4" aria-hidden="true"></div>
 
             <div id="diag-question-latex" class="math-prompt-box mb-4">
-              Cargando pregunta de diagnóstico...
+              Cargando pregunta...
             </div>
 
             <div id="diag-options-container" class="options-grid mb-4" role="radiogroup" aria-label="Opciones de respuesta"></div>
@@ -34,9 +46,9 @@
             <div id="diag-feedback-box" class="feedback-banner d-none mb-4" role="status"></div>
 
             <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
-              <span class="small text-secondary">
+              <span id="diag-footer-hint" class="small text-secondary">
                 <i class="bi bi-lightning-charge-fill text-warning me-1"></i>
-                Calibramos todas tus materias según tus resultados
+                Demuestra tu dominio para desbloquear nodos automáticamente
               </span>
               <button type="button" id="btn-diag-next" class="btn btn-duo btn-duo-green px-4" disabled>
                 Confirmar Respuesta <i class="bi bi-check2-circle ms-1"></i>
@@ -44,34 +56,34 @@
             </div>
           </div>
 
-          <!-- Panel B: Resultados y Radar Chart.js -->
+          <!-- Panel B: Resultados del Examen (Ubicación o Salto de Nivel) -->
           <div id="diagnostic-results-panel" class="duo-card p-4 p-lg-5 d-none">
             <div class="text-center mb-4">
-              <span class="result-pill-top">DIAGNÓSTICO COMPLETADO</span>
-              <h2 class="fw-black mt-2 mb-1">Tu Mapa Inicial de Competencias</h2>
-              <p class="text-secondary mb-0">
-                Puntaje global: <strong id="diag-overall-score" class="text-dark">0%</strong> — Desbloqueamos automáticamente las áreas con &ge; 80%.
+              <span id="diag-result-pill" class="result-pill-top">EVALUACIÓN COMPLETADA</span>
+              <h2 id="diag-result-title" class="fw-black mt-2 mb-1">Resultado de tu Evaluación</h2>
+              <p id="diag-result-subtitle" class="text-secondary mb-0">
+                Puntaje logrado: <strong id="diag-overall-score" class="text-dark">0%</strong>
               </p>
             </div>
 
             <div class="row g-4 align-items-center">
-              <div class="col-12 col-lg-7">
+              <div id="diag-radar-col" class="col-12 col-lg-7">
                 <div class="radar-canvas-wrap">
                   <canvas id="diagnostic-radar-chart" aria-label="Gráfico radar de porcentaje de dominio por área"></canvas>
                 </div>
               </div>
-              <div class="col-12 col-lg-5">
-                <h3 class="h6 fw-bold text-uppercase text-secondary mb-3">Desglose por Área</h3>
+              <div id="diag-breakdown-col" class="col-12 col-lg-5">
+                <h3 id="diag-breakdown-heading" class="h6 fw-bold text-uppercase text-secondary mb-3">Desglose de Nodos Evaluados</h3>
                 <div id="diag-area-summary" class="d-flex flex-column gap-2 mb-3"></div>
                 <div id="diag-recommendation-text" class="recommendation-box small">
-                  Analizando tus bloqueos iniciales para ordenar tu camino...
+                  Analizando tus resultados...
                 </div>
               </div>
             </div>
 
             <div class="text-center mt-4 pt-2">
               <button type="button" id="btn-go-to-path" class="btn btn-duo btn-duo-green btn-lg px-5 py-3">
-                <i class="bi bi-signpost-split-fill me-2"></i>Ir a mi Camino Personalizado
+                <i class="bi bi-signpost-split-fill me-2"></i>Ir a mi Camino de Nodos
               </button>
             </div>
           </div>

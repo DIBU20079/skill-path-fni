@@ -206,6 +206,93 @@
             "instrucciones": "Verifica la forma $0/0$, multiplica por el conjugado del numerador, cancela $(x - 4)$ y evalúa en tu hoja."
           }
         }
+      ],
+      "preguntas_examen": [
+        {
+          "id": "exam_pre_alg_1",
+          "skill_id": "pre_alg_01_factorizacion",
+          "nivel_nodo": 1,
+          "tema": "Factorización",
+          "area": "Álgebra",
+          "tiempo_segundos": 45,
+          "enunciado_latex": "Factoriza completamente en los reales la diferencia de cubos $$x^3 - 8$$",
+          "opciones": [
+            "$(x - 2)(x^2 + 2x + 4)$",
+            "$(x - 2)(x^2 - 2x + 4)$",
+            "$(x + 2)(x^2 - 2x + 4)$",
+            "$(x - 2)^3$"
+          ],
+          "respuesta_correcta": "$(x - 2)(x^2 + 2x + 4)$",
+          "explicacion_breve": "Por identidad de diferencia de cubos $a^3 - b^3 = (a - b)(a^2 + ab + b^2)$ con $a = x$ y $b = 2$."
+        },
+        {
+          "id": "exam_pre_alg_2",
+          "skill_id": "pre_alg_02_fracciones",
+          "nivel_nodo": 2,
+          "tema": "Fracciones Algebraicas",
+          "area": "Álgebra",
+          "tiempo_segundos": 45,
+          "enunciado_latex": "Simplifica completamente la expresión racional $$\\frac{x^2 - 9}{x^2 - 6x + 9}$$ para todo $x \\neq 3$.",
+          "opciones": [
+            "$\\frac{x + 3}{x - 3}$",
+            "$\\frac{x - 3}{x + 3}$",
+            "$\\frac{x + 3}{x - 6}$",
+            "$x + 3$"
+          ],
+          "respuesta_correcta": "$\\frac{x + 3}{x - 3}$",
+          "explicacion_breve": "El numerador es $(x - 3)(x + 3)$ y el denominador es $(x - 3)^2$. Al cancelar $(x - 3)$ queda $\\frac{x + 3}{x - 3}$."
+        },
+        {
+          "id": "exam_pre_alg_3",
+          "skill_id": "pre_alg_03_inecuaciones",
+          "nivel_nodo": 3,
+          "tema": "Inecuaciones",
+          "area": "Álgebra",
+          "tiempo_segundos": 45,
+          "enunciado_latex": "Determina el conjunto solución real de la inecuación cuadrática $$x^2 - 5x + 6 < 0$$",
+          "opciones": [
+            "$(-\\infty, 2) \\cup (3, \\infty)$",
+            "$(2, 3)$",
+            "$[2, 3]$",
+            "$(-3, -2)$"
+          ],
+          "respuesta_correcta": "$(2, 3)$",
+          "explicacion_breve": "Al factorizar $(x - 2)(x - 3) < 0$, el producto es estrictamente negativo entre las raíces $x = 2$ y $x = 3$."
+        },
+        {
+          "id": "exam_pre_alg_4",
+          "skill_id": "pre_alg_04_funciones",
+          "nivel_nodo": 4,
+          "tema": "Funciones y Dominio",
+          "area": "Cálculo/Lógica",
+          "tiempo_segundos": 45,
+          "enunciado_latex": "Encuentra el dominio máximo en los reales de la función $$f(x) = \\frac{\\sqrt{x - 2}}{x - 5}$$",
+          "opciones": [
+            "$(2, 5) \\cup (5, \\infty)$",
+            "$[2, 5) \\cup (5, \\infty)$",
+            "$[2, \\infty)$",
+            "$\\mathbb{R} \\setminus \\{5\\}$"
+          ],
+          "respuesta_correcta": "$[2, 5) \\cup (5, \\infty)$",
+          "explicacion_breve": "La raíz par exige $x - 2 \\ge 0$ ($x \\ge 2$) y el denominador exige $x \\neq 5$, resultando $[2, 5) \\cup (5, \\infty)$."
+        },
+        {
+          "id": "exam_pre_alg_5",
+          "skill_id": "pre_alg_05_limites_alg",
+          "nivel_nodo": 5,
+          "tema": "Límites Algebraicos",
+          "area": "Cálculo/Lógica",
+          "tiempo_segundos": 45,
+          "enunciado_latex": "Calcula el valor exacto del límite algebraico $$\\lim_{x \\to 3} \\frac{x^2 - 9}{x - 3}$$",
+          "opciones": [
+            "$0$",
+            "$3$",
+            "$6$",
+            "$9$"
+          ],
+          "respuesta_correcta": "$6$",
+          "explicacion_breve": "Factorizando $(x - 3)(x + 3)$ y cancelando $(x - 3)$ para $x \\neq 3$, al evaluar en $x = 3$ se obtiene $6$."
+        }
       ]
     },
     {
@@ -373,6 +460,93 @@
             "prerrequisito_evaluado": "Factorización de trinomio en $\\cos(x)$, valores notables del coseno y signos por cuadrante.",
             "instrucciones": "Factoriza como trinomio cuadrático en $\\cos(x)$, despeja cada factor por separado y escribe todas las soluciones en $[0, 2\\pi)$ en tu hoja."
           }
+        }
+      ],
+      "preguntas_examen": [
+        {
+          "id": "exam_pre_trig_1",
+          "skill_id": "pre_trig_01_razones",
+          "nivel_nodo": 1,
+          "tema": "Razones y Cuadrantes",
+          "area": "Trigonometría",
+          "tiempo_segundos": 45,
+          "enunciado_latex": "Si $\\sin(\\theta) = \\frac{3}{5}$ y $\\theta$ pertenece al segundo cuadrante ($\\frac{\\pi}{2} < \\theta < \\pi$), ¿cuál es el valor exacto de $\\cos(\\theta)$?",
+          "opciones": [
+            "$\\frac{4}{5}$",
+            "$-\\frac{4}{5}$",
+            "$-\\frac{3}{4}$",
+            "$-\\frac{5}{4}$"
+          ],
+          "respuesta_correcta": "$-\\frac{4}{5}$",
+          "explicacion_breve": "Por identidad pitagórica $\\cos^2(\\theta) = 1 - \\frac{9}{25} = \\frac{16}{25}$; en el segundo cuadrante el coseno es negativo: $-\\frac{4}{5}$."
+        },
+        {
+          "id": "exam_pre_trig_2",
+          "skill_id": "pre_trig_02_identidades",
+          "nivel_nodo": 2,
+          "tema": "Identidades Fundamentales",
+          "area": "Trigonometría",
+          "tiempo_segundos": 45,
+          "enunciado_latex": "¿A qué expresión trigonométrica equivale $$\\frac{1 - \\cos^2(x)}{\\sin(x)\\cos(x)}$$ asumiendo $\\sin(x)\\cos(x) \\neq 0$?",
+          "opciones": [
+            "$\\cot(x)$",
+            "$\\sec(x)$",
+            "$\\tan(x)$",
+            "$\\sin(x)$"
+          ],
+          "respuesta_correcta": "$\\tan(x)$",
+          "explicacion_breve": "Como $1 - \\cos^2(x) = \\sin^2(x)$, se simplifica a $\\frac{\\sin(x)}{\\cos(x)} = \\tan(x)$."
+        },
+        {
+          "id": "exam_pre_trig_3",
+          "skill_id": "pre_trig_03_angulo_doble",
+          "nivel_nodo": 3,
+          "tema": "Ángulo Doble y Mitad",
+          "area": "Trigonometría",
+          "tiempo_segundos": 45,
+          "enunciado_latex": "Si $\\sin(\\theta) = \\frac{3}{5}$, ¿cuál es el valor exacto de $\\cos(2\\theta)$?",
+          "opciones": [
+            "$\\frac{7}{25}$",
+            "$\\frac{16}{25}$",
+            "$\\frac{24}{25}$",
+            "$-\\frac{7}{25}$"
+          ],
+          "respuesta_correcta": "$\\frac{7}{25}$",
+          "explicacion_breve": "Usando $\\cos(2\\theta) = 1 - 2\\sin^2(\\theta) = 1 - 2\\left(\\frac{9}{25}\\right) = \\frac{7}{25}$."
+        },
+        {
+          "id": "exam_pre_trig_4",
+          "skill_id": "pre_trig_04_ecuaciones",
+          "nivel_nodo": 4,
+          "tema": "Ecuaciones y Límites Trigonométricos",
+          "area": "Trigonometría",
+          "tiempo_segundos": 45,
+          "enunciado_latex": "Resuelve en $[0, 2\\pi)$ la ecuación trigonométrica $$2\\cos(x) - \\sqrt{3} = 0$$",
+          "opciones": [
+            "$x = \\frac{\\pi}{6}$ y $x = \\frac{11\\pi}{6}$",
+            "$x = \\frac{\\pi}{3}$ y $x = \\frac{5\\pi}{3}$",
+            "$x = \\frac{\\pi}{6}$ y $x = \\frac{5\\pi}{6}$",
+            "$x = \\frac{\\pi}{4}$ y $x = \\frac{7\\pi}{4}$"
+          ],
+          "respuesta_correcta": "$x = \\frac{\\pi}{6}$ y $x = \\frac{11\\pi}{6}$",
+          "explicacion_breve": "Se tiene $\\cos(x) = \\frac{\\sqrt{3}}{2}$, que es positivo en el I y IV cuadrante: $x = \\frac{\\pi}{6}$ y $x = 2\\pi - \\frac{\\pi}{6} = \\frac{11\\pi}{6}$."
+        },
+        {
+          "id": "exam_pre_trig_5",
+          "skill_id": "pre_trig_04_ecuaciones",
+          "nivel_nodo": 4,
+          "tema": "Ecuaciones y Límites Trigonométricos",
+          "area": "Trigonometría",
+          "tiempo_segundos": 45,
+          "enunciado_latex": "Calcula el límite trigonométrico $$\\lim_{x \\to 0} \\frac{\\tan(4x)}{x}$$",
+          "opciones": [
+            "$4$",
+            "$1$",
+            "$\\frac{1}{4}$",
+            "$0$"
+          ],
+          "respuesta_correcta": "$4$",
+          "explicacion_breve": "Como $\\lim_{u \\to 0} \\frac{\\tan(u)}{u} = 1$, al multiplicar y dividir por $4$ resulta $4 \\cdot 1 = 4$."
         }
       ]
     }

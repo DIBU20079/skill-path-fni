@@ -15,15 +15,13 @@ export function createDefaultState() {
     nombre: "",
     etapa: null,
     materia_activa: null,
+    materias_iniciadas: {},
     xp: 0,
     racha: 0,
     nodos_estado: {},
     historial_errores: [],
-    notas_parciales: [],
-    nota_parcial: null,
     diagnostico_completado: false,
     diagnostico_resultados: null,
-    alerta_rescate: false,
     xp_otorgado_nodos: {},
     nodo_retorno: null,
   };
@@ -33,35 +31,40 @@ function normalizeStateObject(parsed) {
   const defaults = createDefaultState();
   if (!parsed || typeof parsed !== "object") return defaults;
 
-  return {
+  const cleanState = {
     ...defaults,
     ...parsed,
     nombre: typeof parsed.nombre === "string" ? parsed.nombre.trim() : "",
+    materias_iniciadas:
+      parsed.materias_iniciadas && typeof parsed.materias_iniciadas === "object"
+        ? { ...parsed.materias_iniciadas }
+        : {},
     xp: Number.isFinite(Number(parsed.xp)) ? Number(parsed.xp) : 0,
     racha: Number.isFinite(Number(parsed.racha)) ? Number(parsed.racha) : 0,
     nodos_estado:
       parsed.nodos_estado && typeof parsed.nodos_estado === "object"
-        ? parsed.nodos_estado
+        ? { ...parsed.nodos_estado }
         : {},
     historial_errores: Array.isArray(parsed.historial_errores)
       ? parsed.historial_errores
       : [],
-    notas_parciales: Array.isArray(parsed.notas_parciales)
-      ? parsed.notas_parciales
-      : [],
     xp_otorgado_nodos:
       parsed.xp_otorgado_nodos && typeof parsed.xp_otorgado_nodos === "object"
-        ? parsed.xp_otorgado_nodos
+        ? { ...parsed.xp_otorgado_nodos }
         : {},
     diagnostico_completado: Boolean(
       parsed.diagnostico_completado ?? parsed.diagnostico_hecho
     ),
-    alerta_rescate: Boolean(parsed.alerta_rescate),
     nodo_retorno:
       typeof parsed.nodo_retorno === "string" && parsed.nodo_retorno.trim()
         ? parsed.nodo_retorno.trim()
         : null,
   };
+
+  delete cleanState.nota_parcial;
+  delete cleanState.notas_parciales;
+  delete cleanState.alerta_rescate;
+  return cleanState;
 }
 
 export function loadState() {
@@ -78,7 +81,7 @@ export const state = loadState();
 export const dom = {};
 export const appContext = {
   skillsDB: null,
-  activeSection: "camino",
+  activeSection: "materias",
   diagRadarChartInstance: null,
   skillsRadarChartInstance: null,
   skillsLoadFailed: false,
@@ -121,6 +124,26 @@ export function resetState(preservedName = "") {
   Object.assign(state, createDefaultState(), { nombre: preservedName });
 }
 
+export function inferInitiatedMateriasFromNodes() {
+  if (!appContext.skillsDB) return;
+  if (!state.materias_iniciadas || typeof state.materias_iniciadas !== "object") {
+    state.materias_iniciadas = {};
+  }
+
+  for (const stageKey of ["pre_u", "facultad"]) {
+    for (const mat of getStageMaterias(stageKey)) {
+      const skills = getMateriaSkills(mat);
+      const hasProgress = skills.some((s) => {
+        const st = state.nodos_estado[s.id];
+        return st === "unlocked" || st === "blocker" || state.xp_otorgado_nodos[s.id];
+      });
+      if (hasProgress) {
+        state.materias_iniciadas[mat.id] = true;
+      }
+    }
+  }
+}
+
 export function hydrateStateFromUser(userData) {
   if (!userData || typeof userData !== "object") return;
 
@@ -146,6 +169,7 @@ export function hydrateStateFromUser(userData) {
     }
 
     Object.assign(state, hydrated);
+    inferInitiatedMateriasFromNodes();
     persistLocalOnly();
   } finally {
     appContext.suppressCloudSync = false;
@@ -173,7 +197,7 @@ export function getHistorialResumenes() {
 }
 
 /* ========================================================================
-   Helpers Multi-Materia
+   Helpers Multi-Materia e Inicio por Asignatura
    ======================================================================== */
 
 export function getRouteData(stageKey = state.etapa) {
@@ -186,15 +210,56 @@ export function getStageMaterias(stageKey = state.etapa) {
   return route && Array.isArray(route.materias) ? route.materias : [];
 }
 
-export function getDiagnosticAreasForStage(stageKey = state.etapa) {
-  const route = getRouteData(stageKey);
-  if (route && Array.isArray(route.diagnostico) && route.diagnostico.length > 0) {
-    const areas = [];
-    route.diagnostico.forEach((q) => {
-      if (q.area && !areas.includes(q.area)) areas.push(q.area);
-    });
-    if (areas.length > 0) return areas;
+export function findMateriaById(materiaId) {
+  if (!materiaId || !appContext.skillsDB) return null;
+  for (const stageKey of ["pre_u", "facultad"]) {
+    const found = getStageMaterias(stageKey).find((m) => m.id === materiaId);
+    if (found) return { materia: found, stageKey };
   }
+  return null;
+}
+
+export function isMateriaIniciada(materiaId) {
+  if (!materiaId) return false;
+  return Boolean(state.materias_iniciadas && state.materias_iniciadas[materiaId]);
+}
+
+export function startMateriaFromScratch(materiaId) {
+  const found = findMateriaById(materiaId);
+  if (!found) return null;
+
+  const { materia, stageKey } = found;
+  const skills = getMateriaSkills(materia);
+
+  state.etapa = stageKey;
+  state.materia_activa = materia.id;
+  if (!state.materias_iniciadas || typeof state.materias_iniciadas !== "object") {
+    state.materias_iniciadas = {};
+  }
+  state.materias_iniciadas[materia.id] = true;
+  state.diagnostico_completado = true;
+
+  skills.forEach((s, idx) => {
+    state.nodos_estado[s.id] = idx === 0 ? "active" : "locked";
+  });
+
+  saveState();
+  updateGreetingUI();
+  updateTopbar();
+  return materia;
+}
+
+export function getDiagnosticAreasForStage(stageKey = state.etapa) {
+  const areas = [];
+  getStageMaterias(stageKey).forEach((mat) => {
+    getMateriaSkills(mat).forEach((s) => {
+      if (s.area && !areas.includes(s.area)) {
+        areas.push(s.area);
+      }
+    });
+  });
+  if (areas.length > 0) return areas;
+
   return stageKey === "facultad"
     ? ["Álgebra y Trig.", "Cálculo I", "Física I"]
     : ["Álgebra", "Trigonometría", "Cálculo/Lógica"];
@@ -207,9 +272,11 @@ export function getActiveMateria() {
   const found = materias.find((m) => m.id === state.materia_activa);
   if (found) return found;
 
-  state.materia_activa = materias[0].id;
+  const initiated = materias.find((m) => isMateriaIniciada(m.id));
+  const chosen = initiated || materias[0];
+  state.materia_activa = chosen.id;
   saveState();
-  return materias[0];
+  return chosen;
 }
 
 export function getMateriaSkills(materia) {
@@ -251,15 +318,17 @@ export function ensureConsistentNodeStatesForStage(stageKey = state.etapa) {
       }
     });
 
-    const hasActionable = skills.some((s) => {
-      const st = state.nodos_estado[s.id];
-      return st === "active" || st === "blocker";
-    });
-    if (!hasActionable) {
-      const firstLocked = skills.find((s) => state.nodos_estado[s.id] === "locked");
-      if (firstLocked) {
-        state.nodos_estado[firstLocked.id] = "active";
-        changed = true;
+    if (isMateriaIniciada(mat.id)) {
+      const hasActionable = skills.some((s) => {
+        const st = state.nodos_estado[s.id];
+        return st === "active" || st === "blocker";
+      });
+      if (!hasActionable) {
+        const firstLocked = skills.find((s) => state.nodos_estado[s.id] === "locked");
+        if (firstLocked) {
+          state.nodos_estado[firstLocked.id] = "active";
+          changed = true;
+        }
       }
     }
   });
@@ -279,9 +348,9 @@ export function cacheDom() {
     "sidebar-user-name",
     "sidebar-user-handle",
     "sidebar-user-stage",
-    "btn-sidebar-logout",
     "top-navbar",
     "brand-home-link",
+    "btn-topbar-subject",
     "nav-user-greeting",
     "nav-subject-name",
     "nav-progress-text",
@@ -289,9 +358,6 @@ export function cacheDom() {
     "nav-progress-bar",
     "nav-streak-count",
     "nav-xp-count",
-    "btn-open-grade-modal",
-    "btn-reset-diagnostic",
-    "btn-nav-logout",
     "view-stage-selector",
     "auth-global-error",
     "auth-global-error-text",
@@ -320,6 +386,9 @@ export function cacheDom() {
     "btn-auth-demo-spinner",
     "view-diagnostic",
     "diagnostic-quiz-panel",
+    "diag-mode-kicker",
+    "diag-exam-title",
+    "btn-diag-cancel",
     "diag-current-num",
     "diag-total-num",
     "diag-area-badge",
@@ -330,20 +399,35 @@ export function cacheDom() {
     "diag-question-latex",
     "diag-options-container",
     "diag-feedback-box",
+    "diag-footer-hint",
     "btn-diag-next",
     "diagnostic-results-panel",
+    "diag-result-pill",
+    "diag-result-title",
+    "diag-result-subtitle",
     "diag-overall-score",
+    "diag-radar-col",
     "diagnostic-radar-chart",
+    "diag-breakdown-col",
+    "diag-breakdown-heading",
     "diag-area-summary",
     "diag-recommendation-text",
     "btn-go-to-path",
     "view-camino",
-    "rescue-alert-banner",
-    "rescue-grade-value",
-    "btn-start-rescue",
+    "subject-onboarding-card",
+    "onboarding-subject-code",
+    "btn-onboarding-back-subjects",
+    "onboarding-subject-icon",
+    "onboarding-subject-title",
+    "onboarding-subject-desc",
+    "onboarding-topics-preview",
+    "btn-start-from-scratch",
+    "btn-start-placement-exam",
+    "camino-main-row",
     "path-user-greeting",
     "path-route-title",
     "path-route-desc",
+    "btn-path-placement",
     "btn-go-subjects",
     "duolingo-path-container",
     "ranking-materia-code",
@@ -352,10 +436,6 @@ export function cacheDom() {
     "materias-stage-pill",
     "subjects-catalog-container",
     "view-skills",
-    "btn-skills-open-grade-modal",
-    "skills-grade-card",
-    "skills-grade-status",
-    "skills-grade-badge",
     "skills-radar-chart",
     "skills-mastery-list",
     "error-vault-count",
@@ -369,6 +449,7 @@ export function cacheDom() {
     "profile-xp",
     "profile-streak",
     "profile-completed",
+    "btn-profile-logout",
     "profile-name-form",
     "profile-name-input",
     "profile-name-saved-msg",
@@ -450,11 +531,6 @@ export function cacheDom() {
     "btn-reinforce-prereq",
     "btn-return-to-node",
     "btn-complete-node",
-    "partialGradeModal",
-    "partial-grade-form",
-    "partial-grade-input",
-    "partial-grade-error",
-    "btn-save-partial-grade",
   ];
 
   ids.forEach((id) => {

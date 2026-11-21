@@ -1,30 +1,65 @@
       <!-- =========================================================
-           SECCIÓN A: CAMINO (ÁRBOL DUOLINGO DE LA MATERIA ACTIVA)
+           SECCIÓN A: CAMINO (INICIO DE MATERIA + ÁRBOL DUOLINGO)
            ========================================================= -->
       <section id="view-camino" class="app-view d-none">
-        <!-- Banner Alerta Roja de Rescate (nota < 51) -->
-        <div id="rescue-alert-banner" class="rescue-banner d-none mb-4" role="alert">
-          <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3">
-            <div class="d-flex align-items-start align-items-md-center gap-3">
-              <div class="rescue-icon-box">
-                <i class="bi bi-exclamation-octagon-fill"></i>
-              </div>
-              <div>
-                <div class="rescue-title">
-                  🚨 Alerta Roja de Rescate Activada (Nota registrada: <span id="rescue-grade-value">--</span>/100)
+
+        <!-- Tarjeta de Inicio de Materia (aparece cuando la materia aún NO ha sido iniciada) -->
+        <div id="subject-onboarding-card" class="duo-card subject-onboarding-shell mx-auto p-4 p-lg-5 d-none">
+          <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+            <span id="onboarding-subject-code" class="badge rounded-pill text-bg-light border px-3 py-2">MATERIA NUEVA</span>
+            <button type="button" id="btn-onboarding-back-subjects" class="btn btn-duo btn-duo-outline-secondary btn-sm">
+              <i class="bi bi-journals me-1"></i>Elegir otra materia
+            </button>
+          </div>
+
+          <div class="text-center mb-4">
+            <div id="onboarding-subject-icon" class="subject-icon-box subject-icon-blue mx-auto mb-3" style="width: 64px; height: 64px; font-size: 1.8rem;">
+              <i class="bi bi-book-fill"></i>
+            </div>
+            <span class="path-kicker">CONFIGURA TU PUNTO DE PARTIDA</span>
+            <h2 id="onboarding-subject-title" class="h3 fw-black mt-1 mb-2">Nombre de la Materia</h2>
+            <p id="onboarding-subject-desc" class="text-secondary mx-auto mb-0" style="max-width: 580px;">
+              Elige cómo quieres comenzar esta asignatura: paso a paso desde el primer tema o con un examen rápido de ubicación para desbloquear lo que ya dominas.
+            </p>
+          </div>
+
+          <div id="onboarding-topics-preview" class="d-flex flex-wrap justify-content-center gap-2 mb-4"></div>
+
+          <div class="row g-3">
+            <div class="col-12 col-md-6">
+              <div class="onboarding-option-card h-100 p-3 p-sm-4 d-flex flex-column justify-content-between">
+                <div>
+                  <span class="badge rounded-pill text-bg-success mb-2">PASO A PASO</span>
+                  <h3 class="h5 fw-black mb-2">🚀 Empezar desde cero</h3>
+                  <p class="small text-secondary mb-3">
+                    Activa el Nodo #1 en amarillo y avanza tema por tema construyendo una base sólida desde el inicio.
+                  </p>
                 </div>
-                <p class="rescue-desc mb-0">
-                  Tu nota parcial estuvo debajo de 51. Marcamos en rojo tu tema crítico prioritario para levantar el promedio cuanto antes.
-                </p>
+                <button type="button" id="btn-start-from-scratch" class="btn btn-duo btn-duo-green w-100 py-2">
+                  🚀 Empezar desde cero
+                </button>
               </div>
             </div>
-            <button type="button" id="btn-start-rescue" class="btn btn-duo btn-duo-red text-nowrap">
-              <i class="bi bi-life-preserver me-1"></i>Atacar Bloqueo Prioritario
-            </button>
+
+            <div class="col-12 col-md-6">
+              <div class="onboarding-option-card onboarding-option-placement h-100 p-3 p-sm-4 d-flex flex-column justify-content-between">
+                <div>
+                  <span class="badge rounded-pill text-bg-primary mb-2">RECOMENDADO SI TIENES BASE</span>
+                  <h3 class="h5 fw-black mb-2">🎯 Hacer Examen de Ubicación</h3>
+                  <p class="small text-secondary mb-3">
+                    Responde 5 preguntas de básico a avanzado de esta materia para desbloquear en verde los nodos que ya dominas.
+                  </p>
+                </div>
+                <button type="button" id="btn-start-placement-exam" class="btn btn-duo btn-duo-blue w-100 py-2">
+                  🎯 Hacer Examen de Ubicación
+                </button>
+              </div>
+            </div>
           </div>
         </div>
 
-        <div class="row g-4 align-items-start">
+        <!-- Camino vertical + Ranking (visible cuando la materia ya fue iniciada) -->
+        <div id="camino-main-row" class="row g-4 align-items-start">
           <!-- Columna izquierda (8 cols): Árbol vertical de la materia activa -->
           <div class="col-12 col-xl-8">
             <div class="duo-card p-3 p-sm-4">
@@ -33,12 +68,17 @@
                   <span id="path-user-greeting" class="path-kicker">CAMINO DE ESTUDIO</span>
                   <h2 id="path-route-title" class="h4 fw-black mb-1">Materia Activa</h2>
                   <p id="path-route-desc" class="text-secondary small mb-0">
-                    Supera los 3 pasos de cada nodo para desbloquear el siguiente tema crítico.
+                    Supera los 3 pasos de cada nodo o usa "⚡ Saltar aquí" para adelantar niveles.
                   </p>
                 </div>
-                <button type="button" id="btn-go-subjects" class="btn btn-duo btn-duo-outline-primary btn-sm">
-                  <i class="bi bi-journals me-1"></i>Cambiar materia
-                </button>
+                <div class="d-flex flex-wrap gap-2">
+                  <button type="button" id="btn-path-placement" class="btn btn-duo btn-duo-outline-secondary btn-sm" title="Recalibrar esta materia con el Examen de Ubicación">
+                    <i class="bi bi-bullseye me-1"></i>Examen de Ubicación
+                  </button>
+                  <button type="button" id="btn-go-subjects" class="btn btn-duo btn-duo-outline-primary btn-sm">
+                    <i class="bi bi-journals me-1"></i>Cambiar materia
+                  </button>
+                </div>
               </div>
 
               <div class="node-legend mb-4" aria-label="Leyenda de estados de los nodos">
@@ -49,10 +89,10 @@
                   <span class="legend-dot legend-dot-active"></span>Activo
                 </span>
                 <span class="legend-item">
-                  <span class="legend-dot legend-dot-blocker"></span>Bloqueo crítico
+                  <span class="legend-dot legend-dot-blocker"></span>Refuerzo de prerrequisito
                 </span>
                 <span class="legend-item">
-                  <span class="legend-dot legend-dot-locked"></span>Bloqueado
+                  <span class="legend-dot legend-dot-locked"></span>Bloqueado (⚡ Saltar disponible)
                 </span>
               </div>
 

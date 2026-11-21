@@ -9,7 +9,7 @@
     aria-hidden="true"
     data-bs-backdrop="static"
   >
-    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+    <div class="modal-dialog modal-lg modal-fullscreen-sm-down modal-dialog-centered modal-dialog-scrollable">
       <div class="modal-content duo-modal">
 
         <div class="modal-header border-0 pb-2 flex-column align-items-stretch">
@@ -291,61 +291,6 @@
           </div>
 
         </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- =========================================================
-       MINI MODAL: REGISTRAR NOTA PARCIAL (0 - 100)
-       ========================================================= -->
-  <div
-    class="modal fade"
-    id="partialGradeModal"
-    tabindex="-1"
-    aria-labelledby="partialGradeModalLabel"
-    aria-hidden="true"
-  >
-    <div class="modal-dialog modal-dialog-centered modal-sm">
-      <div class="modal-content duo-modal">
-        <div class="modal-header border-0 pb-1">
-          <h2 id="partialGradeModalLabel" class="modal-title h5 fw-black">
-            <i class="bi bi-clipboard2-pulse text-primary me-1"></i>Nota Parcial
-          </h2>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
-        </div>
-
-        <form id="partial-grade-form" novalidate>
-          <div class="modal-body pt-2">
-            <label for="partial-grade-input" class="form-label small fw-bold text-secondary">
-              Ingresa tu última calificación (0 a 100)
-            </label>
-            <input
-              type="number"
-              id="partial-grade-input"
-              class="form-control form-control-lg duo-input text-center fw-black"
-              min="0"
-              max="100"
-              step="1"
-              placeholder="Ej: 45"
-              required
-            >
-            <div class="form-text mt-2">
-              Si tu nota es menor a <strong>51</strong>, se activará la <strong>Alerta Roja de Rescate</strong>.
-            </div>
-            <div id="partial-grade-error" class="text-danger small fw-semibold mt-2 d-none">
-              Ingresa un número válido entre 0 y 100.
-            </div>
-          </div>
-
-          <div class="modal-footer border-0 pt-0">
-            <button type="button" class="btn btn-duo btn-duo-outline-secondary btn-sm" data-bs-dismiss="modal">
-              Cancelar
-            </button>
-            <button type="submit" id="btn-save-partial-grade" class="btn btn-duo btn-duo-green btn-sm">
-              Guardar Nota
-            </button>
-          </div>
-        </form>
       </div>
     </div>
   </div>

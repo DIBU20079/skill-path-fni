@@ -1,20 +1,26 @@
       <!-- =========================================================
-           SECCIÓN D: PERFIL (NOMBRE, ETAPA, DIAGNÓSTICO Y PERFIL DEMO)
+           SECCIÓN D: PERFIL (NOMBRE, ETAPA, UBICACIÓN, SALIR Y OPCIONES AVANZADAS)
            ========================================================= -->
       <section id="view-perfil" class="app-view d-none">
         <div class="profile-shell mx-auto">
           <div class="duo-card p-4 mb-4">
-            <div class="d-flex flex-column flex-sm-row align-items-center gap-3">
-              <div id="profile-avatar" class="profile-avatar-lg">E</div>
-              <div class="text-center text-sm-start flex-grow-1">
-                <span id="profile-stage-badge" class="badge rounded-pill text-bg-primary mb-1">Ruta Pre-U</span>
-                <h2 id="profile-display-name" class="h3 fw-black mb-1">Estudiante</h2>
-                <div class="d-flex flex-wrap justify-content-center justify-content-sm-start gap-2 mt-2">
-                  <span class="stat-pill stat-pill-xp">⚡ <span id="profile-xp">0</span> XP</span>
-                  <span class="stat-pill stat-pill-streak">🔥 <span id="profile-streak">0</span> racha</span>
-                  <span class="stat-pill stat-pill-done">✅ <span id="profile-completed">0</span> temas dominados</span>
+            <div class="d-flex flex-column flex-sm-row align-items-center justify-content-between gap-3">
+              <div class="d-flex flex-column flex-sm-row align-items-center gap-3">
+                <div id="profile-avatar" class="profile-avatar-lg">E</div>
+                <div class="text-center text-sm-start">
+                  <span id="profile-stage-badge" class="badge rounded-pill text-bg-primary mb-1">Ruta Pre-U</span>
+                  <h2 id="profile-display-name" class="h3 fw-black mb-1">Estudiante</h2>
+                  <div class="d-flex flex-wrap justify-content-center justify-content-sm-start gap-2 mt-2">
+                    <span class="stat-pill stat-pill-xp">⚡ <span id="profile-xp">0</span> XP</span>
+                    <span class="stat-pill stat-pill-streak">🔥 <span id="profile-streak">0</span> racha</span>
+                    <span class="stat-pill stat-pill-done">✅ <span id="profile-completed">0</span> temas dominados</span>
+                  </div>
                 </div>
               </div>
+
+              <button type="button" id="btn-profile-logout" class="btn btn-duo btn-duo-logout px-4 py-2">
+                <i class="bi bi-box-arrow-right me-2"></i>Cerrar Sesión (Salir)
+              </button>
             </div>
           </div>
 
@@ -40,7 +46,7 @@
                     <button type="submit" class="btn btn-duo btn-duo-blue">Guardar</button>
                   </div>
                   <div id="profile-name-saved-msg" class="small text-success fw-semibold d-none">
-                    ✅ Nombre actualizado en este navegador.
+                    ✅ Nombre actualizado y sincronizado.
                   </div>
                 </form>
               </div>
@@ -53,7 +59,7 @@
                   <i class="bi bi-signpost-2-fill text-success me-2"></i>Etapa Académica
                 </h3>
                 <p class="small text-secondary mb-3">
-                  Cambia entre Pre-U y Facultad en cualquier momento; tu avance en cada materia se conserva en <code>localStorage</code>.
+                  Cambia entre Pre-U y Facultad en cualquier momento; tu avance en cada materia se conserva en tu cuenta.
                 </p>
                 <div class="d-grid gap-2">
                   <button type="button" id="btn-profile-stage-preu" class="btn btn-duo btn-duo-outline-primary">
@@ -66,31 +72,40 @@
               </div>
             </div>
 
-            <!-- Acciones de diagnóstico y Perfil Demo -->
+            <!-- Examen de Ubicación y Perfil Demo -->
             <div class="col-12">
               <div class="duo-card p-4">
                 <h3 class="h5 fw-black mb-2">Herramientas y Modo Demostración</h3>
                 <p class="small text-secondary mb-3">
-                  Repite el examen diagnóstico cuando quieras recalibrar tus áreas, o carga un perfil realista para probar todas las funciones al instante.
+                  Recalibra tu materia activa con el Examen de Ubicación, o carga un perfil de demostración para explorar todas las funciones.
                 </p>
 
                 <div class="d-flex flex-wrap gap-3">
                   <button type="button" id="btn-profile-repeat-diag" class="btn btn-duo btn-duo-blue">
-                    <i class="bi bi-arrow-repeat me-2"></i>Repetir Examen Diagnóstico
+                    <i class="bi bi-bullseye me-2"></i>Repetir Examen de Ubicación (Materia Activa)
                   </button>
 
                   <button type="button" id="btn-load-demo-profile" class="btn btn-duo btn-duo-amber">
                     <i class="bi bi-stars me-2"></i>Cargar Perfil Demo
-                  </button>
-
-                  <button type="button" id="btn-profile-reset-all" class="btn btn-duo btn-duo-outline-secondary ms-md-auto">
-                    <i class="bi bi-trash3 me-1"></i>Reiniciar Todo
                   </button>
                 </div>
 
                 <div id="profile-demo-feedback" class="alert alert-success d-none mt-3 mb-0" role="status">
                   ✅ Perfil Demo cargado con XP, racha, 2 nodos verdes y 2 errores en el Baúl de Errores.
                 </div>
+
+                <!-- Acordeón cerrado discreto para reinicio de progreso -->
+                <details class="advanced-options-accordion mt-4">
+                  <summary class="advanced-options-summary">⚙️ Opciones avanzadas</summary>
+                  <div class="advanced-options-body mt-3 pt-3 border-top">
+                    <p class="small text-secondary mb-2">
+                      Si deseas empezar todas tus materias desde cero, puedes reiniciar el progreso acumulado de tu cuenta. Se solicitará confirmación antes de aplicar.
+                    </p>
+                    <button type="button" id="btn-profile-reset-all" class="btn btn-sm btn-outline-danger fw-bold">
+                      <i class="bi bi-trash3 me-1"></i>Reiniciar progreso de la cuenta
+                    </button>
+                  </div>
+                </details>
               </div>
             </div>
           </div>
