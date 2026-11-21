@@ -6,6 +6,7 @@
 import { renderRadarOnCanvas } from "./diagnostic.js";
 import {
   appContext,
+  calcularPreparacionExamen,
   dom,
   ensureConsistentNodeStatesForStage,
   escapeHtml,
@@ -16,6 +17,9 @@ import {
   getMateriaSkills,
   getStageMaterias,
   isMateriaIniciada,
+  obtenerFallosRepetitivos,
+  obtenerMedallas,
+  obtenerRangoFNI,
   saveState,
   state,
 } from "./state.js";
@@ -23,15 +27,21 @@ import {
 let openNodeHandler = () => {};
 let enterSectionHandler = () => {};
 let skipToNodeHandler = () => {};
+let startSimulacroHandler = () => {};
+let overcomeErrorHandler = () => {};
 
 export function configureSkilltreeHandlers({
   onOpenNode,
   onEnterSection,
   onSkipToNode,
+  onStartSimulacro,
+  onOvercomeError,
 } = {}) {
   if (typeof onOpenNode === "function") openNodeHandler = onOpenNode;
   if (typeof onEnterSection === "function") enterSectionHandler = onEnterSection;
   if (typeof onSkipToNode === "function") skipToNodeHandler = onSkipToNode;
+  if (typeof onStartSimulacro === "function") startSimulacroHandler = onStartSimulacro;
+  if (typeof onOvercomeError === "function") overcomeErrorHandler = onOvercomeError;
 }
 
 /* ========================================================================
@@ -96,6 +106,14 @@ export function renderCaminoSection() {
   }
   if (dom["ranking-materia-code"]) {
     dom["ranking-materia-code"].textContent = materia.codigo || materia.nombre;
+  }
+
+  const readinessPct = calcularPreparacionExamen(materia, state);
+  if (dom["path-readiness-badge"]) {
+    dom["path-readiness-badge"].textContent = `Preparación para Examen: ${readinessPct}%`;
+  }
+  if (dom["path-readiness-bar"]) {
+    dom["path-readiness-bar"].style.width = `${readinessPct}%`;
   }
 
   container.innerHTML = "";
@@ -187,7 +205,83 @@ export function renderCaminoSection() {
     container.appendChild(wrapper);
   });
 
+  renderSimulacroPathNode(container, materia, skills);
   renderCriticalRanking(skills);
+}
+
+function renderSimulacroPathNode(container, materia, skills) {
+  if (!container || !materia || !skills.length) return;
+
+  const total = skills.length;
+  const unlockedCount = skills.filter((s) => state.nodos_estado[s.id] === "unlocked").length;
+  const requiredCount = Math.ceil(total * 0.6);
+  const unlocked = unlockedCount >= requiredCount;
+  const missing = Math.max(0, requiredCount - unlockedCount);
+  const bestScore = state.simulacros_mejor_nota?.[materia.id];
+
+  const wrapper = document.createElement("div");
+  wrapper.className = "path-node-wrapper path-node-simulacro";
+
+  const connector = document.createElement("div");
+  connector.className = `path-connector${unlocked ? " is-completed" : ""}`;
+  wrapper.appendChild(connector);
+
+  const ring = document.createElement("div");
+  ring.className = "path-node-ring";
+
+  if (unlocked) {
+    const floatTag = document.createElement("span");
+    floatTag.className = "node-floating-tag is-simulacro";
+    floatTag.textContent =
+      typeof bestScore === "number" ? `MEJOR: ${bestScore}/100` : "¡DESAFÍO FINAL!";
+    ring.appendChild(floatTag);
+  }
+
+  const btn = document.createElement("button");
+  btn.type = "button";
+  btn.className = `path-node-btn ${unlocked ? "node-simulacro" : "node-locked"}`;
+  btn.disabled = !unlocked;
+  btn.setAttribute(
+    "aria-label",
+    unlocked
+      ? `Iniciar Simulacro de Parcial de ${materia.nombre}`
+      : `Simulacro bloqueado: faltan ${missing} temas`
+  );
+  btn.innerHTML = unlocked
+    ? '<i class="bi bi-trophy-fill"></i><span class="node-rank-badge">FINAL</span>'
+    : '<i class="bi bi-lock-fill"></i><span class="node-rank-badge">60%</span>';
+
+  if (unlocked) {
+    btn.addEventListener("click", () => startSimulacroHandler(materia.id));
+  }
+
+  ring.appendChild(btn);
+  wrapper.appendChild(ring);
+
+  const labelCard = document.createElement("div");
+  labelCard.className = `node-label-card${unlocked ? " node-label-simulacro" : ""}`;
+  labelCard.innerHTML = `
+    <div class="node-label-title">🏆 Simulacro de Parcial</div>
+    <div class="node-label-meta">${
+      unlocked
+        ? `4-5 preguntas · 05:00 min · Apruebas con ≥ 51/100 (+100 XP)${
+            typeof bestScore === "number" ? ` · Mejor nota: ${bestScore}/100` : ""
+          }`
+        : `Bloqueado · Te ${missing === 1 ? "falta 1 tema" : `faltan ${missing} temas`} en verde (≥ 60%)`
+    }</div>
+  `;
+
+  if (unlocked) {
+    const startBtn = document.createElement("button");
+    startBtn.type = "button";
+    startBtn.className = "btn btn-duo btn-duo-amber btn-skip-level mt-2";
+    startBtn.textContent = "🏆 Iniciar Simulacro (+100 XP)";
+    startBtn.addEventListener("click", () => startSimulacroHandler(materia.id));
+    labelCard.appendChild(startBtn);
+  }
+
+  wrapper.appendChild(labelCard);
+  container.appendChild(wrapper);
 }
 
 export function renderCriticalRanking(skills = getActiveMateriaSkills()) {
@@ -403,8 +497,113 @@ export function getAreaMasteryScores() {
   return { areas, scores: result };
 }
 
+export function renderRankCard(prefix) {
+  const rank = obtenerRangoFNI(state.xp);
+  const levelEl = dom[`${prefix}-rank-level`];
+  const titleEl = dom[`${prefix}-rank-title`];
+  const xpEl = dom[`${prefix}-rank-xp`];
+  const nextEl = dom[`${prefix}-rank-next-label`];
+  const barEl = dom[`${prefix}-rank-bar`];
+
+  if (levelEl) levelEl.textContent = `Nivel ${rank.nivel}`;
+  if (titleEl) titleEl.textContent = rank.titulo;
+  if (xpEl) xpEl.textContent = `⚡ ${rank.xpActual} XP`;
+  if (nextEl) {
+    if (rank.xpSiguiente !== null) {
+      const remaining = Math.max(0, rank.xpSiguiente - rank.xpActual);
+      nextEl.textContent = `Faltan ${remaining} XP para el siguiente rango (${rank.xpSiguiente} XP)`;
+    } else {
+      nextEl.textContent = "¡Rango máximo de Auxiliar alcanzado!";
+    }
+  }
+  if (barEl) {
+    barEl.style.width = `${rank.progresoPct}%`;
+  }
+}
+
+export function renderMedalsGrid(containerEl, countEl) {
+  if (!containerEl) return;
+  const medals = obtenerMedallas(state);
+  const unlockedTotal = medals.filter((m) => m.desbloqueada).length;
+
+  if (countEl) {
+    countEl.textContent = `${unlockedTotal}/${medals.length}`;
+  }
+
+  containerEl.innerHTML = "";
+  medals.forEach((medal) => {
+    const tile = document.createElement("div");
+    tile.className = `medal-tile ${medal.desbloqueada ? "is-unlocked" : "is-locked"}`;
+    tile.title = medal.descripcion;
+    tile.innerHTML = `
+      <span class="medal-tile-icon" aria-hidden="true">${escapeHtml(medal.icono)}</span>
+      <div class="medal-tile-info">
+        <div class="medal-tile-name">${escapeHtml(medal.nombre)}</div>
+        <div class="medal-tile-desc">${escapeHtml(medal.descripcion)}</div>
+      </div>
+    `;
+    containerEl.appendChild(tile);
+  });
+}
+
+function renderPreExamWarnings() {
+  const emptyEl = dom["pre-exam-warnings-empty"];
+  const listEl = dom["pre-exam-warnings-list"];
+  if (!listEl) return;
+
+  const topWarnings = obtenerFallosRepetitivos(state);
+  if (topWarnings.length === 0) {
+    emptyEl?.classList.remove("d-none");
+    listEl.classList.add("d-none");
+    listEl.innerHTML = "";
+    return;
+  }
+
+  emptyEl?.classList.add("d-none");
+  listEl.classList.remove("d-none");
+  listEl.innerHTML = "";
+
+  topWarnings.forEach((item, idx) => {
+    const row = document.createElement("div");
+    row.className = "pre-exam-warning-item";
+    const tipoLabel =
+      item.tipo_error === "fallo_prerrequisito" ? "Base previa" : "Error operativo";
+    row.innerHTML = `
+      <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+        <div class="fw-bold text-dark small">
+          ${idx + 1}. ${escapeHtml(item.tema)}: <span class="text-danger-emphasis">${escapeHtml(item.resumen)}</span>
+        </div>
+        <div class="d-flex align-items-center gap-1 flex-shrink-0">
+          <span class="badge rounded-pill text-bg-light border text-secondary">${escapeHtml(tipoLabel)}</span>
+          <span class="badge rounded-pill text-bg-warning text-dark">${item.count}×</span>
+        </div>
+      </div>
+    `;
+    listEl.appendChild(row);
+  });
+}
+
 export function renderSkillsSection() {
   const { areas, scores } = getAreaMasteryScores();
+  const activeMat = getActiveMateria();
+  const readinessPct = calcularPreparacionExamen(activeMat, state);
+
+  renderRankCard("skills");
+  renderMedalsGrid(dom["skills-medals-grid"], dom["skills-medals-unlocked-count"]);
+
+  if (dom["skills-readiness-subject"]) {
+    dom["skills-readiness-subject"].textContent = activeMat
+      ? `Preparación para Examen (${activeMat.nombre})`
+      : "Preparación para Examen";
+  }
+  if (dom["skills-readiness-pct"]) {
+    dom["skills-readiness-pct"].textContent = `${readinessPct}%`;
+  }
+  if (dom["skills-readiness-bar"]) {
+    dom["skills-readiness-bar"].style.width = `${readinessPct}%`;
+  }
+
+  renderPreExamWarnings();
 
   appContext.skillsRadarChartInstance = renderRadarOnCanvas(
     dom["skills-radar-chart"],
@@ -453,8 +652,11 @@ export function renderErrorVault() {
   const history = Array.isArray(state.historial_errores)
     ? state.historial_errores
     : [];
+  const pendingCount = history.filter((item) => !item?.superado).length;
 
-  if (countEl) countEl.textContent = String(history.length);
+  if (countEl) {
+    countEl.textContent = pendingCount > 0 ? `${pendingCount} pend.` : String(history.length);
+  }
   emptyEl?.classList.toggle("d-none", history.length > 0);
   clearBtn?.classList.toggle("d-none", history.length === 0);
 
@@ -462,20 +664,42 @@ export function renderErrorVault() {
   listEl.innerHTML = "";
 
   [...history].reverse().forEach((entry) => {
+    const isResolved = Boolean(entry && entry.superado);
     const resumen = typeof entry === "string" ? entry : entry.resumen || "";
     const tema = typeof entry === "object" && entry ? entry.tema : "";
     const fecha = typeof entry === "object" && entry ? entry.fecha : "";
 
     const li = document.createElement("li");
-    li.className = "vault-item";
+    li.className = `vault-item${isResolved ? " vault-item-resolved" : ""}`;
+
+    const statusBadge = isResolved
+      ? '<span class="badge rounded-pill text-bg-success flex-shrink-0">✅ Superado</span>'
+      : '<span class="badge rounded-pill text-bg-warning text-dark flex-shrink-0">Pendiente</span>';
+
     li.innerHTML = `
-      <div class="fw-bold text-danger-emphasis">${escapeHtml(resumen)}</div>
+      <div class="d-flex justify-content-between align-items-start gap-2">
+        <div class="fw-bold ${isResolved ? "text-success-emphasis" : "text-danger-emphasis"}">${escapeHtml(resumen)}</div>
+        ${statusBadge}
+      </div>
       ${
         tema || fecha
           ? `<div class="text-secondary mt-1" style="font-size: 0.75rem;">${escapeHtml(tema)}${tema && fecha ? " · " : ""}${escapeHtml(fecha)}</div>`
           : ""
       }
     `;
+
+    if (!isResolved && typeof entry === "object" && entry) {
+      const actionWrap = document.createElement("div");
+      actionWrap.className = "mt-2";
+      const fixBtn = document.createElement("button");
+      fixBtn.type = "button";
+      fixBtn.className = "btn btn-duo btn-duo-amber btn-sm btn-overcome-error";
+      fixBtn.textContent = "🔁 Superar este error";
+      fixBtn.addEventListener("click", () => overcomeErrorHandler(entry));
+      actionWrap.appendChild(fixBtn);
+      li.appendChild(actionWrap);
+    }
+
     listEl.appendChild(li);
   });
 }

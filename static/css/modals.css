@@ -352,3 +352,64 @@
     font-size: 0.76rem;
   }
 }
+
+/* Andamiaje gratuito (Ejemplo análogo) y bonos XP */
+.analogous-scaffold-card {
+  background: linear-gradient(135deg, #f0f9ff 0%, #eef2ff 100%);
+  border: 2px solid #bae6fd;
+  border-radius: 16px;
+  padding: 0.9rem 1rem;
+  max-width: 100%;
+}
+
+.analogous-example-body {
+  background-color: #ffffff;
+  border: 1.5px solid #cbd5e1;
+  border-radius: 14px;
+  padding: 0.85rem 1rem;
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+.analogous-enunciado {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.analogous-pasos-list {
+  padding-left: 1.25rem;
+  font-size: 0.88rem;
+  color: #334155;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.analogous-conclusion {
+  background-color: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  color: #14532d;
+  border-radius: 10px;
+  padding: 0.45rem 0.7rem;
+}
+
+.xp-bonuses-banner {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.xp-bonus-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-family: "Nunito", sans-serif;
+  font-weight: 900;
+  font-size: 0.8rem;
+  padding: 0.32rem 0.75rem;
+  border-radius: 999px;
+  background-color: #fef9c3;
+  border: 1.5px solid #facc15;
+  color: #854d0e;
+}

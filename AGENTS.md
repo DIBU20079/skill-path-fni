@@ -18,7 +18,8 @@ Guía de arquitectura, restricciones técnicas, reglas pedagógicas y contratos 
   - CDNs permitidos exclusivamente: **Bootstrap 5**, **Bootstrap Icons**, **KaTeX** (con extensión `auto-render`) y **Chart.js** (solo para gráficos radar).
   - **Sin pizarra digital**: Prohibido implementar `<canvas>` de dibujo o pizarras interactivas; la práctica del Paso 3 se basa en foto del cuaderno físico (`<input type="file" accept="image/*" capture="environment">`) y/o explicación escrita en texto.
 - **Persistencia**: Persistencia híbrida multi-dispositivo: caché inmediata en `localStorage` bajo la clave `skillpath_fni_progress_v1` + sincronización en la nube vía HTTPS REST (`services/db_cloud.py` -> tabla `usuarios` en **Supabase** usando `requests`, limpiando `SUPABASE_URL` y `SUPABASE_KEY` con `.strip().strip("()\"'")` y `.rstrip("/")`, con headers `apikey` + `Content-Type` + `Prefer: return=representation` y **sin** `Authorization: Bearer` cuando `SUPABASE_KEY` comienza con `sb_secret_`). Si faltan variables de Supabase, usa `data/usuarios_fallback.json` como respaldo local:
-  - `nombre`, `etapa`, `materia_activa`, `materias_iniciadas`, `xp`, `racha`, `nodos_estado`, `historial_errores`, `diagnostico_completado`, `diagnostico_resultados`, `xp_otorgado_nodos`, `nodo_retorno`.
+  - `nombre`, `etapa`, `materia_activa`, `materias_iniciadas`, `xp`, `racha`, `nodos_estado`, `historial_errores` (cada entrada con `id`, `resumen`, `tema`, `materia`, `tipo_error`, `fecha`, `superado`), `diagnostico_completado`, `diagnostico_resultados`, `xp_otorgado_nodos`, `nodo_retorno`, `contadores_medallas`, `simulacros_mejor_nota`.
+  - **Regla de Oro de XP**: El `xp` es un puntaje permanente de dominio que **nunca** se gasta ni se resta.
 - **Calidad**: Cero funciones vacías, cero `// TODO`, cero placeholders o datos truncados.
 
 ---
@@ -38,13 +39,13 @@ Guía de arquitectura, restricciones técnicas, reglas pedagógicas y contratos 
 │   ├── __init__.py               # Exporta los 4 Blueprints
 │   ├── views.py                  # GET / -> renderiza index.html
 │   ├── api_skills.py             # GET /api/skills (combina pre_u.json + facultad.json)
-│   ├── api_ai.py                 # POST /api/evaluar y POST /api/generar-ejercicio
+│   ├── api_ai.py                 # POST /api/{evaluar,generar-ejercicio,ejemplo-analogo,generar-ejercicio-error}
 │   └── api_auth.py               # POST /api/{register,login,demo-login,logout,progreso} y GET /api/me
 ├── services/
 │   ├── __init__.py
 │   ├── ai_client.py              # Cliente Gemini compartido, timeout y fallback de modelos
 │   ├── ai_auditor.py             # Auditoría socrática por foto/texto (8 claves)
-│   ├── ai_generator.py           # Generación dinámica de ejercicios de 3 pasos en LaTeX
+│   ├── ai_generator.py           # Ejercicios 3 pasos, ejemplo análogo y reto focalizado de error
 │   └── db_cloud.py               # Cliente HTTPS Supabase REST (`usuarios`) + respaldo data/usuarios_fallback.json
 ├── data/
 │   ├── pre_u.json                # Materias, preguntas_examen y skills de la etapa Pre-U
@@ -128,6 +129,10 @@ La función `auditar_resolucion(enunciado, prerrequisito, texto_usuario, imagen_
   - Acepta JSON (o `form-data`) con `materia` (obligatorio), `tema` (obligatorio) e `historial_errores` (opcional).
   - Llama a `generar_ejercicio_dinamico(...)` (`services/ai_generator.py`, `temperature=0.8`, `response_mime_type="application/json"`) y devuelve HTTP `200` con un ejercicio inédito de 3 pasos (`paso1_concepto`, `paso2_practica`, `paso3_reto_foto`) en LaTeX.
   - Si falla la IA, el frontend conserva el respaldo estático del currículo sin errores rotos.
+- **`POST /api/ejemplo-analogo` (`routes/api_ai.py`)**:
+  - Acepta `{materia, tema, ejercicio_actual}` (todos obligatorios) y llama a `generar_ejemplo_analogo(...)` (`services/ai_generator.py`) devolviendo HTTP `200` con `{"enunciado", "pasos", "conclusion"}` en LaTeX para un ejercicio distinto y resuelto paso a paso (andamiaje gratuito tras 2 fallos sin gastar XP).
+- **`POST /api/generar-ejercicio-error` (`routes/api_ai.py`)**:
+  - Acepta `{materia, tema, tipo_error, detalle_error}` (obligatorios `tema` y `detalle_error`) y llama a `generar_ejercicio_error(...)` (`services/ai_generator.py`) devolviendo HTTP `200` con `{"enunciado", "pista_inicial", "objetivo"}` en LaTeX para el **Baúl de Errores Activo**.
 - **`POST /api/register`, `POST /api/login`, `POST /api/demo-login`, `POST /api/logout`, `GET /api/me`, `POST /api/progreso`, `GET /api/auth/status` (`routes/api_auth.py`)**:
   - Gestión real de cuentas, contraseñas con `werkzeug.security`, sesión persistente Flask (`session["username"]`) y sincronización automática con Supabase (`services/db_cloud.py`) o respaldo JSON local (`data/usuarios_fallback.json`).
   - `/api/demo-login` inicia sesión en `"jurado_demo"` con progreso precargado (320 XP, racha de 4 días, 2 nodos dominados y 2 errores en el Baúl).
@@ -141,10 +146,17 @@ La función `auditar_resolucion(enunciado, prerrequisito, texto_usuario, imagen_
 - Cada etapa contiene `materias`: catálogo multi-materia por etapa (`pre_u`: **Álgebra Pre-U** y **Trigonometría**; `facultad`: **Cálculo I** y **Física I**).
 - Cada materia contiene `id`, `nombre`, `codigo`, `icono`, `color`, `descripcion`, `preguntas_examen` (5 preguntas de opción múltiple en LaTeX vinculadas por `skill_id` y `nivel_nodo` de básico a avanzado) y `skills` (4 a 5 temas ordenados por `ranking_criticidad` y encadenados por `prerrequisito_id`).
 - Campos de cada skill: `id`, `ranking_criticidad`, `frecuencia_examen`, `materia`, `nombre`, `area`, `prerrequisito_id`, `xp`, `tip_auxiliar`, `paso1_concepto` (`titulo`, `enunciado_latex`, `opciones`, `respuesta_correcta`, `explicacion`), `paso2_practica` (`titulo`, `enunciado_latex`, `respuesta_correcta`, `respuestas_aceptadas`, `pista`), `paso3_reto_foto` (`titulo`, `enunciado_latex`, `prerrequisito_evaluado`, `instrucciones`).
-- **Navegación estilo Duolingo**: barra lateral izquierda en escritorio y barra inferior fija en móvil con 4 secciones: **Camino**, **Materias**, **Mis Skills** (radar Chart.js, medallas Bronce/Plata/Oro y Baúl de Errores) y **Perfil** (editar nombre, cambiar etapa, repetir examen de ubicación y **Cargar Perfil Demo**). Se eliminó por completo la función de "Registrar Nota Parcial".
+- **Navegación estilo Duolingo**: barra lateral izquierda en escritorio y barra inferior fija (grid de 4 columnas) en móvil con 4 secciones: **Camino**, **Materias**, **Mis Skills** (Rango FNI, Medallas FNI, Preparación para Examen, Resumen Pre-Examen Top 3, radar Chart.js, nivel Bronce/Plata/Oro y **Baúl de Errores Activo**) y **Perfil** (Rango FNI, Medallas, nombre, etapa, repetir ubicación, **Cargar Perfil Demo**, **Cerrar Sesión (Salir)** y acordeón cerrado de reinicio). Se eliminó por completo la función de "Registrar Nota Parcial".
 - **Inicio por materia (`materias_iniciadas`)**: Al iniciar sesión o registrarse no existe diagnóstico global obligatorio; el usuario va a **Materias** (o a su última materia activa iniciada). Al elegir una materia no iniciada, elige entre **"🚀 Empezar desde cero"** (Nodo 1 en `active`, demás en `locked`) o **"🎯 Hacer Examen de Ubicación"**.
 - **Motor de examen reutilizable (`static/js/diagnostic.js` + `templates/partials/diagnostic.html`)**:
   - **Modo 1 — Examen de Ubicación**: Evalúa las preguntas de básico a avanzado de esa materia, desbloquea en `unlocked` (verde) los nodos dominados, deja el siguiente en `active` (amarillo) y los posteriores en `locked` (gris), suma XP y guarda en Supabase.
-  - **Modo 2 — Salto de Nivel ("⚡ Saltar aquí")**: En nodos bloqueados (`locked`) a partir del Nodo 3 en adelante, el botón **"⚡ Saltar aquí"** evalúa 3 a 4 preguntas de los nodos anteriores. Con `>= 75%` desbloquea los nodos previos en verde, activa el nodo destino en amarillo y otorga bono de XP; con `< 75%` indica qué temas reforzar.
+  - **Modo 2 — Salto de Nivel ("⚡ Saltar aquí")**: En nodos bloqueados (`locked`) a partir del Nodo 3 en adelante, el botón **"⚡ Saltar aquí"** evalúa 3 a 4 preguntas de los nodos anteriores. Con `>= 75%` desbloquea los nodos previos en verde, activa el nodo destino en amarillo, otorga `+60 XP` y desbloquea la medalla **Salto de Nivel**; con `< 75%` indica qué temas reforzar.
+  - **Modo 3 — Nodo Final "🏆 Simulacro de Parcial"**: Al final del camino vertical de cada materia; se desbloquea con `>= 60%` de nodos en `unlocked` (Verde). Evalúa 4–5 preguntas mezcladas con temporizador global visible de `05:00` y entrega automática al llegar a `00:00`. Calcula nota sobre `100`: con `>= 51` aprueba, suma `+100 XP`, desbloquea **Simulacro Aprobado** y guarda la mejor nota en `simulacros_mejor_nota`.
+- **XP Permanente, Rangos FNI, Medallas, Preparación y Baúl Activo (`static/js/state.js` + `static/js/challenge.js`)**:
+  - **XP Permanente**: `state.xp` nunca se resta ni se gasta. `obtenerRangoFNI(xp)` asigna 5 niveles: *Postulante* (`0–199`), *Ingresante FNI* (`200–499`), *Estudiante Nivelado* (`500–999`), *Aspirante a Auxiliar* (`1000–1999`) y *Auxiliar de Ciencias Básicas* (`2000+`).
+  - **6 Medallas FNI (`obtenerMedallas`)**: *Resiliencia*, *Rescate Crítico*, *Salto de Nivel*, *Error Superado*, *Simulacro Aprobado* y *Constancia FNI* (`racha >= 3`).
+  - **Preparación para Examen (`calcularPreparacionExamen`)**: Pondera los nodos `unlocked` por su peso (`frecuencia_examen`) sobre el total de la materia; se muestra en la cabecera de la materia activa y en **Mis Skills**.
+  - **Compresión, Carga Animada, Ejemplo Análogo y Bonos XP**: Antes de enviar a `/api/evaluar`, las fotos se redimensionan en `<canvas>` oculto a máx. `1280px` (`image/jpeg`, `0.78`). Mientras espera respuesta, rota mensajes cada `~1.8s`. Tras `>= 2` intentos fallidos aparece **"💡 Ver ejemplo parecido resuelto (Gratis)"**. Al aprobar en intento `>= 2` suma **+25 XP (Bono de Resiliencia)**; si el nodo estaba en `blocker` (Rojo) suma **+50 XP (Bono de Rescate)**.
+  - **Baúl de Errores Activo y Resumen Pre-Examen**: Cada falla tiene `id` y `superado`. Los fallos pendientes ofrecen **"🔁 Superar este error"** (`abrirRetoSuperarError`), que al aprobar con Gemini llama `marcarErrorSuperado(id)` (**+30 XP**). `obtenerFallosRepetitivos` alimenta el Top 3 de advertencias pre-parcial en **Mis Skills**.
 - **Estado Rojo (`blocker`)**: Cuando la auditoría IA por foto detecta `requiere_repetir_modulo: true` (`fallo_prerrequisito`), el nodo prerrequisito se marca en rojo (`blocker`) para refuerzo guiado con retorno automático.
 - **KaTeX**: Ejecutar `renderMathInElement` tras cada renderizado dinámico con fórmulas matemáticas.

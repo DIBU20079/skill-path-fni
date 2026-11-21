@@ -11,24 +11,27 @@ import {
   fetchSkillsDB,
 } from "./api.js";
 import {
+  abrirRetoSuperarError,
   checkStep1,
   checkStep2,
+  cleanupModalResources,
   configureChallengeHandlers,
   goToModalStep,
   handleAuditWithAI,
   handleGenerateDynamicExercise,
   handleReinforcePrerequisiteClick,
   handleReturnToOriginalNodeClick,
+  handleShowAnalogousExample,
   modalSession,
   openNodeModal,
   resetStep3ForCorrection,
-  revokePreviewUrl,
   setupPhotoDropzoneEvents,
 } from "./challenge.js";
 import {
   handleDiagnosticNext,
   handleFullProgressReset,
   startPlacementExam,
+  startSimulacroExam,
   startSkipExam,
   stopDiagnosticTimer,
 } from "./diagnostic.js";
@@ -37,6 +40,8 @@ import {
   renderCaminoSection,
   renderErrorVault,
   renderMateriasSection,
+  renderMedalsGrid,
+  renderRankCard,
   renderSkillsSection,
 } from "./skilltree.js";
 import {
@@ -135,6 +140,12 @@ function renderPerfilSection() {
       isFacultad ? "btn-duo-green" : "btn-duo-outline-secondary"
     }`;
   }
+
+  renderRankCard("profile");
+  renderMedalsGrid(
+    dom["profile-medals-grid"],
+    dom["profile-medals-unlocked-count"]
+  );
 }
 
 function handleProfileNameSave(event) {
@@ -223,30 +234,55 @@ function loadDemoProfile() {
     month: "short",
   });
 
+  state.contadores_medallas = {
+    resiliencia: 1,
+    rescate_critico: 0,
+    salto_nivel: 0,
+    errores_superados: 0,
+    simulacros_aprobados: 0,
+  };
+  state.simulacros_mejor_nota = {};
+
   state.historial_errores =
     targetStage === "facultad"
       ? [
           {
+            id: "err_demo_fac_1",
             resumen: "Olvidó restringir argumento positivo en logaritmo",
             tema: primarySkills[0]?.nombre || "Inecuaciones y Dominios",
+            materia: primaryMat?.nombre || "Cálculo I",
+            tipo_error: "fallo_prerrequisito",
             fecha: hoy,
+            superado: false,
           },
           {
+            id: "err_demo_fac_2",
             resumen: "Error de signo al multiplicar por conjugado",
             tema: primarySkills[1]?.nombre || "Límites Algebraicos",
+            materia: primaryMat?.nombre || "Cálculo I",
+            tipo_error: "error_operativo",
             fecha: hoy,
+            superado: false,
           },
         ]
       : [
           {
+            id: "err_demo_preu_1",
             resumen: "Error de signo al factorizar trinomio cuadrático",
             tema: primarySkills[0]?.nombre || "Factorización",
+            materia: primaryMat?.nombre || "Álgebra Pre-U",
+            tipo_error: "error_operativo",
             fecha: hoy,
+            superado: false,
           },
           {
+            id: "err_demo_preu_2",
             resumen: "No excluyó raíces del denominador al simplificar",
             tema: primarySkills[1]?.nombre || "Fracciones Algebraicas",
+            materia: primaryMat?.nombre || "Álgebra Pre-U",
+            tipo_error: "fallo_prerrequisito",
             fecha: hoy,
+            superado: false,
           },
         ];
 
@@ -494,11 +530,14 @@ function bindEvents() {
   });
   dom["btn-go-to-path"]?.addEventListener("click", () => enterAppSection("camino"));
 
-  // Baúl de Errores
+  // Baúl de Errores Activo
   dom["btn-clear-vault"]?.addEventListener("click", () => {
     state.historial_errores = [];
     saveState();
     renderErrorVault();
+    if (appContext.activeSection === "skills") {
+      renderSkillsSection();
+    }
   });
 
   // Perfil
@@ -513,7 +552,7 @@ function bindEvents() {
     }
   });
 
-  // Modal de 3 pasos + Generación IA
+  // Modal de 3 pasos + Generación IA + Baúl Activo
   dom["btn-generate-ai-exercise"]?.addEventListener("click", handleGenerateDynamicExercise);
   dom["stepper-step-1"]?.addEventListener("click", () => goToModalStep(1));
   dom["stepper-step-2"]?.addEventListener("click", () => {
@@ -545,6 +584,7 @@ function bindEvents() {
 
   setupPhotoDropzoneEvents();
 
+  dom["btn-show-analogous"]?.addEventListener("click", handleShowAnalogousExample);
   dom["btn-audit-ai"]?.addEventListener("click", handleAuditWithAI);
   dom["btn-upload-correction"]?.addEventListener("click", resetStep3ForCorrection);
   dom["btn-reinforce-prereq"]?.addEventListener("click", handleReinforcePrerequisiteClick);
@@ -554,7 +594,7 @@ function bindEvents() {
   });
 
   dom["nodeLessonModal"]?.addEventListener("hidden.bs.modal", () => {
-    revokePreviewUrl();
+    cleanupModalResources();
   });
 }
 
@@ -564,6 +604,8 @@ async function init() {
     onOpenNode: openNodeModal,
     onEnterSection: enterAppSection,
     onSkipToNode: startSkipExam,
+    onStartSimulacro: startSimulacroExam,
+    onOvercomeError: abrirRetoSuperarError,
   });
   configureChallengeHandlers({
     onRefreshActiveSection: refreshActiveSection,

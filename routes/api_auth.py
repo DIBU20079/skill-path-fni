@@ -54,6 +54,14 @@ def _estado_inicial_base(nombre: str, etapa: str) -> dict[str, Any]:
         "diagnostico_resultados": None,
         "xp_otorgado_nodos": {},
         "nodo_retorno": None,
+        "contadores_medallas": {
+            "resiliencia": 0,
+            "rescate_critico": 0,
+            "salto_nivel": 0,
+            "errores_superados": 0,
+            "simulacros_aprobados": 0,
+        },
+        "simulacros_mejor_nota": {},
     }
 
 
@@ -96,16 +104,32 @@ def _estado_demo_jurados() -> dict[str, Any]:
             "fac_cal_01_inecuaciones_func": True,
             "fac_cal_02_limites_alg": True,
         },
+        "contadores_medallas": {
+            "resiliencia": 1,
+            "rescate_critico": 0,
+            "salto_nivel": 0,
+            "errores_superados": 0,
+            "simulacros_aprobados": 0,
+        },
+        "simulacros_mejor_nota": {},
         "historial_errores": [
             {
+                "id": "err_demo_1",
                 "resumen": "Olvidó restringir argumento positivo en logaritmo",
                 "tema": "Inecuaciones y Dominios",
+                "materia": "Cálculo I",
+                "tipo_error": "fallo_prerrequisito",
                 "fecha": hoy,
+                "superado": False,
             },
             {
+                "id": "err_demo_2",
                 "resumen": "Error de signo al multiplicar por conjugado",
                 "tema": "Límites Algebraicos",
+                "materia": "Cálculo I",
+                "tipo_error": "error_operativo",
                 "fecha": hoy,
+                "superado": False,
             },
         ],
     }

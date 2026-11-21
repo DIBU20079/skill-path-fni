@@ -51,7 +51,7 @@
           </div>
 
           <!-- Barra de 3 pasos -->
-          <div class="lesson-stepper-wrap">
+          <div id="lesson-stepper-wrap" class="lesson-stepper-wrap">
             <div class="lesson-stepper" role="tablist" aria-label="Sub-niveles de la lección">
               <button type="button" id="stepper-step-1" class="stepper-item active" data-step="1">
                 <span class="stepper-num">1</span>
@@ -136,7 +136,7 @@
 
           <!-- PASO 3: Reto de Foto y Auditoría Socrática IA -->
           <div id="lesson-step-3" class="lesson-step-pane d-none">
-            <div class="step-header-badge step-header-badge-gold mb-2">
+            <div id="step3-header-badge" class="step-header-badge step-header-badge-gold mb-2">
               <i class="bi bi-camera-fill me-1"></i>Paso 3 de 3 · Reto Tipo Examen en Papel
             </div>
             <h3 id="step3-title" class="h5 fw-bold mb-2">Reto de desarrollo completo</h3>
@@ -153,6 +153,32 @@
                 <span id="step3-attempts-count" class="badge rounded-pill text-bg-secondary">0</span>
               </div>
               <div id="step3-attempts-list" class="attempts-history-list"></div>
+            </div>
+
+            <!-- Tarjeta de andamiaje gratuito tras 2 intentos fallidos -->
+            <div id="analogous-scaffold-card" class="analogous-scaffold-card d-none mb-3">
+              <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
+                <div>
+                  <div class="fw-bold text-dark small">¿Te trabaste en un paso intermedio?</div>
+                  <div class="text-secondary" style="font-size: 0.8rem;">
+                    Mira un ejercicio paralelo con otros valores resuelto paso a paso, gratis y sin perder XP.
+                  </div>
+                </div>
+                <button type="button" id="btn-show-analogous" class="btn btn-duo btn-duo-outline-primary btn-sm">
+                  <span id="btn-analogous-label">💡 Ver ejemplo parecido resuelto (Gratis)</span>
+                  <span id="btn-analogous-spinner" class="d-none">
+                    <span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
+                    Preparando ejemplo...
+                  </span>
+                </button>
+              </div>
+              <div id="analogous-error" class="small text-danger mt-2 d-none"></div>
+              <div id="analogous-example-body" class="analogous-example-body d-none mt-3">
+                <div class="small fw-black text-uppercase text-primary mb-1">Ejemplo análogo resuelto (otros números)</div>
+                <div id="analogous-enunciado" class="analogous-enunciado mb-2"></div>
+                <ol id="analogous-pasos-list" class="analogous-pasos-list mb-2"></ol>
+                <div id="analogous-conclusion" class="analogous-conclusion small fw-bold"></div>
+              </div>
             </div>
 
             <div class="mb-3">
@@ -211,7 +237,7 @@
                 </span>
                 <span id="btn-audit-spinner" class="d-none">
                   <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-                  Auditando tu procedimiento...
+                  <span id="btn-audit-spinner-text">Leyendo tu procedimiento escrito...</span>
                 </span>
               </button>
             </div>
@@ -233,6 +259,8 @@
               </div>
 
               <div class="ai-result-body">
+                <div id="ai-xp-bonuses-banner" class="xp-bonuses-banner d-none"></div>
+
                 <div id="ai-base-recovered-banner" class="base-recovered-banner d-none mb-3">
                   <i class="bi bi-stars me-2"></i>
                   <span><strong>¡Base recuperada!</strong> Ya dominaste el prerrequisito necesario.</span>

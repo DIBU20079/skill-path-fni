@@ -8,7 +8,11 @@ from typing import Any
 from flask import Blueprint, jsonify, request
 
 from services.ai_auditor import auditar_resolucion
-from services.ai_generator import generar_ejercicio_dinamico
+from services.ai_generator import (
+    generar_ejemplo_analogo,
+    generar_ejercicio_dinamico,
+    generar_ejercicio_error,
+)
 
 api_ai_bp = Blueprint("api_ai", __name__)
 
@@ -204,6 +208,132 @@ def api_generar_ejercicio():
             jsonify(
                 {
                     "error": "Error interno inesperado al generar el ejercicio",
+                    "detalle": str(exc),
+                }
+            ),
+            500,
+        )
+
+
+@api_ai_bp.post("/api/ejemplo-analogo")
+def api_ejemplo_analogo():
+    """Genera un ejemplo parecido resuelto paso a paso (andamiaje gratuito)."""
+    try:
+        datos = _obtener_datos_solicitud(
+            "Envía un objeto JSON válido con 'materia', 'tema' y 'ejercicio_actual'."
+        )
+
+        materia = str(datos.get("materia") or "").strip()
+        tema = str(datos.get("tema") or "").strip()
+        ejercicio_actual = str(datos.get("ejercicio_actual") or "").strip()
+
+        if not materia or not tema or not ejercicio_actual:
+            return (
+                jsonify(
+                    {
+                        "error": "Datos incompletos",
+                        "detalle": "Los campos 'materia', 'tema' y 'ejercicio_actual' son obligatorios.",
+                    }
+                ),
+                400,
+            )
+
+        ejemplo = generar_ejemplo_analogo(
+            materia=materia,
+            tema=tema,
+            ejercicio_actual=ejercicio_actual,
+        )
+        return jsonify(ejemplo), 200
+
+    except ValueError as exc:
+        return (
+            jsonify(
+                {
+                    "error": "Solicitud inválida",
+                    "detalle": str(exc),
+                }
+            ),
+            400,
+        )
+    except RuntimeError as exc:
+        return (
+            jsonify(
+                {
+                    "error": "Error al generar ejemplo análogo con IA",
+                    "detalle": str(exc),
+                }
+            ),
+            502,
+        )
+    except Exception as exc:
+        return (
+            jsonify(
+                {
+                    "error": "Error interno inesperado al generar ejemplo análogo",
+                    "detalle": str(exc),
+                }
+            ),
+            500,
+        )
+
+
+@api_ai_bp.post("/api/generar-ejercicio-error")
+def api_generar_ejercicio_error():
+    """Genera un ejercicio focalizado para superar un error concreto del Baúl."""
+    try:
+        datos = _obtener_datos_solicitud(
+            "Envía un objeto JSON válido con 'materia', 'tema', 'tipo_error' y 'detalle_error'."
+        )
+
+        materia = str(datos.get("materia") or "").strip()
+        tema = str(datos.get("tema") or "").strip()
+        tipo_error = str(datos.get("tipo_error") or "").strip()
+        detalle_error = str(datos.get("detalle_error") or "").strip()
+
+        if not tema or not detalle_error:
+            return (
+                jsonify(
+                    {
+                        "error": "Datos incompletos",
+                        "detalle": "Los campos 'tema' y 'detalle_error' son obligatorios.",
+                    }
+                ),
+                400,
+            )
+
+        ejercicio = generar_ejercicio_error(
+            materia=materia,
+            tema=tema,
+            tipo_error=tipo_error,
+            detalle_error=detalle_error,
+        )
+        return jsonify(ejercicio), 200
+
+    except ValueError as exc:
+        return (
+            jsonify(
+                {
+                    "error": "Solicitud inválida",
+                    "detalle": str(exc),
+                }
+            ),
+            400,
+        )
+    except RuntimeError as exc:
+        return (
+            jsonify(
+                {
+                    "error": "Error al generar ejercicio correctivo con IA",
+                    "detalle": str(exc),
+                }
+            ),
+            502,
+        )
+    except Exception as exc:
+        return (
+            jsonify(
+                {
+                    "error": "Error interno inesperado al generar ejercicio correctivo",
                     "detalle": str(exc),
                 }
             ),

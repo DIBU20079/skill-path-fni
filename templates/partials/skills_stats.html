@@ -1,5 +1,5 @@
       <!-- =========================================================
-           SECCIÓN C: MIS SKILLS (RADAR, MEDALLAS Y BAÚL IA)
+           SECCIÓN C: MIS SKILLS (RANGO, MEDALLAS, RADAR, PRE-EXAMEN Y BAÚL ACTIVO)
            ========================================================= -->
       <section id="view-skills" class="app-view d-none">
         <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
@@ -7,9 +7,64 @@
             <span class="path-kicker">PROGRESO POR ÁREA Y MEMORIA IA</span>
             <h2 class="h3 fw-black mb-1">Mis Skills y Baúl de Errores</h2>
             <p class="text-secondary small mb-0">
-              Revisa tu nivel Bronce, Plata u Oro por área y consulta tus fallas auditadas por la IA.
+              Revisa tu Rango FNI, Medallas de hábitos, preparación para examen y supera tus fallas en el Baúl Activo.
             </p>
           </div>
+        </div>
+
+        <!-- Rango FNI, Preparación de Examen y Medallas -->
+        <div class="row g-4 mb-4">
+          <div class="col-12 col-lg-5">
+            <div class="duo-card p-4 h-100 d-flex flex-column justify-content-between gap-3">
+              <div>
+                <div class="d-flex align-items-center justify-content-between gap-2 mb-2">
+                  <span id="skills-rank-level" class="rank-level-pill">Nivel 1</span>
+                  <span id="skills-rank-xp" class="stat-pill stat-pill-xp">⚡ 0 XP</span>
+                </div>
+                <h3 id="skills-rank-title" class="h4 fw-black mb-1">Postulante</h3>
+                <div id="skills-rank-next-label" class="small text-secondary mb-2">
+                  Faltan 200 XP para Ingresante FNI
+                </div>
+                <div class="duo-progress-track">
+                  <div id="skills-rank-bar" class="duo-progress-fill" style="width: 0%;"></div>
+                </div>
+              </div>
+
+              <div class="exam-readiness-box">
+                <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-1">
+                  <span id="skills-readiness-subject" class="small fw-bold text-dark">Preparación para Examen</span>
+                  <span id="skills-readiness-pct" class="badge rounded-pill text-bg-success">0%</span>
+                </div>
+                <div class="duo-progress-track duo-progress-track-slim">
+                  <div id="skills-readiness-bar" class="duo-progress-fill" style="width: 0%;"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-12 col-lg-7">
+            <div class="duo-card p-4 h-100">
+              <div class="d-flex align-items-center justify-content-between gap-2 mb-3">
+                <h3 class="h5 fw-black mb-0">
+                  <i class="bi bi-award-fill text-warning me-2"></i>Medallas FNI
+                </h3>
+                <span id="skills-medals-unlocked-count" class="badge rounded-pill text-bg-light border">0/6</span>
+              </div>
+              <div id="skills-medals-grid" class="medals-grid"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Resumen Pre-Examen (Top 3 fallos repetitivos) -->
+        <div class="duo-card pre-exam-card p-4 mb-4">
+          <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2">
+            <h3 class="h5 fw-black mb-0">⚠️ Antes de tu parcial, ten cuidado con:</h3>
+            <span class="badge rounded-pill text-bg-warning text-dark">Top 3 Alertas</span>
+          </div>
+          <div id="pre-exam-warnings-empty" class="small text-secondary mb-0">
+            ¡Excelente historial! Aún no tienes fallas repetitivas registradas; cuando la IA audite errores, verás aquí tus advertencias clave antes del examen.
+          </div>
+          <div id="pre-exam-warnings-list" class="d-flex flex-column gap-2 d-none"></div>
         </div>
 
         <div class="row g-4 align-items-start">
@@ -25,7 +80,7 @@
             </div>
           </div>
 
-          <!-- Baúl de Errores (Memoria IA) -->
+          <!-- Baúl de Errores Activo (Memoria IA) -->
           <div class="col-12 col-lg-5">
             <div id="card-error-vault" class="duo-card panel-card p-4 h-100">
               <div class="d-flex align-items-center justify-content-between mb-3">
@@ -33,12 +88,12 @@
                   <span class="panel-icon panel-icon-red">
                     <i class="bi bi-journal-medical"></i>
                   </span>
-                  Baúl de Errores (Memoria IA)
+                  Baúl de Errores Activo
                 </h3>
                 <span id="error-vault-count" class="badge rounded-pill text-bg-danger">0</span>
               </div>
               <p class="small text-secondary mb-3">
-                El tutor IA consulta estas fallas guardadas en tu cuenta cada vez que audita una foto tuya o genera un nuevo ejercicio.
+                Supera tus fallas pendientes resolviendo un reto focalizado (+30 XP) o deja que Gemini consulte este historial al auditar.
               </p>
 
               <div id="error-vault-empty" class="vault-empty-state text-center p-4">

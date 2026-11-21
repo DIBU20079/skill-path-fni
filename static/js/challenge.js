@@ -2,15 +2,25 @@
  * Modal de 3 sub-niveles, generación IA de ejercicios, subida de fotos y auditoría continua.
  */
 
-import { evaluateResolution, generateDynamicExercise } from "./api.js";
+import {
+  apiEjemploAnalogo,
+  apiGenerarEjercicioError,
+  evaluateResolution,
+  generateDynamicExercise,
+} from "./api.js";
 import {
   MAX_IMAGE_BYTES,
   OPTION_LETTERS,
+  addErrorToVault,
   dom,
   escapeHtml,
   findSkillGlobal,
+  getActiveMateria,
   getHistorialResumenes,
   getMateriaSkills,
+  incrementMedallaCounter,
+  launchConfetti,
+  marcarErrorSuperado,
   renderMath,
   saveState,
   showBootstrapModal,
@@ -18,8 +28,22 @@ import {
   updateTopbar,
 } from "./state.js";
 
+export { launchConfetti };
+
+const MAX_PHOTO_WIDTH = 1280;
+const PHOTO_JPEG_QUALITY = 0.78;
+const AUDIT_LOADING_MESSAGES = [
+  "Leyendo tu procedimiento escrito...",
+  "Revisando álgebra, signos y pasos...",
+  "Preparando retroalimentación socrática...",
+];
+
 export const modalSession = {
+  mode: "lesson", // "lesson" | "error_drill"
   skill: null,
+  errorTarget: null,
+  errorDrillData: null,
+  wasBlockerOnOpen: false,
   activeExercise: null,
   isGeneratedAI: false,
   currentStep: 1,
@@ -31,8 +55,13 @@ export const modalSession = {
   previewObjectUrl: null,
   isAuditing: false,
   isGenerating: false,
+  isLoadingAnalogous: false,
   attempts: [],
+  failedAttemptsCount: 0,
+  analogousExample: null,
+  exerciseApprovedAwarded: false,
   reinforcementMode: false,
+  auditMsgTimerId: null,
 };
 
 let refreshActiveSectionHandler = () => {};
@@ -63,12 +92,17 @@ export function openNodeModal(skillId, options = {}) {
   if (!found) return;
   const { skill } = found;
 
-  revokePreviewUrl();
+  cleanupModalResources();
   const exercise = cloneExerciseFromSkill(skill);
   const isReinforcement = Boolean(state.nodo_retorno && state.nodo_retorno !== skill.id);
+  const wasBlocker = state.nodos_estado[skill.id] === "blocker";
 
   Object.assign(modalSession, {
+    mode: "lesson",
     skill,
+    errorTarget: null,
+    errorDrillData: null,
+    wasBlockerOnOpen: wasBlocker,
     activeExercise: exercise,
     isGeneratedAI: false,
     currentStep: 1,
@@ -80,8 +114,13 @@ export function openNodeModal(skillId, options = {}) {
     previewObjectUrl: null,
     isAuditing: false,
     isGenerating: false,
+    isLoadingAnalogous: false,
     attempts: [],
+    failedAttemptsCount: 0,
+    analogousExample: null,
+    exerciseApprovedAwarded: false,
     reinforcementMode: isReinforcement,
+    auditMsgTimerId: null,
   });
 
   if (dom["modal-node-meta"]) {
@@ -90,6 +129,18 @@ export function openNodeModal(skillId, options = {}) {
   }
   if (dom["modal-node-title"]) dom["modal-node-title"].textContent = skill.nombre;
   if (dom["modal-node-xp"]) dom["modal-node-xp"].textContent = `⚡ +${skill.xp} XP`;
+
+  dom["lesson-stepper-wrap"]?.classList.remove("d-none");
+  dom["btn-generate-ai-exercise"]?.classList.remove("d-none");
+
+  if (dom["step3-header-badge"]) {
+    dom["step3-header-badge"].innerHTML =
+      '<i class="bi bi-camera-fill me-1"></i>Paso 3 de 3 · Reto Tipo Examen en Papel';
+  }
+  if (dom["btn-complete-node"]) {
+    dom["btn-complete-node"].innerHTML =
+      '<i class="bi bi-check-circle-fill me-1"></i>¡Completar Tema y Ganar XP!';
+  }
 
   const reinBanner = dom["modal-reinforcement-banner"];
   if (reinBanner) {
@@ -105,6 +156,7 @@ export function openNodeModal(skillId, options = {}) {
   dom["modal-ai-gen-badge"]?.classList.add("d-none");
   dom["modal-gen-feedback"]?.classList.add("d-none");
   setGenerateLoading(false);
+  resetAnalogousScaffold();
 
   renderActiveExerciseInModal();
   if (!dom["nodeLessonModal"]?.classList.contains("show")) {
@@ -113,6 +165,156 @@ export function openNodeModal(skillId, options = {}) {
 
   if (options.autoGenerateAI) {
     handleGenerateDynamicExercise();
+  }
+}
+
+export async function abrirRetoSuperarError(errorObj) {
+  if (!errorObj || typeof errorObj !== "object") return;
+
+  cleanupModalResources();
+  const activeMat = getActiveMateria();
+  const materiaNombre =
+    (errorObj.materia || "").trim() || activeMat?.nombre || "Ciencias Básicas FNI";
+  const temaNombre = (errorObj.tema || "").trim() || "Refuerzo de Tema";
+  const tipoError = (errorObj.tipo_error || "").trim() || "error_operativo";
+  const detalleError = (errorObj.resumen || "").trim() || temaNombre;
+
+  Object.assign(modalSession, {
+    mode: "error_drill",
+    skill: null,
+    errorTarget: errorObj,
+    errorDrillData: null,
+    wasBlockerOnOpen: false,
+    activeExercise: null,
+    isGeneratedAI: true,
+    currentStep: 3,
+    maxUnlockedStep: 3,
+    step1Selected: null,
+    step1Passed: true,
+    step2Passed: true,
+    step3File: null,
+    previewObjectUrl: null,
+    isAuditing: false,
+    isGenerating: true,
+    isLoadingAnalogous: false,
+    attempts: [],
+    failedAttemptsCount: 0,
+    analogousExample: null,
+    exerciseApprovedAwarded: false,
+    reinforcementMode: false,
+    auditMsgTimerId: null,
+  });
+
+  if (dom["modal-node-meta"]) {
+    dom["modal-node-meta"].textContent =
+      `🎯 BAÚL DE ERRORES ACTIVO · ${materiaNombre.toUpperCase()}`;
+  }
+  if (dom["modal-node-title"]) {
+    dom["modal-node-title"].textContent = `Superar error: ${temaNombre}`;
+  }
+  if (dom["modal-node-xp"]) {
+    dom["modal-node-xp"].textContent = "⚡ +30 XP";
+  }
+
+  dom["lesson-stepper-wrap"]?.classList.add("d-none");
+  dom["btn-generate-ai-exercise"]?.classList.add("d-none");
+  dom["modal-ai-gen-badge"]?.classList.remove("d-none");
+  dom["modal-gen-feedback"]?.classList.add("d-none");
+
+  const reinBanner = dom["modal-reinforcement-banner"];
+  if (reinBanner) {
+    reinBanner.classList.remove("d-none");
+    if (dom["modal-reinforcement-text"]) {
+      dom["modal-reinforcement-text"].textContent = `Falla a superar: "${detalleError}". Resuelve el ejercicio en tu cuaderno y súbelo para auditoría.`;
+    }
+  }
+
+  if (dom["step3-header-badge"]) {
+    dom["step3-header-badge"].innerHTML =
+      '<i class="bi bi-arrow-repeat me-1"></i>Baúl de Errores Activo · Reto Correctivo';
+  }
+  if (dom["step3-title"]) {
+    dom["step3-title"].textContent = "Generando reto personalizado para este error...";
+  }
+  if (dom["step3-instructions"]) {
+    dom["step3-instructions"].textContent =
+      "La IA está diseñando un ejercicio nuevo enfocado exactamente en esta dificultad.";
+  }
+  if (dom["step3-enunciado-latex"]) {
+    dom["step3-enunciado-latex"].innerHTML =
+      '<div class="d-flex align-items-center gap-2 text-secondary"><span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span><span>Creando ejercicio focalizado con Gemini...</span></div>';
+  }
+  if (dom["btn-complete-node"]) {
+    dom["btn-complete-node"].innerHTML =
+      '<i class="bi bi-check-circle-fill me-1"></i>✅ Error Superado · Volver al Baúl';
+  }
+
+  resetAnalogousScaffold();
+  clearSelectedPhoto();
+  if (dom["step3-text-input"]) dom["step3-text-input"].value = "";
+  hideStep3Error();
+  dom["ai-audit-result-card"]?.classList.add("d-none");
+  dom["ai-xp-bonuses-banner"]?.classList.add("d-none");
+  renderStep3AttemptsHistory();
+  updateAuditButtonLabel();
+  setAuditLoading(false);
+  goToModalStep(3);
+
+  if (!dom["nodeLessonModal"]?.classList.contains("show")) {
+    showBootstrapModal(dom["nodeLessonModal"]);
+  }
+
+  try {
+    const drill = await apiGenerarEjercicioError({
+      materia: materiaNombre,
+      tema: temaNombre,
+      tipo_error: tipoError,
+      detalle_error: detalleError,
+    });
+
+    if (
+      modalSession.mode !== "error_drill" ||
+      modalSession.errorTarget?.id !== errorObj.id
+    ) {
+      return;
+    }
+
+    modalSession.errorDrillData = drill;
+    if (dom["step3-title"]) {
+      dom["step3-title"].textContent = drill.objetivo || `Refuerzo en ${temaNombre}`;
+    }
+    if (dom["step3-instructions"]) {
+      dom["step3-instructions"].textContent = `💡 Pista preventiva: ${drill.pista_inicial}`;
+    }
+    if (dom["step3-enunciado-latex"]) {
+      dom["step3-enunciado-latex"].textContent = drill.enunciado || "";
+      renderMath(dom["step3-enunciado-latex"]);
+    }
+    renderMath(dom["step3-instructions"]);
+  } catch (_err) {
+    if (
+      modalSession.mode !== "error_drill" ||
+      modalSession.errorTarget?.id !== errorObj.id
+    ) {
+      return;
+    }
+    const fallbackDrill = {
+      enunciado: `Plantea y resuelve paso a paso en tu cuaderno un ejercicio representativo de **${temaNombre}** verificando especialmente no cometer el error: *${detalleError}*.`,
+      pista_inicial: `Verifica signos, restricciones y cada paso algebraico relacionado con "${detalleError}".`,
+      objetivo: `Demostrar dominio sin repetir "${detalleError}".`,
+    };
+    modalSession.errorDrillData = fallbackDrill;
+    if (dom["step3-title"]) {
+      dom["step3-title"].textContent = `Refuerzo práctico: ${temaNombre}`;
+    }
+    if (dom["step3-instructions"]) {
+      dom["step3-instructions"].textContent = `💡 Pista preventiva: ${fallbackDrill.pista_inicial}`;
+    }
+    if (dom["step3-enunciado-latex"]) {
+      dom["step3-enunciado-latex"].textContent = fallbackDrill.enunciado;
+    }
+  } finally {
+    modalSession.isGenerating = false;
   }
 }
 
@@ -161,6 +363,10 @@ export async function handleGenerateDynamicExercise() {
     modalSession.activeExercise = data;
     modalSession.isGeneratedAI = true;
     modalSession.attempts = [];
+    modalSession.failedAttemptsCount = 0;
+    modalSession.analogousExample = null;
+    modalSession.exerciseApprovedAwarded = false;
+    resetAnalogousScaffold();
     dom["modal-ai-gen-badge"]?.classList.remove("d-none");
 
     if (feedbackEl) {
@@ -359,7 +565,9 @@ function populateStep3(paso3) {
   clearSelectedPhoto();
   if (dom["step3-text-input"]) dom["step3-text-input"].value = "";
   hideStep3Error();
+  resetAnalogousScaffold();
   dom["ai-audit-result-card"]?.classList.add("d-none");
+  dom["ai-xp-bonuses-banner"]?.classList.add("d-none");
   dom["ai-result-type-badge"]?.classList.add("d-none");
   dom["ai-base-recovered-banner"]?.classList.add("d-none");
   dom["ai-block-progreso"]?.classList.add("d-none");
@@ -369,6 +577,108 @@ function populateStep3(paso3) {
   renderStep3AttemptsHistory();
   updateAuditButtonLabel();
   setAuditLoading(false);
+}
+
+function resetAnalogousScaffold() {
+  modalSession.analogousExample = null;
+  dom["analogous-scaffold-card"]?.classList.add("d-none");
+  dom["analogous-example-body"]?.classList.add("d-none");
+  dom["analogous-error"]?.classList.add("d-none");
+  if (dom["analogous-error"]) dom["analogous-error"].textContent = "";
+  if (dom["analogous-enunciado"]) dom["analogous-enunciado"].textContent = "";
+  if (dom["analogous-pasos-list"]) dom["analogous-pasos-list"].innerHTML = "";
+  if (dom["analogous-conclusion"]) dom["analogous-conclusion"].textContent = "";
+  setAnalogousLoading(false);
+}
+
+function setAnalogousLoading(isLoading) {
+  modalSession.isLoadingAnalogous = isLoading;
+  if (dom["btn-show-analogous"]) dom["btn-show-analogous"].disabled = isLoading;
+  dom["btn-analogous-label"]?.classList.toggle("d-none", isLoading);
+  dom["btn-analogous-spinner"]?.classList.toggle("d-none", !isLoading);
+}
+
+function getCurrentPromptAndContext() {
+  if (modalSession.mode === "error_drill" && modalSession.errorTarget) {
+    const activeMat = getActiveMateria();
+    return {
+      materia:
+        (modalSession.errorTarget.materia || "").trim() ||
+        activeMat?.nombre ||
+        "Ciencias Básicas FNI",
+      tema: modalSession.errorTarget.tema || "Refuerzo de error",
+      enunciado:
+        modalSession.errorDrillData?.enunciado ||
+        dom["step3-enunciado-latex"]?.textContent ||
+        modalSession.errorTarget.resumen,
+      prerrequisito: `Superar error recurrente: ${modalSession.errorTarget.resumen}`,
+      prerrequisitoId: "",
+      tipAuxiliar:
+        modalSession.errorDrillData?.pista_inicial ||
+        "Revisa cada paso algebraico antes de cerrar tu respuesta.",
+    };
+  }
+
+  const skill = modalSession.skill;
+  const paso3 = modalSession.activeExercise?.paso3_reto_foto || skill?.paso3_reto_foto;
+  return {
+    materia: skill?.materia || "Ciencias Básicas FNI",
+    tema: skill?.nombre || "Tema",
+    enunciado: paso3?.enunciado_latex || "",
+    prerrequisito: paso3?.prerrequisito_evaluado || "",
+    prerrequisitoId: skill?.prerrequisito_id || "",
+    tipAuxiliar: skill?.tip_auxiliar || "-",
+  };
+}
+
+export async function handleShowAnalogousExample() {
+  if (modalSession.isLoadingAnalogous) return;
+
+  if (modalSession.analogousExample) {
+    dom["analogous-example-body"]?.classList.toggle("d-none");
+    return;
+  }
+
+  const ctx = getCurrentPromptAndContext();
+  if (!ctx.enunciado) return;
+
+  dom["analogous-error"]?.classList.add("d-none");
+  setAnalogousLoading(true);
+
+  try {
+    const example = await apiEjemploAnalogo({
+      materia: ctx.materia,
+      tema: ctx.tema,
+      ejercicio_actual: ctx.enunciado,
+    });
+    modalSession.analogousExample = example;
+
+    if (dom["analogous-enunciado"]) {
+      dom["analogous-enunciado"].textContent = example.enunciado || "";
+    }
+    if (dom["analogous-pasos-list"]) {
+      dom["analogous-pasos-list"].innerHTML = "";
+      (example.pasos || []).forEach((stepText) => {
+        const li = document.createElement("li");
+        li.textContent = stepText;
+        dom["analogous-pasos-list"].appendChild(li);
+      });
+    }
+    if (dom["analogous-conclusion"]) {
+      dom["analogous-conclusion"].textContent = example.conclusion || "";
+    }
+
+    dom["analogous-example-body"]?.classList.remove("d-none");
+    renderMath(dom["analogous-example-body"]);
+  } catch (error) {
+    if (dom["analogous-error"]) {
+      dom["analogous-error"].textContent =
+        error.message || "No se pudo generar el ejemplo análogo en este instante.";
+      dom["analogous-error"].classList.remove("d-none");
+    }
+  } finally {
+    setAnalogousLoading(false);
+  }
 }
 
 export function goToModalStep(stepNum) {
@@ -488,11 +798,105 @@ export function revokePreviewUrl() {
   }
 }
 
+function stopAuditLoadingRotation() {
+  if (modalSession.auditMsgTimerId !== null) {
+    window.clearInterval(modalSession.auditMsgTimerId);
+    modalSession.auditMsgTimerId = null;
+  }
+}
+
+export function cleanupModalResources() {
+  stopAuditLoadingRotation();
+  revokePreviewUrl();
+}
+
 function setAuditLoading(isLoading) {
   modalSession.isAuditing = isLoading;
   if (dom["btn-audit-ai"]) dom["btn-audit-ai"].disabled = isLoading;
   dom["btn-audit-label"]?.classList.toggle("d-none", isLoading);
   dom["btn-audit-spinner"]?.classList.toggle("d-none", !isLoading);
+
+  stopAuditLoadingRotation();
+  if (isLoading) {
+    let msgIdx = 0;
+    if (dom["btn-audit-spinner-text"]) {
+      dom["btn-audit-spinner-text"].textContent = AUDIT_LOADING_MESSAGES[0];
+    }
+    modalSession.auditMsgTimerId = window.setInterval(() => {
+      msgIdx = (msgIdx + 1) % AUDIT_LOADING_MESSAGES.length;
+      if (dom["btn-audit-spinner-text"]) {
+        dom["btn-audit-spinner-text"].textContent = AUDIT_LOADING_MESSAGES[msgIdx];
+      }
+    }, 1800);
+  }
+}
+
+function compressPhotoFile(file) {
+  return new Promise((resolve) => {
+    if (!file || !file.type || !file.type.startsWith("image/")) {
+      resolve(file);
+      return;
+    }
+
+    const tempUrl = URL.createObjectURL(file);
+    const img = new Image();
+
+    img.onload = () => {
+      try {
+        const srcW = img.naturalWidth || img.width;
+        const srcH = img.naturalHeight || img.height;
+        if (!srcW || !srcH) {
+          URL.revokeObjectURL(tempUrl);
+          resolve(file);
+          return;
+        }
+
+        const scale = srcW > MAX_PHOTO_WIDTH ? MAX_PHOTO_WIDTH / srcW : 1;
+        const targetW = Math.max(1, Math.round(srcW * scale));
+        const targetH = Math.max(1, Math.round(srcH * scale));
+
+        const canvas = document.createElement("canvas");
+        canvas.width = targetW;
+        canvas.height = targetH;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) {
+          URL.revokeObjectURL(tempUrl);
+          resolve(file);
+          return;
+        }
+
+        ctx.fillStyle = "#ffffff";
+        ctx.fillRect(0, 0, targetW, targetH);
+        ctx.drawImage(img, 0, 0, targetW, targetH);
+
+        canvas.toBlob(
+          (blob) => {
+            URL.revokeObjectURL(tempUrl);
+            if (!blob) {
+              resolve(file);
+              return;
+            }
+            const cleanBase = String(file.name || "hoja")
+              .replace(/\.[^.]+$/, "")
+              .slice(0, 60);
+            resolve(new File([blob], `${cleanBase}.jpg`, { type: "image/jpeg" }));
+          },
+          "image/jpeg",
+          PHOTO_JPEG_QUALITY
+        );
+      } catch (_err) {
+        URL.revokeObjectURL(tempUrl);
+        resolve(file);
+      }
+    };
+
+    img.onerror = () => {
+      URL.revokeObjectURL(tempUrl);
+      resolve(file);
+    };
+
+    img.src = tempUrl;
+  });
 }
 
 function showStep3Error(message) {
@@ -588,10 +992,13 @@ export function handleReturnToOriginalNodeClick() {
 }
 
 export async function handleAuditWithAI() {
-  if (modalSession.isAuditing || !modalSession.skill) return;
+  if (modalSession.isAuditing) return;
+  const hasTarget =
+    (modalSession.mode === "lesson" && modalSession.skill) ||
+    (modalSession.mode === "error_drill" && modalSession.errorTarget);
+  if (!hasTarget) return;
 
-  const skill = modalSession.skill;
-  const paso3 = modalSession.activeExercise?.paso3_reto_foto || skill.paso3_reto_foto;
+  const ctx = getCurrentPromptAndContext();
   const textValue = (dom["step3-text-input"]?.value || "").trim();
   const photoFile = modalSession.step3File;
 
@@ -613,23 +1020,25 @@ export async function handleAuditWithAI() {
       resumen_baul: att.resumen_baul,
     }));
 
-  const formData = new FormData();
-  formData.append("enunciado", paso3?.enunciado_latex || "");
-  formData.append("prerrequisito", paso3?.prerrequisito_evaluado || "");
-  formData.append("prerrequisito_id", skill.prerrequisito_id || "");
-  formData.append("texto_usuario", textValue);
-  formData.append("historial_errores", JSON.stringify(getHistorialResumenes()));
-  formData.append("intentos_previos_ejercicio", JSON.stringify(intentosPrevios));
-  if (photoFile) {
-    formData.append("foto", photoFile);
-  }
-
   setAuditLoading(true);
   dom["ai-audit-result-card"]?.classList.add("d-none");
 
   try {
+    const formData = new FormData();
+    formData.append("enunciado", ctx.enunciado);
+    formData.append("prerrequisito", ctx.prerrequisito);
+    formData.append("prerrequisito_id", ctx.prerrequisitoId);
+    formData.append("texto_usuario", textValue);
+    formData.append("historial_errores", JSON.stringify(getHistorialResumenes()));
+    formData.append("intentos_previos_ejercicio", JSON.stringify(intentosPrevios));
+
+    if (photoFile) {
+      const compressedPhoto = await compressPhotoFile(photoFile);
+      formData.append("foto", compressedPhoto);
+    }
+
     const data = await evaluateResolution(formData);
-    processAuditResponse(skill, data);
+    processAuditResponse(data);
   } catch (error) {
     console.error("Error auditando con IA:", error);
     showStep3Error(
@@ -640,14 +1049,33 @@ export async function handleAuditWithAI() {
   }
 }
 
-function processAuditResponse(skill, data) {
+function renderXpBonusesBanner(chips) {
+  const banner = dom["ai-xp-bonuses-banner"];
+  if (!banner) return;
+  if (!chips || chips.length === 0) {
+    banner.innerHTML = "";
+    banner.classList.add("d-none");
+    return;
+  }
+  banner.innerHTML = chips
+    .map((label) => `<span class="xp-bonus-chip">${escapeHtml(label)}</span>`)
+    .join("");
+  banner.classList.remove("d-none");
+}
+
+function processAuditResponse(data) {
+  const isErrorDrill = modalSession.mode === "error_drill";
+  const skill = modalSession.skill;
+  const ctx = getCurrentPromptAndContext();
   const approved = Boolean(data.aprobado);
   const errorType = String(
     data.tipo_error || (approved ? "ninguno" : "error_operativo")
   );
   const progreso = String(data.progreso_detectado || "").trim();
   const requiresRepeat =
-    Boolean(data.requiere_repetir_modulo) && Boolean(skill.prerrequisito_id);
+    !isErrorDrill &&
+    Boolean(data.requiere_repetir_modulo) &&
+    Boolean(skill?.prerrequisito_id);
   const attemptNumber = (modalSession.attempts || []).length + 1;
 
   modalSession.attempts.push({
@@ -716,7 +1144,7 @@ function processAuditResponse(skill, data) {
     dom["ai-res-pista"].textContent = data.pista_socratica || "-";
   }
   if (dom["ai-res-tip"]) {
-    dom["ai-res-tip"].textContent = skill.tip_auxiliar || "-";
+    dom["ai-res-tip"].textContent = ctx.tipAuxiliar || "-";
   }
   if (dom["ai-res-baul-text"]) {
     dom["ai-res-baul-text"].textContent = data.resumen_baul || "";
@@ -739,47 +1167,85 @@ function processAuditResponse(skill, data) {
     dom["btn-upload-correction"]?.classList.add("d-none");
     dom["btn-complete-node"]?.classList.remove("d-none");
 
-    if (!state.xp_otorgado_nodos[skill.id]) {
-      state.xp += Number(skill.xp || 0);
-      state.racha += 1;
-      state.xp_otorgado_nodos[skill.id] = true;
-    }
+    const bonusChips = [];
 
-    state.nodos_estado[skill.id] = "unlocked";
-    unlockNextSkillAfter(skill.id);
-
-    const returnNodeId =
-      state.nodo_retorno && state.nodo_retorno !== skill.id ? state.nodo_retorno : null;
-    if (state.nodo_retorno === skill.id) {
-      state.nodo_retorno = null;
-    }
-
-    if (returnNodeId) {
-      const returnFound = findSkillGlobal(returnNodeId);
-      if (
-        state.nodos_estado[returnNodeId] === "locked" ||
-        state.nodos_estado[returnNodeId] === "blocker"
-      ) {
-        state.nodos_estado[returnNodeId] = "active";
+    if (isErrorDrill && modalSession.errorTarget) {
+      const res = marcarErrorSuperado(modalSession.errorTarget.id);
+      if (res.ok && !res.alreadySuperado) {
+        bonusChips.push("✅ Error Superado (+30 XP)");
+        state.racha += 1;
+      } else {
+        bonusChips.push("✅ Error ya superado");
       }
-      recoveredBanner?.classList.remove("d-none");
-      if (returnBtn) {
-        returnBtn.classList.remove("d-none");
-        returnBtn.innerHTML = returnFound
-          ? `<i class="bi bi-arrow-right-circle-fill me-1"></i>Volver a: ${escapeHtml(returnFound.skill.nombre)}`
-          : '<i class="bi bi-arrow-right-circle-fill me-1"></i>Volver al ejercicio anterior';
+
+      if (attemptNumber >= 2 && !modalSession.exerciseApprovedAwarded) {
+        state.xp += 25;
+        incrementMedallaCounter("resiliencia", 1);
+        bonusChips.push("💪 +25 XP Bono de Resiliencia");
       }
-    } else {
+      modalSession.exerciseApprovedAwarded = true;
       recoveredBanner?.classList.add("d-none");
       returnBtn?.classList.add("d-none");
+    } else if (skill) {
+      if (!state.xp_otorgado_nodos[skill.id]) {
+        state.xp += Number(skill.xp || 0);
+        state.racha += 1;
+        state.xp_otorgado_nodos[skill.id] = true;
+      }
+
+      if (!modalSession.exerciseApprovedAwarded) {
+        if (attemptNumber >= 2) {
+          state.xp += 25;
+          incrementMedallaCounter("resiliencia", 1);
+          bonusChips.push("💪 +25 XP Bono de Resiliencia");
+        }
+        if (modalSession.wasBlockerOnOpen) {
+          state.xp += 50;
+          incrementMedallaCounter("rescate_critico", 1);
+          bonusChips.push("🛟 +50 XP Bono de Rescate");
+        }
+        modalSession.exerciseApprovedAwarded = true;
+      }
+
+      state.nodos_estado[skill.id] = "unlocked";
+      unlockNextSkillAfter(skill.id);
+
+      const returnNodeId =
+        state.nodo_retorno && state.nodo_retorno !== skill.id ? state.nodo_retorno : null;
+      if (state.nodo_retorno === skill.id) {
+        state.nodo_retorno = null;
+      }
+
+      if (returnNodeId) {
+        const returnFound = findSkillGlobal(returnNodeId);
+        if (
+          state.nodos_estado[returnNodeId] === "locked" ||
+          state.nodos_estado[returnNodeId] === "blocker"
+        ) {
+          state.nodos_estado[returnNodeId] = "active";
+        }
+        recoveredBanner?.classList.remove("d-none");
+        if (returnBtn) {
+          returnBtn.classList.remove("d-none");
+          returnBtn.innerHTML = returnFound
+            ? `<i class="bi bi-arrow-right-circle-fill me-1"></i>Volver a: ${escapeHtml(returnFound.skill.nombre)}`
+            : '<i class="bi bi-arrow-right-circle-fill me-1"></i>Volver al ejercicio anterior';
+        }
+      } else {
+        recoveredBanner?.classList.add("d-none");
+        returnBtn?.classList.add("d-none");
+      }
     }
 
+    renderXpBonusesBanner(bonusChips);
     saveState();
     updateTopbar();
+    renderErrorVaultHandler();
     refreshActiveSectionHandler();
     updateModalStepperUI();
     launchConfetti();
   } else {
+    renderXpBonusesBanner([]);
     dom["ai-block-ubicacion"]?.classList.remove("d-none");
     dom["ai-block-explicacion"]?.classList.remove("d-none");
     if (dom["ai-pista-label"]) {
@@ -787,22 +1253,28 @@ function processAuditResponse(skill, data) {
     }
     recoveredBanner?.classList.add("d-none");
     returnBtn?.classList.add("d-none");
-    dom["ai-res-baul-pill"]?.classList.remove("d-none");
     dom["btn-upload-correction"]?.classList.remove("d-none");
     dom["btn-complete-node"]?.classList.add("d-none");
 
-    const resumen = String(data.resumen_baul || "Revisar aplicación de regla").trim();
-    const fechaHoy = new Date().toLocaleDateString("es-ES", {
-      day: "2-digit",
-      month: "short",
-    });
-    state.historial_errores.push({
-      resumen,
-      tema: skill.nombre,
-      fecha: fechaHoy,
-    });
+    modalSession.failedAttemptsCount += 1;
+    if (modalSession.failedAttemptsCount >= 2) {
+      dom["analogous-scaffold-card"]?.classList.remove("d-none");
+    }
 
-    if (requiresRepeat) {
+    if (!isErrorDrill && skill) {
+      dom["ai-res-baul-pill"]?.classList.remove("d-none");
+      const resumen = String(data.resumen_baul || "Revisar aplicación de regla").trim();
+      addErrorToVault({
+        resumen,
+        tema: skill.nombre,
+        materia: skill.materia,
+        tipo_error: errorType,
+      });
+    } else {
+      dom["ai-res-baul-pill"]?.classList.add("d-none");
+    }
+
+    if (requiresRepeat && skill) {
       const prereqId = skill.prerrequisito_id;
       const prereqFound = findSkillGlobal(prereqId);
       state.nodos_estado[prereqId] = "blocker";
@@ -865,61 +1337,4 @@ export function resetStep3ForCorrection() {
   updateAuditButtonLabel();
   dom["photo-dropzone"]?.focus();
   dom["photo-dropzone"]?.scrollIntoView({ behavior: "smooth", block: "center" });
-}
-
-export function launchConfetti() {
-  const colors = ["#58cc02", "#1cb0f6", "#ffc800", "#ff9600", "#ff4b4b"];
-  const container = document.createElement("div");
-  container.setAttribute("aria-hidden", "true");
-  Object.assign(container.style, {
-    position: "fixed",
-    inset: "0",
-    pointerEvents: "none",
-    overflow: "hidden",
-    zIndex: "2050",
-  });
-
-  for (let i = 0; i < 42; i += 1) {
-    const piece = document.createElement("span");
-    const size = 7 + Math.floor(Math.random() * 7);
-    const startX = Math.random() * 100;
-    const driftX = (Math.random() - 0.5) * 160;
-    const rotation = 180 + Math.random() * 540;
-    const delay = Math.random() * 250;
-    const duration = 1700 + Math.random() * 900;
-
-    Object.assign(piece.style, {
-      position: "absolute",
-      top: "-16px",
-      left: `${startX}%`,
-      width: `${size}px`,
-      height: `${size * 1.35}px`,
-      borderRadius: "3px",
-      backgroundColor: colors[i % colors.length],
-      opacity: "0.95",
-    });
-
-    container.appendChild(piece);
-
-    if (typeof piece.animate === "function") {
-      piece.animate(
-        [
-          { transform: "translate3d(0, 0, 0) rotate(0deg)", opacity: 1 },
-          {
-            transform: `translate3d(${driftX}px, 102vh, 0) rotate(${rotation}deg)`,
-            opacity: 0.15,
-          },
-        ],
-        {
-          duration,
-          delay,
-          easing: "cubic-bezier(0.2, 0.7, 0.3, 1)",
-          fill: "forwards",
-        }
-      );
-    }
-  }
-
-  document.body.appendChild(container);
-  window.setTimeout(() => container.remove(), 2900);
 }

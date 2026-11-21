@@ -143,3 +143,34 @@ export async function apiGuardarProgreso(estado_json, etapa = null) {
   }
   return data || { ok: true };
 }
+
+export async function apiEjemploAnalogo({ materia, tema, ejercicio_actual }) {
+  const { response, data } = await requestJson("/api/ejemplo-analogo", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ materia, tema, ejercicio_actual }),
+  });
+  if (!response.ok || !data || !data.enunciado || !Array.isArray(data.pasos)) {
+    const detail = data?.detalle || data?.error || `HTTP ${response.status}`;
+    throw new Error(detail);
+  }
+  return data;
+}
+
+export async function apiGenerarEjercicioError({
+  materia,
+  tema,
+  tipo_error,
+  detalle_error,
+}) {
+  const { response, data } = await requestJson("/api/generar-ejercicio-error", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ materia, tema, tipo_error, detalle_error }),
+  });
+  if (!response.ok || !data || !data.enunciado) {
+    const detail = data?.detalle || data?.error || `HTTP ${response.status}`;
+    throw new Error(detail);
+  }
+  return data;
+}

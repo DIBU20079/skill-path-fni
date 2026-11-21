@@ -2,6 +2,7 @@
  * Motor de Examen Reutilizable:
  * - Modo 1 ("placement"): Examen de Ubicación por materia (4-6 preguntas de básico a avanzado).
  * - Modo 2 ("skip"): Examen de Salto de Nivel ("⚡ Saltar aquí", 3-4 preguntas de nodos anteriores, aprueba con >= 75%).
+ * - Modo 3 ("simulacro"): Simulacro de Parcial con temporizador global (05:00) y nota sobre 100 (>= 51 aprueba).
  */
 
 import { fetchSkillsDB } from "./api.js";
@@ -17,6 +18,8 @@ import {
   getAllStageSkills,
   getDiagnosticAreasForStage,
   getMateriaSkills,
+  incrementMedallaCounter,
+  launchConfetti,
   renderMath,
   renderSkillsLoadError,
   resetState,
@@ -27,8 +30,10 @@ import {
   updateTopbar,
 } from "./state.js";
 
+const SIMULACRO_DURATION_SECONDS = 300;
+
 const examSession = {
-  mode: "placement", // "placement" | "skip"
+  mode: "placement", // "placement" | "skip" | "simulacro"
   materia: null,
   stageKey: null,
   targetSkill: null,
@@ -42,6 +47,7 @@ const examSession = {
   timerId: null,
   secondsLeft: 0,
   totalSeconds: 45,
+  isGlobalTimer: false,
 };
 
 async function ensureSkillsLoaded() {
@@ -213,6 +219,7 @@ export async function startPlacementExam(materiaId = state.materia_activa) {
     timerId: null,
     secondsLeft: 0,
     totalSeconds: 45,
+    isGlobalTimer: false,
   });
 
   if (dom["diag-mode-kicker"]) {
@@ -269,6 +276,7 @@ export async function startSkipExam(targetSkillId) {
     timerId: null,
     secondsLeft: 0,
     totalSeconds: 45,
+    isGlobalTimer: false,
   });
 
   if (dom["diag-mode-kicker"]) {
@@ -298,6 +306,142 @@ export async function startDiagnosticForStage(stageKey = state.etapa || "pre_u")
   if (mat) {
     await startPlacementExam(mat.id);
   }
+}
+
+function shuffleArray(list) {
+  const arr = [...list];
+  for (let i = arr.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+function buildSimulacroQuestionsForMateria(materia) {
+  const skills = getMateriaSkills(materia);
+  const bank = Array.isArray(materia?.preguntas_examen) ? materia.preguntas_examen : [];
+  const candidates = [];
+  const seenPrompts = new Set();
+
+  bank.forEach((q, idx) => {
+    const prompt = String(q.enunciado_latex || "").trim();
+    if (!prompt || seenPrompts.has(prompt)) return;
+    seenPrompts.add(prompt);
+    const linkedSkill =
+      skills.find((s) => s.id === q.skill_id) ||
+      skills[Math.min(idx, Math.max(0, skills.length - 1))];
+    candidates.push({
+      id: q.id || `sim_bank_${materia.id}_${idx + 1}`,
+      skill_id: q.skill_id || linkedSkill?.id || "",
+      tema: q.tema || linkedSkill?.nombre || materia.nombre,
+      area: q.area || linkedSkill?.area || materia.nombre,
+      tiempo_segundos: SIMULACRO_DURATION_SECONDS,
+      enunciado_latex: prompt,
+      opciones: Array.isArray(q.opciones) ? q.opciones : [],
+      respuesta_correcta: q.respuesta_correcta || "",
+      explicacion_breve: q.explicacion_breve || "",
+    });
+  });
+
+  skills.forEach((s) => {
+    const p1 = s.paso1_concepto || {};
+    const prompt = String(p1.enunciado_latex || p1.pregunta_latex || "").trim();
+    if (!prompt || seenPrompts.has(prompt)) return;
+    seenPrompts.add(prompt);
+    candidates.push({
+      id: `sim_p1_${s.id}`,
+      skill_id: s.id,
+      tema: s.nombre,
+      area: s.area || materia.nombre,
+      tiempo_segundos: SIMULACRO_DURATION_SECONDS,
+      enunciado_latex: prompt,
+      opciones: Array.isArray(p1.opciones) ? p1.opciones : [],
+      respuesta_correcta: p1.respuesta_correcta || "",
+      explicacion_breve: p1.explicacion || "",
+    });
+  });
+
+  // Priorizar variedad de temas mezclando candidatos
+  const picked = [];
+  const usedSkills = new Set();
+  const shuffled = shuffleArray(candidates);
+
+  shuffled.forEach((q) => {
+    if (picked.length >= 5) return;
+    if (q.skill_id && !usedSkills.has(q.skill_id)) {
+      usedSkills.add(q.skill_id);
+      picked.push(q);
+    }
+  });
+
+  shuffled.forEach((q) => {
+    if (picked.length >= 5) return;
+    if (!picked.some((item) => item.id === q.id)) {
+      picked.push(q);
+    }
+  });
+
+  return picked.slice(0, Math.min(5, Math.max(4, picked.length)));
+}
+
+export async function startSimulacroExam(materiaId = state.materia_activa) {
+  if (!(await ensureSkillsLoaded())) return;
+
+  const found =
+    findMateriaById(materiaId) ||
+    (() => {
+      const active = getActiveMateria();
+      return active ? { materia: active, stageKey: state.etapa || "pre_u" } : null;
+    })();
+
+  if (!found || !found.materia) return;
+
+  const { materia, stageKey } = found;
+  const questions = buildSimulacroQuestionsForMateria(materia);
+  if (questions.length === 0) return;
+
+  stopDiagnosticTimer();
+  state.etapa = stageKey;
+  state.materia_activa = materia.id;
+  saveState();
+
+  Object.assign(examSession, {
+    mode: "simulacro",
+    materia,
+    stageKey,
+    targetSkill: null,
+    targetIdx: -1,
+    evaluatedSkills: getMateriaSkills(materia),
+    questions,
+    currentIndex: 0,
+    selectedOption: null,
+    confirmed: false,
+    answers: [],
+    timerId: null,
+    secondsLeft: SIMULACRO_DURATION_SECONDS,
+    totalSeconds: SIMULACRO_DURATION_SECONDS,
+    isGlobalTimer: true,
+  });
+
+  if (dom["diag-mode-kicker"]) {
+    dom["diag-mode-kicker"].textContent = `🏆 SIMULACRO DE PARCIAL · ${materia.codigo || materia.nombre.toUpperCase()}`;
+  }
+  if (dom["diag-exam-title"]) {
+    dom["diag-exam-title"].textContent = `Simulacro de Parcial: ${materia.nombre}`;
+  }
+  if (dom["diag-footer-hint"]) {
+    dom["diag-footer-hint"].innerHTML =
+      `<i class="bi bi-trophy-fill text-warning me-1"></i>Nota mínima de aprobación: <strong>51 / 100</strong> (+100 XP al aprobar).`;
+  }
+
+  dom["diagnostic-quiz-panel"]?.classList.remove("d-none");
+  dom["diagnostic-results-panel"]?.classList.add("d-none");
+
+  updateGreetingUI();
+  updateTopbar();
+  showView("diagnostic");
+  startGlobalSimulacroTimer(SIMULACRO_DURATION_SECONDS);
+  renderExamQuestion();
 }
 
 function renderExamQuestion() {
@@ -368,7 +512,9 @@ function renderExamQuestion() {
     renderMath(optionsContainer);
   }
 
-  startQuestionTimer(Number(q.tiempo_segundos) || 45);
+  if (!examSession.isGlobalTimer) {
+    startQuestionTimer(Number(q.tiempo_segundos) || 45);
+  }
 }
 
 function renderDiagnosticDots() {
@@ -391,6 +537,7 @@ function renderDiagnosticDots() {
 
 function startQuestionTimer(seconds) {
   stopDiagnosticTimer();
+  examSession.isGlobalTimer = false;
   examSession.totalSeconds = seconds;
   examSession.secondsLeft = seconds;
   updateTimerUI();
@@ -407,6 +554,30 @@ function startQuestionTimer(seconds) {
   }, 1000);
 }
 
+function startGlobalSimulacroTimer(totalSeconds = SIMULACRO_DURATION_SECONDS) {
+  stopDiagnosticTimer();
+  examSession.isGlobalTimer = true;
+  examSession.totalSeconds = totalSeconds;
+  examSession.secondsLeft = totalSeconds;
+  updateTimerUI();
+
+  examSession.timerId = window.setInterval(() => {
+    examSession.secondsLeft = Math.max(0, examSession.secondsLeft - 1);
+    updateTimerUI();
+    if (examSession.secondsLeft <= 0) {
+      stopDiagnosticTimer();
+      autoSubmitSimulacroOnTimeout();
+    }
+  }, 1000);
+}
+
+function formatCountdownClock(seconds) {
+  const safe = Math.max(0, Math.floor(Number(seconds) || 0));
+  const mins = Math.floor(safe / 60);
+  const secs = safe % 60;
+  return `${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
+}
+
 export function stopDiagnosticTimer() {
   if (examSession.timerId !== null) {
     window.clearInterval(examSession.timerId);
@@ -419,7 +590,11 @@ function updateTimerUI() {
   const total = Math.max(1, examSession.totalSeconds);
   const pct = Math.max(0, Math.min(100, Math.round((left / total) * 100)));
 
-  if (dom["diag-timer-text"]) dom["diag-timer-text"].textContent = `${left}s`;
+  if (dom["diag-timer-text"]) {
+    dom["diag-timer-text"].textContent = examSession.isGlobalTimer
+      ? formatCountdownClock(left)
+      : `${left}s`;
+  }
   if (dom["diag-timer-bar"]) {
     dom["diag-timer-bar"].style.width = `${pct}%`;
     dom["diag-timer-bar"].classList.toggle("timer-warning", pct <= 35 && pct > 15);
@@ -443,13 +618,17 @@ export function handleDiagnosticNext() {
     renderExamQuestion();
   } else if (examSession.mode === "skip") {
     finishSkipExam();
+  } else if (examSession.mode === "simulacro") {
+    finishSimulacroExam(false);
   } else {
     finishPlacementExam();
   }
 }
 
 function evaluateCurrentExamQuestion(timedOut) {
-  stopDiagnosticTimer();
+  if (!examSession.isGlobalTimer) {
+    stopDiagnosticTimer();
+  }
   examSession.confirmed = true;
 
   const q = examSession.questions[examSession.currentIndex];
@@ -465,7 +644,7 @@ function evaluateCurrentExamQuestion(timedOut) {
     timedOut,
   };
 
-  if (isCorrect) {
+  if (isCorrect && examSession.mode !== "simulacro") {
     state.xp += 15;
     updateTopbar();
     saveState();
@@ -491,7 +670,9 @@ function evaluateCurrentExamQuestion(timedOut) {
     const prefix = timedOut
       ? "⏰ Tiempo agotado. "
       : isCorrect
-        ? "✅ ¡Correcto! (+15 XP) "
+        ? examSession.mode === "simulacro"
+          ? "✅ ¡Correcto! "
+          : "✅ ¡Correcto! (+15 XP) "
         : "❌ Respuesta incorrecta. ";
     feedbackBox.innerHTML = `<strong>${escapeHtml(prefix)}</strong>${escapeHtml(q.explicacion_breve || "")}`;
     renderMath(feedbackBox);
@@ -727,6 +908,7 @@ function finishSkipExam() {
     state.xp += 60;
     state.racha += 1;
     state.diagnostico_completado = true;
+    incrementMedallaCounter("salto_nivel", 1);
   }
 
   const { diagAreas, areaScores } = computeUpdatedStageAreaScores();
@@ -750,6 +932,175 @@ function finishSkipExam() {
     diagAreas,
     areaScores,
   });
+}
+
+function autoSubmitSimulacroOnTimeout() {
+  if (examSession.mode !== "simulacro") return;
+
+  const currentIdx = examSession.currentIndex;
+  const total = examSession.questions.length;
+  for (let i = 0; i < total; i += 1) {
+    if (!examSession.answers[i]) {
+      const q = examSession.questions[i];
+      const selected = i === currentIdx && !examSession.confirmed ? examSession.selectedOption : null;
+      const isCorrect = Boolean(selected && q && selected === q.respuesta_correcta);
+      examSession.answers[i] = {
+        id: q?.id || `sim_${i}`,
+        skill_id: q?.skill_id || "",
+        tema: q?.tema || "General",
+        area: q?.area || "General",
+        isCorrect,
+        timedOut: true,
+      };
+    }
+  }
+  finishSimulacroExam(true);
+}
+
+function finishSimulacroExam(timedOutGlobal = false) {
+  stopDiagnosticTimer();
+  examSession.isGlobalTimer = false;
+
+  const materia = examSession.materia || getActiveMateria();
+  const totalCount = examSession.questions.length || 1;
+  const correctCount = examSession.answers.filter((a) => a?.isCorrect).length;
+  const score100 = Math.round((correctCount / totalCount) * 100);
+  const passed = score100 >= 51;
+
+  if (!state.simulacros_mejor_nota || typeof state.simulacros_mejor_nota !== "object") {
+    state.simulacros_mejor_nota = {};
+  }
+  const prevBest = Number(state.simulacros_mejor_nota[materia.id] || 0);
+  state.simulacros_mejor_nota[materia.id] = Math.max(prevBest, score100);
+
+  let xpAdded = 0;
+  if (passed) {
+    xpAdded = 100;
+    state.xp += xpAdded;
+    state.racha += 1;
+    incrementMedallaCounter("simulacros_aprobados", 1);
+  }
+
+  const { diagAreas, areaScores } = computeUpdatedStageAreaScores();
+  saveState();
+  updateTopbar();
+
+  renderSimulacroResults({
+    passed,
+    timedOutGlobal,
+    materia,
+    score100,
+    correctCount,
+    totalCount,
+    xpAdded,
+    diagAreas,
+    areaScores,
+  });
+
+  if (passed) {
+    launchConfetti();
+  }
+}
+
+function renderSimulacroResults({
+  passed,
+  timedOutGlobal,
+  materia,
+  score100,
+  correctCount,
+  totalCount,
+  xpAdded,
+  diagAreas,
+  areaScores,
+}) {
+  dom["diagnostic-quiz-panel"]?.classList.add("d-none");
+  dom["diagnostic-results-panel"]?.classList.remove("d-none");
+
+  if (dom["diag-result-pill"]) {
+    dom["diag-result-pill"].textContent = passed
+      ? `🏆 ¡SIMULACRO APROBADO! · ${materia.nombre.toUpperCase()}`
+      : `📝 SIMULACRO FINALIZADO · ${materia.nombre.toUpperCase()}`;
+  }
+  if (dom["diag-result-title"]) {
+    dom["diag-result-title"].textContent = passed
+      ? "¡Simulacro Aprobado!"
+      : "Sigue reforzando para tu parcial";
+  }
+  if (dom["diag-overall-score"]) {
+    const timeNote = timedOutGlobal ? " (entrega automática por tiempo)" : "";
+    const xpNote = passed ? ` · +${xpAdded} XP` : " · Mínimo aprobado: 51 / 100";
+    dom["diag-overall-score"].textContent =
+      `${score100} / 100 (${correctCount}/${totalCount} aciertos${xpNote})${timeNote}`;
+  }
+  if (dom["diag-breakdown-heading"]) {
+    dom["diag-breakdown-heading"].textContent = "Temas del Simulacro";
+  }
+
+  dom["diag-radar-col"]?.classList.remove("d-none");
+
+  const summaryEl = dom["diag-area-summary"];
+  const passedTopics = [];
+  const failedTopics = [];
+
+  if (summaryEl) {
+    summaryEl.innerHTML = "";
+    examSession.answers.forEach((ans, idx) => {
+      if (!ans) return;
+      if (ans.isCorrect) {
+        if (ans.tema && !passedTopics.includes(ans.tema)) passedTopics.push(ans.tema);
+      } else if (ans.tema && !failedTopics.includes(ans.tema)) {
+        failedTopics.push(ans.tema);
+      }
+
+      const row = document.createElement("div");
+      row.className = "area-score-row d-flex justify-content-between align-items-center";
+      row.innerHTML = `
+        <div>
+          <div class="fw-bold small">Pregunta #${idx + 1}: ${escapeHtml(ans.tema || materia.nombre)}</div>
+          <div class="text-secondary" style="font-size: 0.75rem;">${
+            ans.isCorrect ? "Tema acertado en el simulacro" : "Conviene repasar este nodo"
+          }</div>
+        </div>
+        <span class="badge rounded-pill ${ans.isCorrect ? "text-bg-success" : "text-bg-danger"}">
+          ${ans.isCorrect ? "✅ Acertado" : "❌ Repasar"}
+        </span>
+      `;
+      summaryEl.appendChild(row);
+    });
+  }
+
+  if (dom["diag-recommendation-text"]) {
+    const acertadosTxt = passedTopics.length > 0 ? passedTopics.join(", ") : "ninguno aún";
+    const repasarTxt = failedTopics.length > 0 ? failedTopics.join(", ") : "ninguno";
+
+    if (passed) {
+      dom["diag-recommendation-text"].innerHTML =
+        `<strong>¡Listo para el parcial!</strong> Acertaste: <strong>${escapeHtml(acertadosTxt)}</strong>.${
+          failedTopics.length > 0
+            ? ` Repasa brevemente: <strong>${escapeHtml(repasarTxt)}</strong>.`
+            : " Dominio sólido en todos los temas evaluados."
+        }`;
+    } else {
+      dom["diag-recommendation-text"].innerHTML =
+        `<strong>Nodos recomendados para reforzar:</strong> ${escapeHtml(repasarTxt)}.${
+          passedTopics.length > 0
+            ? ` Acertaste: <strong>${escapeHtml(acertadosTxt)}</strong>.`
+            : ""
+        }`;
+    }
+  }
+
+  if (dom["btn-go-to-path"]) {
+    dom["btn-go-to-path"].innerHTML =
+      `<i class="bi bi-signpost-split-fill me-2"></i>Volver al Camino de ${escapeHtml(materia.nombre)}`;
+  }
+
+  appContext.diagRadarChartInstance = renderRadarOnCanvas(
+    dom["diagnostic-radar-chart"],
+    appContext.diagRadarChartInstance,
+    diagAreas,
+    areaScores
+  );
 }
 
 function renderSkipResults({
