@@ -1,10 +1,14 @@
 /**
- * Estado global, persistencia localStorage, caché DOM y helpers compartidos.
+ * Estado global, persistencia híbrida (localStorage + Supabase), caché DOM y helpers compartidos.
  */
+
+import { apiGuardarProgreso } from "./api.js";
 
 export const STORAGE_KEY = "skillpath_fni_progress_v1";
 export const MAX_IMAGE_BYTES = 10 * 1024 * 1024;
 export const OPTION_LETTERS = ["A", "B", "C", "D"];
+
+let cloudSyncTimerId = null;
 
 export function createDefaultState() {
   return {
@@ -25,45 +29,48 @@ export function createDefaultState() {
   };
 }
 
-export function loadState() {
+function normalizeStateObject(parsed) {
   const defaults = createDefaultState();
+  if (!parsed || typeof parsed !== "object") return defaults;
+
+  return {
+    ...defaults,
+    ...parsed,
+    nombre: typeof parsed.nombre === "string" ? parsed.nombre.trim() : "",
+    xp: Number.isFinite(Number(parsed.xp)) ? Number(parsed.xp) : 0,
+    racha: Number.isFinite(Number(parsed.racha)) ? Number(parsed.racha) : 0,
+    nodos_estado:
+      parsed.nodos_estado && typeof parsed.nodos_estado === "object"
+        ? parsed.nodos_estado
+        : {},
+    historial_errores: Array.isArray(parsed.historial_errores)
+      ? parsed.historial_errores
+      : [],
+    notas_parciales: Array.isArray(parsed.notas_parciales)
+      ? parsed.notas_parciales
+      : [],
+    xp_otorgado_nodos:
+      parsed.xp_otorgado_nodos && typeof parsed.xp_otorgado_nodos === "object"
+        ? parsed.xp_otorgado_nodos
+        : {},
+    diagnostico_completado: Boolean(
+      parsed.diagnostico_completado ?? parsed.diagnostico_hecho
+    ),
+    alerta_rescate: Boolean(parsed.alerta_rescate),
+    nodo_retorno:
+      typeof parsed.nodo_retorno === "string" && parsed.nodo_retorno.trim()
+        ? parsed.nodo_retorno.trim()
+        : null,
+  };
+}
+
+export function loadState() {
   try {
     const raw = window.localStorage.getItem(STORAGE_KEY);
-    if (!raw) return defaults;
-    const parsed = JSON.parse(raw);
-    if (!parsed || typeof parsed !== "object") return defaults;
-
-    return {
-      ...defaults,
-      ...parsed,
-      nombre: typeof parsed.nombre === "string" ? parsed.nombre.trim() : "",
-      xp: Number.isFinite(Number(parsed.xp)) ? Number(parsed.xp) : 0,
-      racha: Number.isFinite(Number(parsed.racha)) ? Number(parsed.racha) : 0,
-      nodos_estado:
-        parsed.nodos_estado && typeof parsed.nodos_estado === "object"
-          ? parsed.nodos_estado
-          : {},
-      historial_errores: Array.isArray(parsed.historial_errores)
-        ? parsed.historial_errores
-        : [],
-      notas_parciales: Array.isArray(parsed.notas_parciales)
-        ? parsed.notas_parciales
-        : [],
-      xp_otorgado_nodos:
-        parsed.xp_otorgado_nodos && typeof parsed.xp_otorgado_nodos === "object"
-          ? parsed.xp_otorgado_nodos
-          : {},
-      diagnostico_completado: Boolean(
-        parsed.diagnostico_completado ?? parsed.diagnostico_hecho
-      ),
-      alerta_rescate: Boolean(parsed.alerta_rescate),
-      nodo_retorno:
-        typeof parsed.nodo_retorno === "string" && parsed.nodo_retorno.trim()
-          ? parsed.nodo_retorno.trim()
-          : null,
-    };
+    if (!raw) return createDefaultState();
+    return normalizeStateObject(JSON.parse(raw));
   } catch (_error) {
-    return defaults;
+    return createDefaultState();
   }
 }
 
@@ -75,18 +82,88 @@ export const appContext = {
   diagRadarChartInstance: null,
   skillsRadarChartInstance: null,
   skillsLoadFailed: false,
+  currentUser: null,
+  suppressCloudSync: false,
 };
 
-export function saveState() {
+function persistLocalOnly() {
   try {
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
   } catch (_error) {
-    // Ignora fallos de almacenamiento
+    // Ignora fallos de almacenamiento local
   }
+}
+
+function scheduleCloudSync() {
+  if (!appContext.currentUser || appContext.suppressCloudSync) return;
+
+  if (cloudSyncTimerId !== null) {
+    window.clearTimeout(cloudSyncTimerId);
+  }
+  const snapshot = JSON.parse(JSON.stringify(state));
+  const stageSnapshot = state.etapa || appContext.currentUser.etapa || null;
+
+  cloudSyncTimerId = window.setTimeout(() => {
+    cloudSyncTimerId = null;
+    if (!appContext.currentUser || appContext.suppressCloudSync) return;
+    apiGuardarProgreso(snapshot, stageSnapshot).catch((err) => {
+      console.warn("Sincronización en segundo plano pendiente:", err?.message || err);
+    });
+  }, 300);
+}
+
+export function saveState() {
+  persistLocalOnly();
+  scheduleCloudSync();
 }
 
 export function resetState(preservedName = "") {
   Object.assign(state, createDefaultState(), { nombre: preservedName });
+}
+
+export function hydrateStateFromUser(userData) {
+  if (!userData || typeof userData !== "object") return;
+
+  appContext.suppressCloudSync = true;
+  if (cloudSyncTimerId !== null) {
+    window.clearTimeout(cloudSyncTimerId);
+    cloudSyncTimerId = null;
+  }
+
+  try {
+    appContext.currentUser = {
+      username: String(userData.username || "").trim().toLowerCase(),
+      nombre: String(userData.nombre || "").trim(),
+      etapa: userData.etapa === "facultad" ? "facultad" : "pre_u",
+    };
+
+    const hydrated = normalizeStateObject(userData.estado_json);
+    if (!hydrated.nombre && appContext.currentUser.nombre) {
+      hydrated.nombre = appContext.currentUser.nombre;
+    }
+    if (!hydrated.etapa) {
+      hydrated.etapa = appContext.currentUser.etapa;
+    }
+
+    Object.assign(state, hydrated);
+    persistLocalOnly();
+  } finally {
+    appContext.suppressCloudSync = false;
+  }
+}
+
+export function clearSessionLocalState() {
+  if (cloudSyncTimerId !== null) {
+    window.clearTimeout(cloudSyncTimerId);
+    cloudSyncTimerId = null;
+  }
+  appContext.currentUser = null;
+  resetState("");
+  try {
+    window.localStorage.removeItem(STORAGE_KEY);
+  } catch (_error) {
+    // Ignora fallos de limpieza local
+  }
 }
 
 export function getHistorialResumenes() {
@@ -200,7 +277,9 @@ export function cacheDom() {
     "sidebar-home-link",
     "sidebar-user-avatar",
     "sidebar-user-name",
+    "sidebar-user-handle",
     "sidebar-user-stage",
+    "btn-sidebar-logout",
     "top-navbar",
     "brand-home-link",
     "nav-user-greeting",
@@ -212,14 +291,33 @@ export function cacheDom() {
     "nav-xp-count",
     "btn-open-grade-modal",
     "btn-reset-diagnostic",
+    "btn-nav-logout",
     "view-stage-selector",
-    "welcome-resume-banner",
-    "resume-banner-summary",
-    "btn-resume-saved",
-    "welcome-name-input",
-    "welcome-name-error",
-    "card-stage-pre-u",
-    "card-stage-facultad",
+    "auth-global-error",
+    "auth-global-error-text",
+    "btn-auth-retry",
+    "tab-auth-login",
+    "tab-auth-register",
+    "form-auth-login",
+    "auth-login-username",
+    "auth-login-password",
+    "auth-login-error",
+    "btn-auth-login",
+    "btn-auth-login-label",
+    "btn-auth-login-spinner",
+    "form-auth-register",
+    "auth-reg-nombre",
+    "auth-reg-username",
+    "auth-reg-password",
+    "auth-reg-stage-preu",
+    "auth-reg-stage-facultad",
+    "auth-reg-error",
+    "btn-auth-register",
+    "btn-auth-register-label",
+    "btn-auth-register-spinner",
+    "btn-auth-demo-login",
+    "btn-auth-demo-label",
+    "btn-auth-demo-spinner",
     "view-diagnostic",
     "diagnostic-quiz-panel",
     "diag-current-num",
@@ -386,7 +484,8 @@ export function showView(viewName) {
 }
 
 export function updateGreetingUI() {
-  const nombre = state.nombre || "Estudiante";
+  const nombre = state.nombre || appContext.currentUser?.nombre || "Estudiante";
+  const username = appContext.currentUser?.username || "estudiante";
   const inicial = nombre.charAt(0).toUpperCase() || "E";
   const etapaLabel = state.etapa === "facultad" ? "Facultad (FNI)" : "Pre-U (Admisión)";
 
@@ -395,6 +494,9 @@ export function updateGreetingUI() {
   }
   if (dom["sidebar-user-name"]) {
     dom["sidebar-user-name"].textContent = nombre;
+  }
+  if (dom["sidebar-user-handle"]) {
+    dom["sidebar-user-handle"].textContent = `@${username}`;
   }
   if (dom["sidebar-user-avatar"]) {
     dom["sidebar-user-avatar"].textContent = inicial;
@@ -414,27 +516,6 @@ export function updateGreetingUI() {
   if (dom["profile-stage-badge"]) {
     dom["profile-stage-badge"].textContent =
       state.etapa === "facultad" ? "🚀 Ruta Facultad" : "🎓 Ruta Pre-U";
-  }
-}
-
-export function updateWelcomeResumeBanner() {
-  const banner = dom["welcome-resume-banner"];
-  if (!banner) return;
-
-  const hasSaved = Boolean(
-    state.etapa && state.diagnostico_completado && appContext.skillsDB?.[state.etapa]
-  );
-  banner.classList.toggle("d-none", !hasSaved);
-
-  if (hasSaved && dom["resume-banner-summary"]) {
-    const stageSkills = getAllStageSkills(state.etapa);
-    const unlockedCount = stageSkills.filter(
-      (s) => state.nodos_estado[s.id] === "unlocked"
-    ).length;
-    const saludo = state.nombre ? `${state.nombre} · ` : "";
-    const etapaNombre = state.etapa === "facultad" ? "Facultad" : "Pre-U";
-    dom["resume-banner-summary"].textContent =
-      `${saludo}${etapaNombre} · ${unlockedCount}/${stageSkills.length} temas dominados · ${state.xp} XP`;
   }
 }
 
@@ -481,17 +562,13 @@ export function updateTopbar() {
 
 export function renderSkillsLoadError(message) {
   appContext.skillsLoadFailed = true;
-  updateWelcomeResumeBanner();
   showView("stage-selector");
-  if (dom["welcome-resume-banner"]) {
-    dom["welcome-resume-banner"].classList.remove("d-none");
-    if (dom["resume-banner-summary"]) {
-      dom["resume-banner-summary"].textContent =
-        `No se pudo conectar con /api/skills: ${message}. Recarga la página cuando Flask esté activo.`;
-    }
-    if (dom["btn-resume-saved"]) {
-      dom["btn-resume-saved"].textContent = "Reintentar";
-    }
+  if (dom["auth-global-error"]) {
+    dom["auth-global-error"].classList.remove("d-none");
+  }
+  if (dom["auth-global-error-text"]) {
+    dom["auth-global-error-text"].textContent =
+      `No se pudo conectar con /api/skills: ${message}. Reintenta cuando Flask esté activo.`;
   }
 }
 

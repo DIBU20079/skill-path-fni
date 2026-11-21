@@ -1,5 +1,5 @@
       <!-- =========================================================
-           PANTALLA DE BIENVENIDA: PERFIL RÁPIDO + SELECTOR DE ETAPA
+           PANTALLA DE ACCESO: LOGIN, REGISTRO Y DEMO JURADOS
            ========================================================= -->
       <section id="view-stage-selector" class="app-view">
         <div class="welcome-hero text-center mx-auto mb-4">
@@ -7,114 +7,195 @@
             <i class="bi bi-compass-fill"></i>
           </div>
           <span class="hero-kicker">SKILL-PATH FNI · TUTOR SOCRÁTICO CON IA</span>
-          <h1 class="hero-title mt-2 mb-3">Domina las Ciencias Básicas de Ingeniería paso a paso</h1>
+          <h1 class="hero-title mt-2 mb-3">Domina las Ciencias Básicas de Ingeniería</h1>
           <p class="hero-subtitle mx-auto">
-            Diagnostica tus brechas reales, explora tus materias críticas y recibe auditoría socrática línea por línea sobre fotos de tu cuaderno físico.
+            Tu progreso se sincroniza en la nube para continuar sin interrupciones desde celular, tablet o computadora.
           </p>
         </div>
 
-        <!-- Banner opcional cuando existe progreso previo en localStorage -->
-        <div id="welcome-resume-banner" class="resume-banner mx-auto mb-4 d-none">
-          <div class="d-flex flex-column flex-sm-row align-items-sm-center justify-content-between gap-3">
-            <div class="d-flex align-items-center gap-3">
-              <div class="resume-icon">
-                <i class="bi bi-bookmark-check-fill"></i>
-              </div>
-              <div>
-                <div class="fw-bold text-dark">Tienes un progreso guardado en este navegador</div>
-                <div id="resume-banner-summary" class="small text-secondary">Continúa justo donde lo dejaste o inicia una nueva etapa.</div>
-              </div>
+        <div class="auth-card duo-card mx-auto p-3 p-sm-4">
+          <div id="auth-global-error" class="alert alert-danger d-none mb-3" role="alert">
+            <div class="d-flex flex-column flex-sm-row align-items-sm-center justify-content-between gap-2">
+              <span id="auth-global-error-text" class="small fw-semibold">No se pudo conectar con el servidor.</span>
+              <button type="button" id="btn-auth-retry" class="btn btn-sm btn-outline-danger text-nowrap">
+                Reintentar
+              </button>
             </div>
-            <button type="button" id="btn-resume-saved" class="btn btn-duo btn-duo-green btn-sm text-nowrap">
-              <i class="bi bi-play-fill me-1"></i>Continuar mi Camino
+          </div>
+
+          <!-- Pestañas Iniciar Sesión / Crear Cuenta -->
+          <div class="auth-tabs mb-4" role="tablist" aria-label="Acceso de estudiante">
+            <button
+              type="button"
+              id="tab-auth-login"
+              class="auth-tab-btn active"
+              role="tab"
+              aria-selected="true"
+            >
+              <i class="bi bi-box-arrow-in-right me-1"></i>Iniciar Sesión
+            </button>
+            <button
+              type="button"
+              id="tab-auth-register"
+              class="auth-tab-btn"
+              role="tab"
+              aria-selected="false"
+            >
+              <i class="bi bi-person-plus-fill me-1"></i>Crear Cuenta
             </button>
           </div>
-        </div>
 
-        <!-- Perfil rápido sin login pesado -->
-        <div class="quick-name-card duo-card mx-auto mb-4 p-3 p-sm-4">
-          <label for="welcome-name-input" class="form-label fw-black mb-2 d-flex align-items-center gap-2">
-            <i class="bi bi-person-badge-fill text-primary"></i>
-            ¿Cómo te llamas?
-          </label>
-          <div class="input-group input-group-lg">
-            <span class="input-group-text bg-white border-2 border-end-0 rounded-start-4 text-secondary">
-              <i class="bi bi-smile"></i>
+          <!-- Formulario: Iniciar Sesión -->
+          <form id="form-auth-login" novalidate>
+            <div class="mb-3">
+              <label for="auth-login-username" class="form-label fw-bold small text-secondary">
+                Usuario
+              </label>
+              <input
+                type="text"
+                id="auth-login-username"
+                class="form-control duo-input"
+                placeholder="ej: valeria.fni"
+                autocomplete="username"
+                autocapitalize="none"
+                required
+              >
+            </div>
+
+            <div class="mb-3">
+              <label for="auth-login-password" class="form-label fw-bold small text-secondary">
+                Contraseña
+              </label>
+              <input
+                type="password"
+                id="auth-login-password"
+                class="form-control duo-input"
+                placeholder="Tu contraseña"
+                autocomplete="current-password"
+                required
+              >
+            </div>
+
+            <div id="auth-login-error" class="alert alert-danger py-2 px-3 small fw-semibold d-none mb-3" role="alert"></div>
+
+            <button type="submit" id="btn-auth-login" class="btn btn-duo btn-duo-green w-100 py-2">
+              <span id="btn-auth-login-label">Entrar a mi Camino <i class="bi bi-arrow-right ms-1"></i></span>
+              <span id="btn-auth-login-spinner" class="d-none">
+                <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                Verificando...
+              </span>
+            </button>
+          </form>
+
+          <!-- Formulario: Crear Cuenta -->
+          <form id="form-auth-register" class="d-none" novalidate>
+            <div class="mb-3">
+              <label for="auth-reg-nombre" class="form-label fw-bold small text-secondary">
+                Nombre completo o apodo
+              </label>
+              <input
+                type="text"
+                id="auth-reg-nombre"
+                class="form-control duo-input"
+                maxlength="50"
+                placeholder="ej: Valeria Quispe"
+                autocomplete="name"
+                required
+              >
+            </div>
+
+            <div class="mb-3">
+              <label for="auth-reg-username" class="form-label fw-bold small text-secondary">
+                Nombre de usuario <span class="fw-normal">(minúsculas y sin espacios)</span>
+              </label>
+              <input
+                type="text"
+                id="auth-reg-username"
+                class="form-control duo-input"
+                maxlength="32"
+                placeholder="ej: valeria_ing"
+                autocomplete="username"
+                autocapitalize="none"
+                required
+              >
+            </div>
+
+            <div class="mb-3">
+              <label for="auth-reg-password" class="form-label fw-bold small text-secondary">
+                Contraseña <span class="fw-normal">(mínimo 4 caracteres)</span>
+              </label>
+              <input
+                type="password"
+                id="auth-reg-password"
+                class="form-control duo-input"
+                placeholder="Crea una contraseña"
+                autocomplete="new-password"
+                required
+              >
+            </div>
+
+            <div class="mb-3">
+              <span class="form-label fw-bold small text-secondary d-block mb-2">
+                Elige tu etapa académica
+              </span>
+              <div class="auth-stage-grid">
+                <label class="auth-stage-label" for="auth-reg-stage-preu">
+                  <input
+                    type="radio"
+                    id="auth-reg-stage-preu"
+                    name="auth_reg_stage"
+                    value="pre_u"
+                    class="auth-stage-radio"
+                    checked
+                  >
+                  <span class="auth-stage-option">
+                    <span class="auth-stage-emoji" aria-hidden="true">🎓</span>
+                    <span class="fw-black d-block text-dark small">Pre-U</span>
+                    <span class="text-secondary" style="font-size: 0.74rem;">Álgebra &amp; Trig.</span>
+                  </span>
+                </label>
+
+                <label class="auth-stage-label" for="auth-reg-stage-facultad">
+                  <input
+                    type="radio"
+                    id="auth-reg-stage-facultad"
+                    name="auth_reg_stage"
+                    value="facultad"
+                    class="auth-stage-radio"
+                  >
+                  <span class="auth-stage-option">
+                    <span class="auth-stage-emoji" aria-hidden="true">🚀</span>
+                    <span class="fw-black d-block text-dark small">Facultad</span>
+                    <span class="text-secondary" style="font-size: 0.74rem;">Cálculo I &amp; Física I</span>
+                  </span>
+                </label>
+              </div>
+            </div>
+
+            <div id="auth-reg-error" class="alert alert-danger py-2 px-3 small fw-semibold d-none mb-3" role="alert"></div>
+
+            <button type="submit" id="btn-auth-register" class="btn btn-duo btn-duo-blue w-100 py-2">
+              <span id="btn-auth-register-label">Crear Cuenta y Empezar <i class="bi bi-check2-circle ms-1"></i></span>
+              <span id="btn-auth-register-spinner" class="d-none">
+                <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                Creando cuenta...
+              </span>
+            </button>
+          </form>
+
+          <div class="auth-divider my-3">
+            <span>o prueba al instante</span>
+          </div>
+
+          <button type="button" id="btn-auth-demo-login" class="btn btn-duo btn-duo-amber w-100 py-2">
+            <span id="btn-auth-demo-label">⚡ Acceso Rápido Demo (Jurados)</span>
+            <span id="btn-auth-demo-spinner" class="d-none">
+              <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+              Cargando sesión demo...
             </span>
-            <input
-              type="text"
-              id="welcome-name-input"
-              class="form-control duo-input border-start-0 rounded-end-4"
-              maxlength="40"
-              placeholder="Escribe tu nombre o apodo (ej: Valeria)"
-              autocomplete="given-name"
-            >
-          </div>
-          <div id="welcome-name-error" class="text-danger small fw-semibold mt-2 d-none">
-            Por favor dinos tu nombre para personalizar tu camino antes de elegir etapa.
-          </div>
-        </div>
-
-        <!-- Dos tarjetas grandes clicables -->
-        <div class="row g-4 justify-content-center stage-cards-row mx-auto">
-          <div class="col-12 col-md-6">
-            <article
-              id="card-stage-pre-u"
-              class="stage-card stage-card-preu h-100"
-              data-stage="pre_u"
-              role="button"
-              tabindex="0"
-              aria-label="Seleccionar ruta Pre-U / Examen de Ingreso"
-            >
-              <div class="stage-card-top">
-                <span class="stage-emoji" aria-hidden="true">🎓</span>
-                <span class="stage-tag stage-tag-blue">RUTA PRE-U</span>
-              </div>
-              <h2 class="stage-card-title">Voy a postular (Pre-U / Examen de Ingreso)</h2>
-              <p class="stage-card-desc">
-                Blindaje intensivo en los temas filtro de ingreso universitario a través de dos materias completas: Álgebra Pre-U y Trigonometría.
-              </p>
-              <div class="stage-chips mb-4">
-                <span class="stage-chip">Álgebra Pre-U (5 temas)</span>
-                <span class="stage-chip">Trigonometría (4 temas)</span>
-              </div>
-              <div class="stage-card-footer mt-auto">
-                <span class="stage-meta"><i class="bi bi-stopwatch me-1"></i>6 preguntas · 2 materias</span>
-                <span class="btn btn-duo btn-duo-blue">
-                  Elegir Pre-U <i class="bi bi-arrow-right ms-1"></i>
-                </span>
-              </div>
-            </article>
-          </div>
-
-          <div class="col-12 col-md-6">
-            <article
-              id="card-stage-facultad"
-              class="stage-card stage-card-facultad h-100"
-              data-stage="facultad"
-              role="button"
-              tabindex="0"
-              aria-label="Seleccionar ruta Facultad de Ingeniería"
-            >
-              <div class="stage-card-top">
-                <span class="stage-emoji" aria-hidden="true">🚀</span>
-                <span class="stage-tag stage-tag-green">RUTA FACULTAD</span>
-              </div>
-              <h2 class="stage-card-title">Ya estoy en la Facultad (Materias Básicas)</h2>
-              <p class="stage-card-desc">
-                Ruta diseñada para aprobar los primeros parciales de Ingeniería con las materias de mayor criticidad: Cálculo I y Física I.
-              </p>
-              <div class="stage-chips mb-4">
-                <span class="stage-chip">Cálculo I (5 temas)</span>
-                <span class="stage-chip">Física I (4 temas)</span>
-              </div>
-              <div class="stage-card-footer mt-auto">
-                <span class="stage-meta"><i class="bi bi-stopwatch me-1"></i>6 preguntas · 2 materias</span>
-                <span class="btn btn-duo btn-duo-green">
-                  Elegir Facultad <i class="bi bi-arrow-right ms-1"></i>
-                </span>
-              </div>
-            </article>
+          </button>
+          <div class="text-center text-secondary mt-2" style="font-size: 0.76rem;">
+            Cuenta precargada en la nube con 320 XP, 4 días de racha, 2 temas dominados y Baúl de Errores.
           </div>
         </div>
       </section>

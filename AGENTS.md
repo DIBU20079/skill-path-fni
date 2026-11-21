@@ -6,7 +6,7 @@ Guía de arquitectura, restricciones técnicas, reglas pedagógicas y contratos 
 
 ## 1. Stack y Restricciones Técnicas Estrictas
 
-- **Backend**: Python 3 + **Flask** + **Flask-CORS** corriendo en el puerto `5000` (configurable mediante `PORT`), organizado con **Flask Blueprints** en `routes/` y lógica de dominio en `services/`.
+- **Backend**: Python 3 + **Flask** + **Flask-CORS** corriendo en el puerto `5000` (configurable mediante `PORT`), con `ProxyFix` de Werkzeug y sesiones HTTP seguras (`SECRET_KEY`, `SESSION_COOKIE_SAMESITE="Lax"`), organizado con **Flask Blueprints** en `routes/` y lógica de dominio en `services/`.
   - Prohibido usar FastAPI, Django, Node.js en backend o bases de datos SQL locales.
 - **Inteligencia Artificial**: SDK oficial **`google-genai`** con modelo estándar **`gemini-2.5-flash`** (respaldado por `GEMINI_MODEL` opcional en `.env` y fallback controlado ante 404/503), leyendo `GEMINI_API_KEY` desde `.env` con `python-dotenv`.
   - Cliente compartido en `services/ai_client.py`; auditoría en `services/ai_auditor.py`; generación dinámica en `services/ai_generator.py`.
@@ -17,7 +17,7 @@ Guía de arquitectura, restricciones técnicas, reglas pedagógicas y contratos 
   - Prohibido usar React, Vue, Angular, npm, bundlers o `onclick="..."` inline en HTML.
   - CDNs permitidos exclusivamente: **Bootstrap 5**, **Bootstrap Icons**, **KaTeX** (con extensión `auto-render`) y **Chart.js** (solo para gráficos radar).
   - **Sin pizarra digital**: Prohibido implementar `<canvas>` de dibujo o pizarras interactivas; la práctica del Paso 3 se basa en foto del cuaderno físico (`<input type="file" accept="image/*" capture="environment">`) y/o explicación escrita en texto.
-- **Persistencia**: El progreso del usuario se guarda en `localStorage` bajo la clave `skillpath_fni_progress_v1`, con adaptador en nube opcional (`services/db_cloud.py` / `/api/auth/sync`) con fallback automático local:
+- **Persistencia**: Persistencia híbrida multi-dispositivo: caché inmediata en `localStorage` bajo la clave `skillpath_fni_progress_v1` + sincronización en la nube vía HTTPS REST (`services/db_cloud.py` -> tabla `usuarios` en **Supabase** usando `requests`, con headers `apikey` + `Content-Type` + `Prefer: return=representation` y **sin** `Authorization: Bearer` cuando `SUPABASE_KEY` comienza con `sb_secret_`). Si faltan variables de Supabase, usa `data/usuarios_fallback.json` como respaldo local:
   - `nombre`, `etapa`, `materia_activa`, `xp`, `racha`, `nodos_estado`, `historial_errores`, `notas_parciales`, `nota_parcial`, `diagnostico_completado`, `diagnostico_resultados`, `alerta_rescate`, `xp_otorgado_nodos`, `nodo_retorno`.
 - **Calidad**: Cero funciones vacías, cero `// TODO`, cero placeholders o datos truncados.
 
@@ -39,13 +39,13 @@ Guía de arquitectura, restricciones técnicas, reglas pedagógicas y contratos 
 │   ├── views.py                  # GET / -> renderiza index.html
 │   ├── api_skills.py             # GET /api/skills (combina diagnostico + pre_u + facultad)
 │   ├── api_ai.py                 # POST /api/evaluar y POST /api/generar-ejercicio
-│   └── api_auth.py               # GET/POST /api/auth/* (base para login y sync Supabase)
+│   └── api_auth.py               # POST /api/{register,login,demo-login,logout,progreso} y GET /api/me
 ├── services/
 │   ├── __init__.py
 │   ├── ai_client.py              # Cliente Gemini compartido, timeout y fallback de modelos
 │   ├── ai_auditor.py             # Auditoría socrática por foto/texto (8 claves)
 │   ├── ai_generator.py           # Generación dinámica de ejercicios de 3 pasos en LaTeX
-│   └── db_cloud.py               # Adaptador Supabase / respaldo seguro localStorage
+│   └── db_cloud.py               # Cliente HTTPS Supabase REST (`usuarios`) + respaldo data/usuarios_fallback.json
 ├── data/
 │   ├── diagnostico.json          # Bancos de diagnóstico y tiempos de pre_u y facultad
 │   ├── pre_u.json                # Materias y skills de la etapa Pre-U
@@ -53,8 +53,8 @@ Guía de arquitectura, restricciones técnicas, reglas pedagógicas y contratos 
 ├── templates/
 │   ├── index.html                # Shell HTML, CDNs, CSS modulares e entry ES Module (main.js)
 │   └── partials/
-│       ├── navbar.html           # Navegación lateral/inferior Duolingo y topbar fija
-│       ├── auth_welcome.html     # Pantalla bienvenida, perfil rápido y selector de etapa
+│       ├── navbar.html           # Navegación Duolingo, topbar con saludo y botón Salir
+│       ├── auth_welcome.html     # Login, Registro (Pre-U/Facultad) y Acceso Rápido Demo (Jurados)
 │       ├── diagnostic.html       # Quiz diagnóstico con cronómetro y radar inicial
 │       ├── skilltree.html        # Camino vertical de nodos, Alerta Roja y ranking crítico
 │       ├── materias.html         # Catálogo curricular multi-materia
@@ -129,8 +129,10 @@ La función `auditar_resolucion(enunciado, prerrequisito, texto_usuario, imagen_
   - Acepta JSON (o `form-data`) con `materia` (obligatorio), `tema` (obligatorio) e `historial_errores` (opcional).
   - Llama a `generar_ejercicio_dinamico(...)` (`services/ai_generator.py`, `temperature=0.8`, `response_mime_type="application/json"`) y devuelve HTTP `200` con un ejercicio inédito de 3 pasos (`paso1_concepto`, `paso2_practica`, `paso3_reto_foto`) en LaTeX.
   - Si falla la IA, el frontend conserva el respaldo estático del currículo sin errores rotos.
-- **`GET /api/auth/status`, `GET /api/auth/sync/<user_id>`, `POST /api/auth/sync` (`routes/api_auth.py`)**:
-  - Endpoints base conectados a `services/db_cloud.py` preparados para sincronización futura con Supabase con fallback automático a `localStorage`.
+- **`POST /api/register`, `POST /api/login`, `POST /api/demo-login`, `POST /api/logout`, `GET /api/me`, `POST /api/progreso`, `GET /api/auth/status` (`routes/api_auth.py`)**:
+  - Gestión real de cuentas, contraseñas con `werkzeug.security`, sesión persistente Flask (`session["username"]`) y sincronización automática con Supabase (`services/db_cloud.py`) o respaldo JSON local (`data/usuarios_fallback.json`).
+  - `/api/demo-login` inicia sesión en `"jurado_demo"` con progreso precargado (320 XP, racha de 4 días, 2 nodos dominados y 2 errores en el Baúl).
+  - `/api/me` responde `401` si no existe sesión activa.
 
 ---
 

@@ -20,7 +20,6 @@ import {
   state,
   updateGreetingUI,
   updateTopbar,
-  updateWelcomeResumeBanner,
 } from "./state.js";
 
 const diagSession = {
@@ -457,7 +456,7 @@ export function renderRadarOnCanvas(canvas, previousInstance, labels, scoreMap) 
 
 export function handleResetDiagnostic() {
   const confirmed = window.confirm(
-    "¿Reiniciar todo tu progreso y diagnóstico? Se limpiará tu avance guardado en este navegador."
+    "¿Reiniciar tu diagnóstico y progreso académico? Se recalibrará tu ruta desde cero."
   );
   if (!confirmed) return;
 
@@ -471,6 +470,20 @@ export function handleResetDiagnostic() {
     appContext.skillsRadarChartInstance = null;
   }
 
+  dom["rescue-alert-banner"]?.classList.add("d-none");
+
+  if (appContext.currentUser) {
+    const preservedName = appContext.currentUser.nombre || state.nombre || "";
+    const preservedStage = state.etapa || appContext.currentUser.etapa || "pre_u";
+    resetState(preservedName);
+    state.etapa = preservedStage;
+    saveState();
+    updateGreetingUI();
+    updateTopbar();
+    startDiagnosticForStage(preservedStage);
+    return;
+  }
+
   resetState("");
   try {
     window.localStorage.removeItem(STORAGE_KEY);
@@ -478,10 +491,7 @@ export function handleResetDiagnostic() {
     // Ignora fallo de limpieza
   }
 
-  if (dom["welcome-name-input"]) dom["welcome-name-input"].value = "";
-  dom["rescue-alert-banner"]?.classList.add("d-none");
   updateGreetingUI();
   updateTopbar();
-  updateWelcomeResumeBanner();
   showView("stage-selector");
 }

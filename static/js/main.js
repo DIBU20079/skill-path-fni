@@ -2,7 +2,14 @@
  * Punto de entrada ES Module: inicialización, navegación de secciones, perfil y nota parcial.
  */
 
-import { fetchSkillsDB } from "./api.js";
+import {
+  apiDemoLogin,
+  apiLogin,
+  apiLogout,
+  apiMe,
+  apiRegister,
+  fetchSkillsDB,
+} from "./api.js";
 import {
   checkStep1,
   checkStep2,
@@ -35,6 +42,7 @@ import {
 import {
   appContext,
   cacheDom,
+  clearSessionLocalState,
   dom,
   ensureConsistentNodeStatesForStage,
   getActiveMateria,
@@ -44,6 +52,7 @@ import {
   getMateriaSkills,
   getStageMaterias,
   hideBootstrapModal,
+  hydrateStateFromUser,
   renderMath,
   renderSkillsLoadError,
   saveState,
@@ -51,7 +60,6 @@ import {
   state,
   updateGreetingUI,
   updateTopbar,
-  updateWelcomeResumeBanner,
 } from "./state.js";
 
 function refreshActiveSection() {
@@ -134,6 +142,7 @@ function handleProfileNameSave(event) {
   if (!newName) return;
 
   state.nombre = newName;
+  if (appContext.currentUser) appContext.currentUser.nombre = newName;
   saveState();
   updateGreetingUI();
   dom["profile-name-saved-msg"]?.classList.remove("d-none");
@@ -143,6 +152,7 @@ function switchStageFromProfile(targetStage) {
   if (!appContext.skillsDB?.[targetStage]) return;
   const materias = getStageMaterias(targetStage);
   state.etapa = targetStage;
+  if (appContext.currentUser) appContext.currentUser.etapa = targetStage;
   if (!materias.some((m) => m.id === state.materia_activa)) {
     state.materia_activa = materias[0]?.id || null;
   }
@@ -302,59 +312,190 @@ function handlePartialGradeSubmit(event) {
 }
 
 /* ========================================================================
-   Enlace de Eventos y Arranque Inicial
+   Autenticación Cloud, Sesiones y Enlace de Eventos
    ======================================================================== */
 
+function switchAuthTab(mode) {
+  const isRegister = mode === "register";
+  dom["tab-auth-login"]?.classList.toggle("active", !isRegister);
+  dom["tab-auth-register"]?.classList.toggle("active", isRegister);
+  dom["tab-auth-login"]?.setAttribute("aria-selected", String(!isRegister));
+  dom["tab-auth-register"]?.setAttribute("aria-selected", String(isRegister));
+  dom["form-auth-login"]?.classList.toggle("d-none", isRegister);
+  dom["form-auth-register"]?.classList.toggle("d-none", !isRegister);
+  dom["auth-login-error"]?.classList.add("d-none");
+  dom["auth-reg-error"]?.classList.add("d-none");
+}
+
+function setAuthLoading(kind, isLoading) {
+  const buttonIds = {
+    login: "btn-auth-login",
+    register: "btn-auth-register",
+    demo: "btn-auth-demo-login",
+  };
+  const labelPrefix = {
+    login: "btn-auth-login",
+    register: "btn-auth-register",
+    demo: "btn-auth-demo",
+  }[kind];
+
+  const btn = dom[buttonIds[kind]];
+  if (btn) btn.disabled = isLoading;
+  dom[`${labelPrefix}-label`]?.classList.toggle("d-none", isLoading);
+  dom[`${labelPrefix}-spinner`]?.classList.toggle("d-none", !isLoading);
+}
+
+function showAuthBoxError(el, message) {
+  if (!el) return;
+  el.textContent = message;
+  el.classList.remove("d-none");
+}
+
+async function applyAuthenticatedUser(userData) {
+  hydrateStateFromUser(userData);
+  updateGreetingUI();
+  updateTopbar();
+
+  if (state.diagnostico_completado && appContext.skillsDB?.[state.etapa]) {
+    enterAppSection("camino");
+  } else {
+    await startDiagnosticForStage(state.etapa || "pre_u");
+  }
+}
+
+async function handleLoginSubmit(event) {
+  event.preventDefault();
+  const errorEl = dom["auth-login-error"];
+  errorEl?.classList.add("d-none");
+
+  const username = (dom["auth-login-username"]?.value || "").trim().toLowerCase();
+  const password = dom["auth-login-password"]?.value || "";
+
+  if (!username || !password) {
+    showAuthBoxError(errorEl, "Ingresa tu usuario y contraseña para continuar.");
+    return;
+  }
+
+  setAuthLoading("login", true);
+  try {
+    const user = await apiLogin(username, password);
+    if (dom["auth-login-password"]) dom["auth-login-password"].value = "";
+    await applyAuthenticatedUser(user);
+  } catch (error) {
+    showAuthBoxError(errorEl, error.message || "No se pudo iniciar sesión.");
+  } finally {
+    setAuthLoading("login", false);
+  }
+}
+
+async function handleRegisterSubmit(event) {
+  event.preventDefault();
+  const errorEl = dom["auth-reg-error"];
+  errorEl?.classList.add("d-none");
+
+  const nombre = (dom["auth-reg-nombre"]?.value || "").trim();
+  const username = (dom["auth-reg-username"]?.value || "").trim().toLowerCase();
+  const password = dom["auth-reg-password"]?.value || "";
+  const etapa = dom["auth-reg-stage-facultad"]?.checked ? "facultad" : "pre_u";
+
+  if (nombre.length < 2) {
+    showAuthBoxError(errorEl, "Ingresa un nombre de al menos 2 caracteres.");
+    dom["auth-reg-nombre"]?.focus();
+    return;
+  }
+  if (!/^[a-z0-9._-]{3,32}$/.test(username)) {
+    showAuthBoxError(
+      errorEl,
+      "Usuario inválido: usa 3 a 32 caracteres en minúsculas, números, '.', '_' o '-' sin espacios."
+    );
+    dom["auth-reg-username"]?.focus();
+    return;
+  }
+  if (password.length < 4) {
+    showAuthBoxError(errorEl, "La contraseña debe tener al menos 4 caracteres.");
+    dom["auth-reg-password"]?.focus();
+    return;
+  }
+
+  setAuthLoading("register", true);
+  try {
+    const user = await apiRegister({ nombre, username, password, etapa });
+    if (dom["auth-reg-password"]) dom["auth-reg-password"].value = "";
+    await applyAuthenticatedUser(user);
+  } catch (error) {
+    showAuthBoxError(errorEl, error.message || "No se pudo crear la cuenta.");
+  } finally {
+    setAuthLoading("register", false);
+  }
+}
+
+async function handleDemoLoginClick() {
+  dom["auth-global-error"]?.classList.add("d-none");
+  setAuthLoading("demo", true);
+  try {
+    const user = await apiDemoLogin();
+    await applyAuthenticatedUser(user);
+  } catch (error) {
+    if (dom["auth-global-error-text"]) {
+      dom["auth-global-error-text"].textContent =
+        error.message || "No se pudo iniciar la sesión demo.";
+    }
+    dom["auth-global-error"]?.classList.remove("d-none");
+  } finally {
+    setAuthLoading("demo", false);
+  }
+}
+
+async function handleLogoutClick() {
+  try {
+    await apiLogout();
+  } catch (_error) {
+    // Limpieza local garantizada aunque falle red
+  }
+
+  stopDiagnosticTimer();
+  if (appContext.diagRadarChartInstance) {
+    appContext.diagRadarChartInstance.destroy();
+    appContext.diagRadarChartInstance = null;
+  }
+  if (appContext.skillsRadarChartInstance) {
+    appContext.skillsRadarChartInstance.destroy();
+    appContext.skillsRadarChartInstance = null;
+  }
+
+  clearSessionLocalState();
+  dom["rescue-alert-banner"]?.classList.add("d-none");
+  dom["auth-login-error"]?.classList.add("d-none");
+  dom["auth-reg-error"]?.classList.add("d-none");
+  updateGreetingUI();
+  updateTopbar();
+  switchAuthTab("login");
+  showView("stage-selector");
+}
+
 function bindEvents() {
-  // Bienvenida: Perfil rápido + Selección de etapa
-  dom["welcome-name-input"]?.addEventListener("input", () => {
-    dom["welcome-name-error"]?.classList.add("d-none");
-  });
+  // Autenticación: pestañas, formularios y Demo Jurados
+  dom["tab-auth-login"]?.addEventListener("click", () => switchAuthTab("login"));
+  dom["tab-auth-register"]?.addEventListener("click", () => switchAuthTab("register"));
+  dom["form-auth-login"]?.addEventListener("submit", handleLoginSubmit);
+  dom["form-auth-register"]?.addEventListener("submit", handleRegisterSubmit);
+  dom["btn-auth-demo-login"]?.addEventListener("click", handleDemoLoginClick);
+  dom["btn-auth-retry"]?.addEventListener("click", () => window.location.reload());
 
-  [dom["card-stage-pre-u"], dom["card-stage-facultad"]].forEach((card) => {
-    if (!card) return;
-    const selectStage = () => {
-      const stage = card.dataset.stage;
-      const nameValue = (dom["welcome-name-input"]?.value || "").trim();
-      if (!nameValue) {
-        dom["welcome-name-error"]?.classList.remove("d-none");
-        dom["welcome-name-input"]?.focus();
-        return;
-      }
-      dom["welcome-name-error"]?.classList.add("d-none");
-      state.nombre = nameValue;
-      saveState();
-      updateGreetingUI();
-      if (stage) startDiagnosticForStage(stage);
-    };
-
-    card.addEventListener("click", selectStage);
-    card.addEventListener("keydown", (event) => {
-      if (event.key === "Enter" || event.key === " ") {
-        event.preventDefault();
-        selectStage();
-      }
-    });
-  });
+  dom["btn-nav-logout"]?.addEventListener("click", handleLogoutClick);
+  dom["btn-sidebar-logout"]?.addEventListener("click", handleLogoutClick);
 
   const goHome = (event) => {
     event.preventDefault();
-    stopDiagnosticTimer();
-    updateWelcomeResumeBanner();
-    showView("stage-selector");
+    if (appContext.currentUser) {
+      enterAppSection("camino");
+    } else {
+      stopDiagnosticTimer();
+      showView("stage-selector");
+    }
   };
   dom["brand-home-link"]?.addEventListener("click", goHome);
   dom["sidebar-home-link"]?.addEventListener("click", goHome);
-
-  dom["btn-resume-saved"]?.addEventListener("click", () => {
-    if (appContext.skillsLoadFailed) {
-      window.location.reload();
-      return;
-    }
-    if (state.etapa && state.diagnostico_completado && appContext.skillsDB?.[state.etapa]) {
-      enterAppSection("camino");
-    }
-  });
 
   // Barra de navegación de 4 secciones
   document.querySelectorAll(".nav-section-btn[data-section]").forEach((btn) => {
@@ -470,16 +611,25 @@ async function init() {
     return;
   }
 
-  if (state.nombre && dom["welcome-name-input"]) {
-    dom["welcome-name-input"].value = state.nombre;
+  try {
+    const me = await apiMe();
+    if (me) {
+      await applyAuthenticatedUser(me);
+      return;
+    }
+  } catch (error) {
+    console.warn("No se pudo validar sesión activa:", error);
+    if (dom["auth-global-error"] && dom["auth-global-error-text"]) {
+      dom["auth-global-error-text"].textContent =
+        error.message || "Error al consultar sesión en la nube.";
+      dom["auth-global-error"].classList.remove("d-none");
+    }
   }
 
-  if (state.etapa && state.diagnostico_completado && appContext.skillsDB[state.etapa]) {
-    enterAppSection("camino");
-  } else {
-    updateWelcomeResumeBanner();
-    showView("stage-selector");
-  }
+  clearSessionLocalState();
+  updateGreetingUI();
+  updateTopbar();
+  showView("stage-selector");
 }
 
 if (document.readyState === "loading") {

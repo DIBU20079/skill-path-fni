@@ -3,21 +3,28 @@
 from __future__ import annotations
 
 import os
+from datetime import timedelta
 
 from dotenv import load_dotenv
 from flask import Flask, jsonify
 from flask_cors import CORS
 from werkzeug.exceptions import RequestEntityTooLarge
+from werkzeug.middleware.proxy_fix import ProxyFix
 
 from routes import api_ai_bp, api_auth_bp, api_skills_bp, views_bp
 
 load_dotenv()
 
 app = Flask(__name__, template_folder="templates", static_folder="static")
+app.secret_key = os.getenv("SECRET_KEY", "dev-secret-fni")
+app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
+app.config["SESSION_COOKIE_HTTPONLY"] = True
+app.config["PERMANENT_SESSION_LIFETIME"] = timedelta(days=30)
 app.config["MAX_CONTENT_LENGTH"] = 10 * 1024 * 1024  # Límite de 10 MB por solicitud
 app.json.ensure_ascii = False
+app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
 
-CORS(app)
+CORS(app, supports_credentials=True)
 
 
 @app.errorhandler(RequestEntityTooLarge)
