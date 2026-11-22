@@ -983,6 +983,42 @@
   line-height: 1.25;
 }
 
+.unit-divider-desc {
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.9);
+  line-height: 1.35;
+  margin-top: 0.25rem;
+}
+
+.btn-unit-advance {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  background-color: rgba(255, 255, 255, 0.95);
+  color: #0f172a;
+  border: 2px solid rgba(255, 255, 255, 0.9);
+  border-bottom-width: 4px;
+  border-radius: 12px;
+  font-family: "Nunito", sans-serif;
+  font-weight: 900;
+  font-size: 0.82rem;
+  padding: 0.38rem 0.85rem;
+  max-width: 100%;
+  box-shadow: 0 3px 10px rgba(15, 23, 42, 0.14);
+  transition: transform 0.12s ease, background-color 0.15s ease;
+}
+
+.btn-unit-advance:hover {
+  background-color: #ffffff;
+  color: #0369a1;
+  transform: translateY(-1px);
+}
+
+.btn-unit-advance:active {
+  transform: translateY(2px);
+}
+
 .unit-progress-pill {
   font-family: "Nunito", sans-serif;
   font-weight: 800;

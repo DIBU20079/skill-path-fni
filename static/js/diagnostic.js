@@ -18,6 +18,7 @@ import {
   getAllStageSkills,
   getDiagnosticAreasForStage,
   getMateriaSkills,
+  getMateriaUnidades,
   incrementMedallaCounter,
   launchConfetti,
   renderMath,
@@ -37,6 +38,7 @@ const examSession = {
   materia: null,
   stageKey: null,
   targetSkill: null,
+  targetUnit: null,
   targetIdx: -1,
   evaluatedSkills: [],
   questions: [],
@@ -112,8 +114,16 @@ function buildPlacementQuestionsForMateria(materia) {
   });
 }
 
-function buildSkipQuestionsForTarget(materia, targetIdx) {
+function buildSkipQuestionsForTarget(materia, targetIdx, requiredBaseIds = []) {
   const skills = getMateriaSkills(materia);
+  const previousAll = skills.slice(0, Math.max(1, targetIdx));
+  const requiredSet = new Set(Array.isArray(requiredBaseIds) ? requiredBaseIds : []);
+
+  const prioritizedSkills = [
+    ...previousAll.filter((s) => requiredSet.has(s.id)),
+    ...previousAll.filter((s) => !requiredSet.has(s.id)),
+  ];
+
   const activeIdx = skills.findIndex((s) => {
     const st = state.nodos_estado[s.id];
     return st === "active" || st === "blocker";
@@ -122,7 +132,7 @@ function buildSkipQuestionsForTarget(materia, targetIdx) {
   const startIdx = activeIdx >= 0 && activeIdx < targetIdx ? activeIdx : 0;
   let priorSkills = skills.slice(startIdx, targetIdx);
   if (priorSkills.length === 0) {
-    priorSkills = skills.slice(0, targetIdx);
+    priorSkills = previousAll;
   }
 
   const priorIds = new Set(priorSkills.map((s) => s.id));
@@ -130,9 +140,14 @@ function buildSkipQuestionsForTarget(materia, targetIdx) {
   const selected = [];
   const usedPrompts = new Set();
 
-  // 1. Preguntas del banco asociadas a los nodos previos a N
+  // 1. Preguntas del banco asociadas primero a bases requeridas o nodos previos
   bank.forEach((q) => {
-    if (priorIds.has(q.skill_id) && !usedPrompts.has(q.enunciado_latex)) {
+    if (selected.length >= 4) return;
+    if (
+      (requiredSet.has(q.skill_id) || priorIds.has(q.skill_id)) &&
+      q.enunciado_latex &&
+      !usedPrompts.has(q.enunciado_latex)
+    ) {
       usedPrompts.add(q.enunciado_latex);
       selected.push({
         id: q.id || `skip_bank_${selected.length + 1}`,
@@ -148,8 +163,8 @@ function buildSkipQuestionsForTarget(materia, targetIdx) {
     }
   });
 
-  // 2. Completar hasta 3-4 preguntas usando paso1_concepto de los nodos previos
-  priorSkills.forEach((s) => {
+  // 2. Completar hasta 4 preguntas usando paso1_concepto de bases requeridas y nodos previos
+  prioritizedSkills.forEach((s) => {
     if (selected.length >= 4) return;
     const p1 = s.paso1_concepto;
     if (p1 && p1.enunciado_latex && !usedPrompts.has(p1.enunciado_latex)) {
@@ -168,23 +183,26 @@ function buildSkipQuestionsForTarget(materia, targetIdx) {
     }
   });
 
-  // 3. Si aún hay menos de 3 preguntas, completar con nodos anteriores desde 0..targetIdx-1
+  // 3. Fallback con cualquier pregunta restante de unidades anteriores si aún hay menos de 3
   if (selected.length < 3) {
-    skills.slice(0, targetIdx).forEach((s) => {
+    bank.forEach((q) => {
       if (selected.length >= 4) return;
-      const p1 = s.paso1_concepto;
-      if (p1 && p1.enunciado_latex && !usedPrompts.has(p1.enunciado_latex)) {
-        usedPrompts.add(p1.enunciado_latex);
+      if (
+        previousAll.some((s) => s.id === q.skill_id) &&
+        q.enunciado_latex &&
+        !usedPrompts.has(q.enunciado_latex)
+      ) {
+        usedPrompts.add(q.enunciado_latex);
         selected.push({
-          id: `skip_extra_${s.id}`,
-          skill_id: s.id,
-          tema: s.nombre,
-          area: s.area || materia.nombre,
-          tiempo_segundos: 45,
-          enunciado_latex: p1.enunciado_latex,
-          opciones: Array.isArray(p1.opciones) ? p1.opciones : [],
-          respuesta_correcta: p1.respuesta_correcta,
-          explicacion_breve: p1.explicacion || "",
+          id: q.id || `skip_extra_${selected.length + 1}`,
+          skill_id: q.skill_id,
+          tema: q.tema || materia.nombre,
+          area: q.area || materia.nombre,
+          tiempo_segundos: Number(q.tiempo_segundos) || 45,
+          enunciado_latex: q.enunciado_latex,
+          opciones: Array.isArray(q.opciones) ? q.opciones : [],
+          respuesta_correcta: q.respuesta_correcta,
+          explicacion_breve: q.explicacion_breve || "",
         });
       }
     });
@@ -279,6 +297,7 @@ export async function startSkipExam(targetSkillId) {
     materia,
     stageKey,
     targetSkill,
+    targetUnit: null,
     targetIdx,
     evaluatedSkills,
     questions,
@@ -301,6 +320,75 @@ export async function startSkipExam(targetSkillId) {
   if (dom["diag-footer-hint"]) {
     dom["diag-footer-hint"].innerHTML =
       `<i class="bi bi-shield-fill-check text-primary me-1"></i>Aprueba con <strong>&ge; 75%</strong> para desbloquear los temas anteriores y activar este nodo.`;
+  }
+
+  dom["diagnostic-quiz-panel"]?.classList.remove("d-none");
+  dom["diagnostic-results-panel"]?.classList.add("d-none");
+
+  updateGreetingUI();
+  updateTopbar();
+  showView("diagnostic");
+  renderExamQuestion();
+}
+
+export async function startSkipUnitExam(materiaId, unitId) {
+  if (!(await ensureSkillsLoaded())) return;
+
+  const found = findMateriaById(materiaId);
+  if (!found || !found.materia) return;
+
+  const { materia, stageKey } = found;
+  const unidades = getMateriaUnidades(materia);
+  const unit = unidades.find((u) => u.id === unitId);
+  if (!unit || !Array.isArray(unit.nodos_ids) || unit.nodos_ids.length === 0) return;
+
+  const skills = getMateriaSkills(materia);
+  const firstNodeId = unit.nodos_ids[0];
+  const targetIdx = skills.findIndex((s) => s.id === firstNodeId);
+  const targetSkill = targetIdx >= 0 ? skills[targetIdx] : null;
+  if (!targetSkill || targetIdx < 1) return;
+
+  const requiredBaseIds = (unit.bases_requeridas || []).map((b) => b.id);
+  const { questions, evaluatedSkills } = buildSkipQuestionsForTarget(
+    materia,
+    targetIdx,
+    requiredBaseIds
+  );
+  if (questions.length === 0) return;
+
+  stopDiagnosticTimer();
+  state.etapa = stageKey;
+  state.materia_activa = materia.id;
+  saveState();
+
+  Object.assign(examSession, {
+    mode: "skip",
+    materia,
+    stageKey,
+    targetSkill,
+    targetUnit: unit,
+    targetIdx,
+    evaluatedSkills,
+    questions,
+    currentIndex: 0,
+    selectedOption: null,
+    confirmed: false,
+    answers: [],
+    timerId: null,
+    secondsLeft: 0,
+    totalSeconds: 45,
+    isGlobalTimer: false,
+  });
+
+  if (dom["diag-mode-kicker"]) {
+    dom["diag-mode-kicker"].textContent = `⚡ VALIDAR BASES · ${materia.nombre.toUpperCase()}`;
+  }
+  if (dom["diag-exam-title"]) {
+    dom["diag-exam-title"].textContent = `Adelantar a: ${unit.titulo}`;
+  }
+  if (dom["diag-footer-hint"]) {
+    dom["diag-footer-hint"].innerHTML =
+      `<i class="bi bi-shield-fill-check text-primary me-1"></i>Aprueba con <strong>&ge; 75%</strong> para desbloquear las unidades anteriores en verde y activar <strong>${escapeHtml(unit.titulo)}</strong>.`;
   }
 
   dom["diagnostic-quiz-panel"]?.classList.remove("d-none");
@@ -896,6 +984,7 @@ function finishSkipExam() {
 
   const materia = examSession.materia || getActiveMateria();
   const targetSkill = examSession.targetSkill;
+  const targetUnit = examSession.targetUnit;
   const skills = getMateriaSkills(materia);
   const targetIdx =
     examSession.targetIdx >= 0
@@ -922,8 +1011,10 @@ function finishSkipExam() {
         state.xp_otorgado_nodos[s.id] = true;
         state.nodos_pasos[s.id] = 3;
       } else if (idx === targetIdx) {
-        state.nodos_estado[s.id] = "active";
-        state.nodos_pasos[s.id] = 0;
+        if (state.nodos_estado[s.id] !== "unlocked") {
+          state.nodos_estado[s.id] = "active";
+          state.nodos_pasos[s.id] = 0;
+        }
       }
     });
     state.xp += 60;
@@ -947,6 +1038,7 @@ function finishSkipExam() {
     passed,
     materia,
     targetSkill,
+    targetUnit,
     overallPercent,
     correctCount,
     totalCount,
@@ -1128,6 +1220,7 @@ function renderSkipResults({
   passed,
   materia,
   targetSkill,
+  targetUnit = null,
   overallPercent,
   correctCount,
   totalCount,
@@ -1139,13 +1232,16 @@ function renderSkipResults({
 
   if (dom["diag-result-pill"]) {
     dom["diag-result-pill"].textContent = passed
-      ? "⚡ ¡NIVEL DESBLOQUEADO!"
+      ? "⚡ ¡UNIDAD DESBLOQUEADA!"
       : "🔒 SALTO NO ALCANZADO (MÍNIMO 75%)";
   }
   if (dom["diag-result-title"]) {
+    const destLabel = targetUnit
+      ? targetUnit.titulo
+      : `#${targetSkill?.ranking_criticidad} ${targetSkill?.nombre}`;
     dom["diag-result-title"].textContent = passed
-      ? `¡Salto exitoso a #${targetSkill?.ranking_criticidad} ${targetSkill?.nombre}!`
-      : `Aún debes reforzar temas previos antes de saltar`;
+      ? `¡Salto exitoso a ${destLabel}!`
+      : `Aún debes reforzar bases previas antes de saltar`;
   }
   if (dom["diag-overall-score"]) {
     dom["diag-overall-score"].textContent = passed
@@ -1153,7 +1249,7 @@ function renderSkipResults({
       : `${overallPercent}% (${correctCount}/${totalCount} aciertos · Se requiere ≥ 75%)`;
   }
   if (dom["diag-breakdown-heading"]) {
-    dom["diag-breakdown-heading"].textContent = "Temas Previos Evaluados";
+    dom["diag-breakdown-heading"].textContent = "Bases y Temas Previos Evaluados";
   }
 
   dom["diag-radar-col"]?.classList.remove("d-none");
@@ -1186,20 +1282,23 @@ function renderSkipResults({
 
   if (dom["diag-recommendation-text"]) {
     if (passed) {
+      const destHtml = targetUnit
+        ? `la unidad <strong>${escapeHtml(targetUnit.titulo)}</strong>`
+        : `<strong>#${escapeHtml(targetSkill?.ranking_criticidad)} ${escapeHtml(targetSkill?.nombre)}</strong>`;
       dom["diag-recommendation-text"].innerHTML =
-        `<strong>¡Nivel desbloqueado!</strong> Todos los nodos anteriores a <strong>#${escapeHtml(targetSkill?.ranking_criticidad)} ${escapeHtml(targetSkill?.nombre)}</strong> quedaron marcados en verde y tu nuevo nodo destino ya está activo en amarillo.`;
+        `<strong>¡Bases validadas!</strong> Todos los nodos anteriores quedaron marcados en verde y ya puedes comenzar ${destHtml} desde su primer tema activo en amarillo.`;
     } else {
       const topicsText =
         failedTopics.length > 0 ? failedTopics.join(", ") : "los módulos anteriores";
       dom["diag-recommendation-text"].innerHTML =
-        `<strong>Temas a reforzar:</strong> Repasa <strong>${escapeHtml(topicsText)}</strong> en tu nodo activo actual antes de volver a intentar el salto de nivel.`;
+        `<strong>Temas a reforzar:</strong> Repasa <strong>${escapeHtml(topicsText)}</strong> (o entra desde Práctica Libre bajo aviso) antes de volver a intentar validar bases.`;
     }
   }
 
   if (dom["btn-go-to-path"]) {
     dom["btn-go-to-path"].innerHTML = passed
       ? `<i class="bi bi-lightning-charge-fill me-2"></i>Continuar en #${escapeHtml(targetSkill?.ranking_criticidad)} ${escapeHtml(targetSkill?.nombre)}`
-      : '<i class="bi bi-arrow-left-circle-fill me-2"></i>Volver a mi Nodo Activo Actual';
+      : '<i class="bi bi-arrow-left-circle-fill me-2"></i>Volver al Camino';
   }
 
   appContext.diagRadarChartInstance = renderRadarOnCanvas(
@@ -1315,10 +1414,14 @@ export function handleFullProgressReset() {
   }
 
   if (appContext.currentUser) {
+    const wasTester = Boolean(
+      state.is_tester || appContext.currentUser.username === "tester"
+    );
     const preservedName = appContext.currentUser.nombre || state.nombre || "";
     const preservedStage = state.etapa || appContext.currentUser.etapa || "pre_u";
     resetState(preservedName);
     state.etapa = preservedStage;
+    state.is_tester = wasTester;
     saveState();
     updateGreetingUI();
     updateTopbar();

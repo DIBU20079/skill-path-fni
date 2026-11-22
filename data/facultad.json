@@ -966,6 +966,88 @@
           "respuesta_correcta": "$2x^3 + \\frac{1}{2}e^{2x} + C$",
           "explicacion_breve": "$\\int 6x^2\\,dx = 2x^3$ y con $u = 2x$, $\\int e^{2x}\\,dx = \\frac{1}{2}e^{2x}$, más $+C$."
         }
+      ],
+      "unidades": [
+        {
+          "id": "calc1_u1",
+          "titulo": "Unidad 1: Funciones y Dominios",
+          "descripcion": "Inecuaciones, valor absoluto, composición de funciones y dominio máximo real.",
+          "bases_requeridas": [],
+          "nodos_ids": [
+            "fac_cal_01_inecuaciones_func",
+            "fac_cal_01b_funciones_dominios"
+          ]
+        },
+        {
+          "id": "calc1_u2",
+          "titulo": "Unidad 2: Límites y Continuidad",
+          "descripcion": "Indeterminaciones 0/0 e infinito, límites trigonométricos, continuidad y asíntotas.",
+          "bases_requeridas": [
+            {
+              "id": "fac_cal_01_inecuaciones_func",
+              "nombre": "Inecuaciones y Valor Absoluto"
+            },
+            {
+              "id": "fac_cal_01b_funciones_dominios",
+              "nombre": "Funciones, Composición y Dominios"
+            }
+          ],
+          "nodos_ids": [
+            "fac_cal_02_limites_alg",
+            "fac_cal_03_limites_trig",
+            "fac_cal_03b_continuidad"
+          ]
+        },
+        {
+          "id": "calc1_u3",
+          "titulo": "Unidad 3: Derivadas y Aplicaciones",
+          "descripcion": "Regla de la cadena, derivación implícita/logarítmica y problemas de optimización FNI.",
+          "bases_requeridas": [
+            {
+              "id": "fac_cal_01b_funciones_dominios",
+              "nombre": "Funciones, Composición y Dominios"
+            },
+            {
+              "id": "fac_cal_02_limites_alg",
+              "nombre": "Límites Algebraicos e Infinitos"
+            },
+            {
+              "id": "fac_cal_03_limites_trig",
+              "nombre": "Límites Trigonométricos y Exponenciales"
+            },
+            {
+              "id": "fac_cal_03b_continuidad",
+              "nombre": "Continuidad y Asíntotas"
+            }
+          ],
+          "nodos_ids": [
+            "fac_cal_04_derivadas",
+            "fac_cal_04b_deriv_implicita_log",
+            "fac_cal_05_optimizacion"
+          ]
+        },
+        {
+          "id": "calc1_u4",
+          "titulo": "Unidad 4: Integrales Básicas",
+          "descripcion": "Antiderivadas inmediatas, cambio de variable u-du e integrales trigonométricas.",
+          "bases_requeridas": [
+            {
+              "id": "fac_cal_02_limites_alg",
+              "nombre": "Límites Algebraicos e Infinitos"
+            },
+            {
+              "id": "fac_cal_04_derivadas",
+              "nombre": "Derivadas por Regla de la Cadena"
+            },
+            {
+              "id": "fac_cal_04b_deriv_implicita_log",
+              "nombre": "Derivación Implícita y Logarítmica"
+            }
+          ],
+          "nodos_ids": [
+            "fac_cal_06_integrales_basicas"
+          ]
+        }
       ]
     },
     {
@@ -1603,6 +1685,64 @@
           ],
           "respuesta_correcta": "$25\\text{ J}$",
           "explicacion_breve": "La energía cinética es $K = \\frac{1}{2}mv^2 = \\frac{1}{2}(2)(5^2) = 25\\text{ J}$."
+        }
+      ],
+      "unidades": [
+        {
+          "id": "fis1_u1",
+          "titulo": "Unidad 1: Vectores y Cinemática 1D/2D",
+          "descripcion": "Descomposición vectorial 2D/3D, MRU/MRUV, caída libre y movimiento parabólico.",
+          "bases_requeridas": [],
+          "nodos_ids": [
+            "fac_fis_01_vectores",
+            "fac_fis_01b_cinematica_1d",
+            "fac_fis_02_cinematica"
+          ]
+        },
+        {
+          "id": "fis1_u2",
+          "titulo": "Unidad 2: Dinámica y Leyes de Newton",
+          "descripcion": "Diagramas de cuerpo libre en planos inclinados, rozamiento, poleas y fuerza centrípeta.",
+          "bases_requeridas": [
+            {
+              "id": "fac_fis_01_vectores",
+              "nombre": "Vectores y Descomposición 2D/3D"
+            },
+            {
+              "id": "fac_fis_01b_cinematica_1d",
+              "nombre": "Cinemática 1D (MRU, MRUV y Caída Libre)"
+            },
+            {
+              "id": "fac_fis_02_cinematica",
+              "nombre": "Movimiento en 2D y Tiro Parabólico"
+            }
+          ],
+          "nodos_ids": [
+            "fac_fis_03_dinamica",
+            "fac_fis_03b_poleas_circular"
+          ]
+        },
+        {
+          "id": "fis1_u3",
+          "titulo": "Unidad 3: Trabajo y Energía",
+          "descripcion": "Teorema trabajo-energía, conservación mecánica y pérdidas por fricción.",
+          "bases_requeridas": [
+            {
+              "id": "fac_fis_01_vectores",
+              "nombre": "Vectores y Descomposición 2D/3D"
+            },
+            {
+              "id": "fac_fis_03_dinamica",
+              "nombre": "Leyes de Newton y Plano Inclinado"
+            },
+            {
+              "id": "fac_fis_03b_poleas_circular",
+              "nombre": "Poleas, Tensión y Dinámica Circular"
+            }
+          ],
+          "nodos_ids": [
+            "fac_fis_04_energia"
+          ]
         }
       ]
     }

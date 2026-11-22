@@ -68,7 +68,7 @@
                   <span id="path-user-greeting" class="path-kicker">CAMINO DE ESTUDIO</span>
                   <h2 id="path-route-title" class="h4 fw-black mb-1">Materia Activa</h2>
                   <p id="path-route-desc" class="text-secondary small mb-0">
-                    Supera los 3 pasos de cada nodo o usa "⚡ Saltar aquí" para adelantar niveles.
+                    Supera los 3 pasos de cada nodo o usa "⚡ Adelantar a esta unidad" desde el encabezado de cada unidad.
                   </p>
                 </div>
                 <div class="d-flex flex-wrap gap-2">
@@ -104,7 +104,7 @@
                   <span class="legend-dot legend-dot-blocker"></span>Refuerzo de prerrequisito
                 </span>
                 <span class="legend-item">
-                  <span class="legend-dot legend-dot-locked"></span>Bloqueado (⚡ Saltar disponible)
+                  <span class="legend-dot legend-dot-locked"></span>Bloqueado (adelanta por unidad)
                 </span>
               </div>
 
@@ -143,3 +143,53 @@
           </aside>
         </div>
       </section>
+
+      <!-- Modal Check de Bases: Aviso antes de adelantar a una Unidad -->
+      <div
+        class="modal fade"
+        id="unitBasesModal"
+        tabindex="-1"
+        aria-labelledby="unit-bases-modal-title"
+        aria-hidden="true"
+      >
+        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-fullscreen-sm-down">
+          <div class="modal-content duo-modal">
+            <div class="modal-header border-0 pb-2 px-3 px-sm-4 pt-3 pt-sm-4">
+              <div>
+                <div id="unit-bases-modal-subject" class="modal-node-kicker">CHECK DE BASES REQUERIDAS</div>
+                <h3 id="unit-bases-modal-title" class="h4 fw-black mb-1">Unidad Destino</h3>
+                <p id="unit-bases-modal-desc" class="small text-secondary mb-0"></p>
+              </div>
+              <button type="button" class="btn-close align-self-start" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+
+            <div class="modal-body px-3 px-sm-4 pt-2 pb-3">
+              <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2">
+                <span class="small fw-black text-uppercase text-secondary">Bases necesarias para esta unidad</span>
+                <span id="unit-bases-summary-badge" class="badge rounded-pill text-bg-warning text-dark">0/0 dominadas</span>
+              </div>
+
+              <div id="unit-bases-list" class="d-flex flex-column gap-2 mb-3"></div>
+
+              <div class="unit-bases-warning-box">
+                <i class="bi bi-exclamation-circle-fill text-warning me-2 flex-shrink-0"></i>
+                <span>
+                  <strong>Aviso pedagógico:</strong> Si saltas sin dominar las bases pendientes, el auditor por foto podrá sugerirte volver a reforzarlas.
+                </span>
+              </div>
+            </div>
+
+            <div class="modal-footer border-0 px-3 px-sm-4 pb-3 pb-sm-4 pt-1">
+              <div class="d-grid gap-2 w-100 m-0">
+                <button type="button" id="btn-unit-validate-skip" class="btn btn-duo btn-duo-green py-2">
+                  <span>🎯 Validar bases y saltar</span>
+                  <span class="badge rounded-pill text-bg-light text-success ms-2" style="font-size: 0.72rem;">Recomendado</span>
+                </button>
+                <button type="button" id="btn-unit-free-practice" class="btn btn-duo btn-duo-outline-secondary py-2">
+                  🔓 Entrar en Práctica Libre (bajo aviso)
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>

@@ -34,8 +34,65 @@ def _construir_banco_etapa(materias: list[dict[str, Any]]) -> list[dict[str, Any
     return preguntas
 
 
+def _normalizar_unidades(mat: dict[str, Any], skills_norm: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Preserva el arreglo `unidades` o lo deriva de los skills manteniendo orden e integridad."""
+    skill_ids_validos = {s["id"] for s in skills_norm if s.get("id")}
+    raw_unidades = mat.get("unidades")
+    unidades_norm: list[dict[str, Any]] = []
+
+    if isinstance(raw_unidades, list) and len(raw_unidades) > 0:
+        for idx, unit in enumerate(raw_unidades, start=1):
+            if not isinstance(unit, dict):
+                continue
+            unit_id = str(unit.get("id") or f"{mat.get('id', 'mat')}_u{idx}").strip()
+            titulo = str(unit.get("titulo") or f"Unidad {idx}").strip()
+            descripcion = str(unit.get("descripcion") or "").strip()
+            nodos_ids = [
+                str(nid).strip()
+                for nid in (unit.get("nodos_ids") or [])
+                if str(nid).strip() in skill_ids_validos
+            ]
+            bases_norm: list[dict[str, str]] = []
+            for base in unit.get("bases_requeridas") or []:
+                if isinstance(base, dict) and str(base.get("id") or "").strip():
+                    bases_norm.append(
+                        {
+                            "id": str(base["id"]).strip(),
+                            "nombre": str(base.get("nombre") or base["id"]).strip(),
+                        }
+                    )
+            if nodos_ids:
+                unidades_norm.append(
+                    {
+                        "id": unit_id,
+                        "titulo": titulo,
+                        "descripcion": descripcion,
+                        "bases_requeridas": bases_norm,
+                        "nodos_ids": nodos_ids,
+                    }
+                )
+
+    if not unidades_norm:
+        por_titulo: dict[str, list[str]] = {}
+        for s in skills_norm:
+            titulo = str(s.get("unidad") or "Unidad 1: Fundamentos").strip()
+            por_titulo.setdefault(titulo, []).append(s["id"])
+        for idx, (titulo, nodos_ids) in enumerate(por_titulo.items(), start=1):
+            unidades_norm.append(
+                {
+                    "id": f"{mat.get('id', 'mat')}_u{idx}",
+                    "titulo": titulo,
+                    "descripcion": "",
+                    "bases_requeridas": [],
+                    "nodos_ids": nodos_ids,
+                }
+            )
+
+    return unidades_norm
+
+
 def _normalizar_materias(materias: list[dict[str, Any]]) -> list[dict[str, Any]]:
-    """Asegura campos opcionales de unidad y guia_aprendizaje sin alterar los existentes."""
+    """Asegura campos opcionales de unidad, unidades y guia_aprendizaje sin alterar existentes."""
     normalizadas: list[dict[str, Any]] = []
     for mat in materias:
         if not isinstance(mat, dict):
@@ -52,6 +109,7 @@ def _normalizar_materias(materias: list[dict[str, Any]]) -> list[dict[str, Any]]
                 skill_copy["guia_aprendizaje"] = {}
             skills_norm.append(skill_copy)
         mat_copy["skills"] = skills_norm
+        mat_copy["unidades"] = _normalizar_unidades(mat_copy, skills_norm)
         normalizadas.append(mat_copy)
     return normalizadas
 

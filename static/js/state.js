@@ -53,6 +53,7 @@ export function createDefaultState() {
   return {
     nombre: "",
     etapa: null,
+    is_tester: false,
     materia_activa: null,
     materias_iniciadas: {},
     xp: 0,
@@ -167,6 +168,7 @@ function normalizeStateObject(parsed) {
     ...defaults,
     ...parsed,
     nombre: typeof parsed.nombre === "string" ? parsed.nombre.trim() : "",
+    is_tester: Boolean(parsed.is_tester),
     materias_iniciadas:
       parsed.materias_iniciadas && typeof parsed.materias_iniciadas === "object"
         ? { ...parsed.materias_iniciadas }
@@ -302,6 +304,9 @@ export function hydrateStateFromUser(userData) {
     }
     if (!hydrated.etapa) {
       hydrated.etapa = appContext.currentUser.etapa;
+    }
+    if (appContext.currentUser.username === "tester") {
+      hydrated.is_tester = true;
     }
 
     Object.assign(state, hydrated);
@@ -897,6 +902,57 @@ export function getMateriaSkills(materia) {
   );
 }
 
+export function getMateriaUnidades(materia) {
+  if (!materia) return [];
+  const skills = getMateriaSkills(materia);
+  const skillById = new Map(skills.map((s) => [s.id, s]));
+  const rawUnits = Array.isArray(materia.unidades) ? materia.unidades : [];
+  const unidades = [];
+  const assignedIds = new Set();
+
+  rawUnits.forEach((unit, idx) => {
+    if (!unit || typeof unit !== "object") return;
+    const rawIds = Array.isArray(unit.nodos_ids) ? unit.nodos_ids : [];
+    const validIds = rawIds.filter((id) => skillById.has(id));
+    if (validIds.length === 0) return;
+
+    validIds.forEach((id) => assignedIds.add(id));
+    unidades.push({
+      id: String(unit.id || `${materia.id}_u${idx + 1}`).trim(),
+      titulo: String(unit.titulo || `Unidad ${idx + 1}`).trim(),
+      descripcion: String(unit.descripcion || "").trim(),
+      bases_requeridas: Array.isArray(unit.bases_requeridas)
+        ? unit.bases_requeridas
+        : [],
+      nodos_ids: validIds,
+    });
+  });
+
+  // Fallback o nodos sin asignar a unidad explícita
+  const unassigned = skills.filter((s) => !assignedIds.has(s.id));
+  if (unassigned.length > 0) {
+    const groups = new Map();
+    unassigned.forEach((skill) => {
+      const title = String(skill.unidad || "Unidad 1: Fundamentos").trim();
+      if (!groups.has(title)) groups.set(title, []);
+      groups.get(title).push(skill.id);
+    });
+    let fallbackIdx = unidades.length + 1;
+    groups.forEach((nodosIds, title) => {
+      unidades.push({
+        id: `${materia.id || "mat"}_u${fallbackIdx}`,
+        titulo: title,
+        descripcion: "",
+        bases_requeridas: [],
+        nodos_ids: nodosIds,
+      });
+      fallbackIdx += 1;
+    });
+  }
+
+  return unidades;
+}
+
 export function getActiveMateriaSkills() {
   return getMateriaSkills(getActiveMateria());
 }
@@ -1046,6 +1102,14 @@ export function cacheDom() {
     "duolingo-path-container",
     "ranking-materia-code",
     "critical-ranking-list",
+    "unitBasesModal",
+    "unit-bases-modal-subject",
+    "unit-bases-modal-title",
+    "unit-bases-modal-desc",
+    "unit-bases-summary-badge",
+    "unit-bases-list",
+    "btn-unit-validate-skip",
+    "btn-unit-free-practice",
     "view-materias",
     "materias-stage-pill",
     "subjects-catalog-container",
@@ -1080,12 +1144,20 @@ export function cacheDom() {
     "profile-avatar",
     "profile-stage-badge",
     "profile-rank-badge",
+    "profile-tester-badge",
     "profile-display-name",
     "profile-username-handle",
     "profile-xp",
     "profile-streak",
     "profile-completed",
     "btn-profile-logout",
+    "profile-tester-card",
+    "btn-tester-sync-all",
+    "btn-tester-sync-label",
+    "btn-tester-sync-spinner",
+    "btn-tester-stage-preu",
+    "btn-tester-stage-facultad",
+    "profile-tester-feedback",
     "profile-rank-level",
     "profile-rank-title",
     "profile-rank-xp",

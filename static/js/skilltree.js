@@ -12,12 +12,15 @@ import {
   ensureConsistentNodeStatesForStage,
   errorMatchesMateria,
   escapeHtml,
+  findMateriaById,
   findSkillGlobal,
   getActiveMateria,
   getActiveMateriaSkills,
   getMateriaSkills,
+  getMateriaUnidades,
   getShortSkillLabel,
   getStageMaterias,
+  hideBootstrapModal,
   isMateriaIniciada,
   obtenerFallosRepetitivos,
   obtenerMedallas,
@@ -26,27 +29,131 @@ import {
   obtenerProgresoNodo,
   obtenerRangoFNI,
   saveState,
+  showBootstrapModal,
   state,
+  updateTopbar,
 } from "./state.js";
 
 let openNodeHandler = () => {};
 let enterSectionHandler = () => {};
 let skipToNodeHandler = () => {};
+let skipToUnitHandler = () => {};
 let startSimulacroHandler = () => {};
 let overcomeErrorHandler = () => {};
+
+let pendingUnitSkip = {
+  materia: null,
+  unit: null,
+  firstNodeId: null,
+};
 
 export function configureSkilltreeHandlers({
   onOpenNode,
   onEnterSection,
   onSkipToNode,
+  onSkipToUnit,
   onStartSimulacro,
   onOvercomeError,
 } = {}) {
   if (typeof onOpenNode === "function") openNodeHandler = onOpenNode;
   if (typeof onEnterSection === "function") enterSectionHandler = onEnterSection;
   if (typeof onSkipToNode === "function") skipToNodeHandler = onSkipToNode;
+  if (typeof onSkipToUnit === "function") skipToUnitHandler = onSkipToUnit;
   if (typeof onStartSimulacro === "function") startSimulacroHandler = onStartSimulacro;
   if (typeof onOvercomeError === "function") overcomeErrorHandler = onOvercomeError;
+}
+
+export function openUnitBasesModal(materia, unit) {
+  if (!materia || !unit) return;
+  const firstNodeId = Array.isArray(unit.nodos_ids) ? unit.nodos_ids[0] || null : null;
+  pendingUnitSkip = { materia, unit, firstNodeId };
+
+  if (dom["unit-bases-modal-subject"]) {
+    dom["unit-bases-modal-subject"].textContent =
+      `CHECK DE BASES · ${materia.codigo || materia.nombre.toUpperCase()}`;
+  }
+  if (dom["unit-bases-modal-title"]) {
+    dom["unit-bases-modal-title"].textContent = unit.titulo || "Adelantar de Unidad";
+  }
+  if (dom["unit-bases-modal-desc"]) {
+    dom["unit-bases-modal-desc"].textContent =
+      unit.descripcion ||
+      "Revisa tus conocimientos previos antes de adelantar a esta unidad.";
+  }
+
+  const listEl = dom["unit-bases-list"];
+  const bases = Array.isArray(unit.bases_requeridas) ? unit.bases_requeridas : [];
+  let doneCount = 0;
+
+  if (listEl) {
+    listEl.innerHTML = "";
+    if (bases.length === 0) {
+      listEl.innerHTML =
+        '<div class="unit-base-item is-done"><span class="small fw-semibold text-dark">Sin bases previas obligatorias para esta unidad.</span><span class="badge rounded-pill text-bg-success">✅ Listo</span></div>';
+    } else {
+      bases.forEach((base) => {
+        const isDone = state.nodos_estado?.[base.id] === "unlocked";
+        if (isDone) doneCount += 1;
+
+        const row = document.createElement("div");
+        row.className = `unit-base-item ${isDone ? "is-done" : "is-pending"}`;
+        row.innerHTML = `
+          <span class="small fw-bold text-dark">${escapeHtml(base.nombre || base.id)}</span>
+          <span class="badge rounded-pill ${isDone ? "text-bg-success" : "text-bg-warning text-dark"} flex-shrink-0">
+            ${isDone ? "✅ Dominado" : "⚠️ Base pendiente"}
+          </span>
+        `;
+        listEl.appendChild(row);
+      });
+    }
+  }
+
+  if (dom["unit-bases-summary-badge"]) {
+    const allDone = bases.length > 0 && doneCount === bases.length;
+    dom["unit-bases-summary-badge"].className = `badge rounded-pill ${
+      allDone ? "text-bg-success" : "text-bg-warning text-dark"
+    }`;
+    dom["unit-bases-summary-badge"].textContent = `${doneCount}/${bases.length} dominadas`;
+  }
+
+  showBootstrapModal(dom["unitBasesModal"]);
+}
+
+export function handleUnitValidateAndSkip() {
+  const { materia, unit } = pendingUnitSkip;
+  if (!materia || !unit) return;
+  hideBootstrapModal(dom["unitBasesModal"]);
+  skipToUnitHandler(materia.id, unit.id);
+}
+
+export function handleUnitFreePractice() {
+  const { materia, unit, firstNodeId } = pendingUnitSkip;
+  if (!materia || !unit || !firstNodeId) return;
+
+  const foundMat = findMateriaById(materia.id);
+  if (foundMat?.stageKey) {
+    state.etapa = foundMat.stageKey;
+  }
+  state.materia_activa = materia.id;
+  if (!state.materias_iniciadas || typeof state.materias_iniciadas !== "object") {
+    state.materias_iniciadas = {};
+  }
+  state.materias_iniciadas[materia.id] = true;
+
+  if (!state.nodos_pasos || typeof state.nodos_pasos !== "object") {
+    state.nodos_pasos = {};
+  }
+  const currentSt = state.nodos_estado?.[firstNodeId] || "locked";
+  if (currentSt === "locked") {
+    state.nodos_estado[firstNodeId] = "active";
+    state.nodos_pasos[firstNodeId] = 0;
+  }
+
+  saveState();
+  updateTopbar();
+  hideBootstrapModal(dom["unitBasesModal"]);
+  renderCaminoSection();
+  window.requestAnimationFrame(() => scrollToPathNode(firstNodeId));
 }
 
 export function scrollToPathNode(skillId) {
@@ -110,7 +217,8 @@ export function renderCaminoSection() {
   const container = dom["duolingo-path-container"];
   if (!materia || !container) return;
 
-  const initiated = isMateriaIniciada(materia.id);
+  const isTester = Boolean(state.is_tester);
+  const initiated = isTester || isMateriaIniciada(materia.id);
   dom["subject-onboarding-card"]?.classList.toggle("d-none", initiated);
   dom["camino-main-row"]?.classList.toggle("d-none", !initiated);
 
@@ -127,7 +235,7 @@ export function renderCaminoSection() {
   if (dom["path-route-desc"]) {
     dom["path-route-desc"].textContent =
       materia.descripcion ||
-      "Supera los 3 pasos de cada nodo o usa '⚡ Saltar aquí' para adelantar niveles.";
+      "Supera los 3 pasos de cada nodo o usa '⚡ Adelantar a esta unidad' en el encabezado de cada unidad.";
   }
   if (dom["ranking-materia-code"]) {
     dom["ranking-materia-code"].textContent = materia.codigo || materia.nombre;
@@ -143,54 +251,73 @@ export function renderCaminoSection() {
 
   container.innerHTML = "";
 
-  // Agrupar temas secuencialmente por Unidad manteniendo su índice global
-  const unitGroups = [];
-  const groupByName = new Map();
-  skills.forEach((skill, globalIdx) => {
-    const unitTitle = String(skill.unidad || "Unidad 1: Fundamentos").trim();
-    if (!groupByName.has(unitTitle)) {
-      const group = { title: unitTitle, entries: [] };
-      groupByName.set(unitTitle, group);
-      unitGroups.push(group);
-    }
-    groupByName.get(unitTitle).entries.push({ skill, globalIdx });
-  });
+  const unidades = getMateriaUnidades(materia);
+  const skillById = new Map(skills.map((s) => [s.id, s]));
 
-  unitGroups.forEach((group, groupIdx) => {
-    const totalInUnit = group.entries.length;
-    const doneInUnit = group.entries.filter(
-      ({ skill }) => state.nodos_estado[skill.id] === "unlocked"
+  unidades.forEach((unit, unitIdx) => {
+    const unitSkills = (unit.nodos_ids || [])
+      .map((nid) => skillById.get(nid))
+      .filter(Boolean);
+    if (unitSkills.length === 0) return;
+
+    const totalInUnit = unitSkills.length;
+    const doneInUnit = unitSkills.filter(
+      (skill) => state.nodos_estado[skill.id] === "unlocked"
     ).length;
+    const allLockedInUnit = unitSkills.every(
+      (skill) => (state.nodos_estado[skill.id] || "locked") === "locked"
+    );
     const unitPct =
       totalInUnit > 0 ? Math.round((doneInUnit / totalInUnit) * 100) : 0;
 
     const unitBanner = document.createElement("div");
-    unitBanner.className = `unit-divider-banner unit-theme-${groupIdx % 4}`;
+    unitBanner.className = `unit-divider-banner unit-theme-${unitIdx % 4}`;
+    unitBanner.dataset.unitId = unit.id;
     unitBanner.innerHTML = `
       <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
-        <div class="unit-divider-title">${escapeHtml(group.title)}</div>
+        <div class="unit-divider-title">${escapeHtml(unit.titulo)}</div>
         <span class="unit-progress-pill">${doneInUnit}/${totalInUnit} dominados</span>
       </div>
+      ${
+        unit.descripcion
+          ? `<div class="unit-divider-desc">${escapeHtml(unit.descripcion)}</div>`
+          : ""
+      }
       <div class="unit-divider-track mt-2" aria-hidden="true">
         <div class="unit-divider-fill" style="width: ${unitPct}%;"></div>
       </div>
     `;
+
+    if (unitIdx > 0 && (allLockedInUnit || isTester)) {
+      const advanceBtn = document.createElement("button");
+      advanceBtn.type = "button";
+      advanceBtn.className = "btn btn-unit-advance mt-2";
+      advanceBtn.textContent = "⚡ Adelantar a esta unidad";
+      advanceBtn.setAttribute(
+        "aria-label",
+        `Revisar bases requeridas para adelantar a ${unit.titulo}`
+      );
+      advanceBtn.addEventListener("click", () => openUnitBasesModal(materia, unit));
+      unitBanner.appendChild(advanceBtn);
+    }
+
     container.appendChild(unitBanner);
 
     const nodesGroup = document.createElement("div");
     nodesGroup.className = "unit-nodes-group";
 
-    group.entries.forEach(({ skill, globalIdx }, idxInUnit) => {
+    unitSkills.forEach((skill, idxInUnit) => {
       const prog = obtenerProgresoNodo(skill.id, state);
       const priority = obtenerPrioridadTema(skill);
       const status = prog.status;
+      const canOpenNode = status !== "locked" || isTester;
 
       const wrapper = document.createElement("div");
       wrapper.className = "path-node-wrapper";
       wrapper.dataset.skillId = skill.id;
 
       if (idxInUnit > 0) {
-        const prevSkill = group.entries[idxInUnit - 1].skill;
+        const prevSkill = unitSkills[idxInUnit - 1];
         const prevDone = state.nodos_estado[prevSkill.id] === "unlocked";
         const connector = document.createElement("div");
         connector.className = `path-connector${prevDone ? " is-completed" : ""}`;
@@ -210,13 +337,13 @@ export function renderCaminoSection() {
       const btn = document.createElement("button");
       btn.type = "button";
       btn.className = `path-node-btn node-${status}`;
-      btn.disabled = status === "locked";
+      btn.disabled = !canOpenNode;
       btn.setAttribute(
         "aria-label",
         `Tema #${skill.ranking_criticidad}: ${skill.nombre} (${prog.badgeText})`
       );
 
-      let iconClass = "bi-lock-fill";
+      let iconClass = isTester ? "bi-play-fill" : "bi-lock-fill";
       if (status === "unlocked") iconClass = "bi-check-lg";
       else if (status === "active") iconClass = "bi-star-fill";
       else if (status === "blocker") iconClass = "bi-exclamation-triangle-fill";
@@ -226,7 +353,7 @@ export function renderCaminoSection() {
         <span class="node-rank-badge">#${escapeHtml(skill.ranking_criticidad)}</span>
       `;
 
-      if (status !== "locked") {
+      if (canOpenNode) {
         btn.addEventListener("click", () => openNodeHandler(skill.id));
       }
 
@@ -257,20 +384,6 @@ export function renderCaminoSection() {
         </div>
       `;
 
-      // Nodos bloqueados a partir del Nodo 3 de la materia (globalIdx >= 2) ofrecen "⚡ Saltar aquí"
-      if (status === "locked" && globalIdx >= 2) {
-        const skipBtn = document.createElement("button");
-        skipBtn.type = "button";
-        skipBtn.className = "btn btn-duo btn-duo-amber btn-skip-level mt-2";
-        skipBtn.textContent = "⚡ Saltar aquí";
-        skipBtn.setAttribute(
-          "aria-label",
-          `Hacer examen de salto de nivel hacia ${skill.nombre}`
-        );
-        skipBtn.addEventListener("click", () => skipToNodeHandler(skill.id));
-        labelCard.appendChild(skipBtn);
-      }
-
       wrapper.appendChild(labelCard);
       nodesGroup.appendChild(wrapper);
     });
@@ -285,10 +398,11 @@ export function renderCaminoSection() {
 function renderSimulacroPathNode(container, materia, skills) {
   if (!container || !materia || !skills.length) return;
 
+  const isTester = Boolean(state.is_tester);
   const total = skills.length;
   const unlockedCount = skills.filter((s) => state.nodos_estado[s.id] === "unlocked").length;
   const requiredCount = Math.ceil(total * 0.6);
-  const unlocked = unlockedCount >= requiredCount;
+  const unlocked = isTester || unlockedCount >= requiredCount;
   const missing = Math.max(0, requiredCount - unlockedCount);
   const bestScore = state.simulacros_mejor_nota?.[materia.id];
 
@@ -367,6 +481,7 @@ export function renderCriticalRanking(skills = getActiveMateriaSkills()) {
     return;
   }
 
+  const isTester = Boolean(state.is_tester);
   listEl.innerHTML = "";
   skills.forEach((skill) => {
     const prog = obtenerProgresoNodo(skill.id, state);
@@ -380,7 +495,7 @@ export function renderCriticalRanking(skills = getActiveMateriaSkills()) {
     item.className = `ranking-item-btn w-100 text-start${isBlocker ? " is-priority" : ""}`;
     item.setAttribute(
       "aria-label",
-      isActive || isBlocker
+      isActive || isBlocker || isTester
         ? `Practicar tema #${skill.ranking_criticidad} ${skill.nombre} (${prog.label})`
         : `Ubicar nodo #${skill.ranking_criticidad} ${skill.nombre} en el Camino (${prog.label})`
     );
@@ -404,7 +519,7 @@ export function renderCriticalRanking(skills = getActiveMateriaSkills()) {
     `;
 
     item.addEventListener("click", () => {
-      if (isActive || isBlocker) {
+      if (isActive || isBlocker || isTester) {
         openNodeHandler(skill.id);
       } else {
         scrollToPathNode(skill.id);
@@ -863,7 +978,9 @@ function renderSkillsTopicsBreakdown(selectedMat, skills) {
           : "";
     item.className = `topic-breakdown-item${extraCls}`;
 
-    const isPracticeAction = prog.status === "active" || prog.status === "blocker";
+    const isTester = Boolean(state.is_tester);
+    const isPracticeAction =
+      isTester || prog.status === "active" || prog.status === "blocker";
     const btnText = isPracticeAction ? "Practicar" : "Ver en Camino";
     const btnIcon = isPracticeAction ? "bi-play-fill" : "bi-signpost-split-fill";
     const btnStyleClass =

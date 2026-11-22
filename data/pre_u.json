@@ -631,6 +631,60 @@
           "respuesta_correcta": "$6$",
           "explicacion_breve": "Factorizando $(x - 3)(x + 3)$ y cancelando $(x - 3)$ para $x \\neq 3$, en $x = 3$ se obtiene $6$."
         }
+      ],
+      "unidades": [
+        {
+          "id": "alg_u1",
+          "titulo": "Unidad 1: Factorización y Expresiones Racionales",
+          "descripcion": "Bases algebraicas para simplificar expresiones y evitar errores de división por cero.",
+          "bases_requeridas": [],
+          "nodos_ids": [
+            "pre_alg_01_factorizacion",
+            "pre_alg_02_fracciones"
+          ]
+        },
+        {
+          "id": "alg_u2",
+          "titulo": "Unidad 2: Ecuaciones, Logaritmos e Inecuaciones",
+          "descripcion": "Resolución de ecuaciones exponenciales/logarítmicas e intervalos con valor absoluto.",
+          "bases_requeridas": [
+            {
+              "id": "pre_alg_01_factorizacion",
+              "nombre": "Factorización y Productos Notables"
+            },
+            {
+              "id": "pre_alg_02_fracciones",
+              "nombre": "Fracciones Algebraicas y Racionalización"
+            }
+          ],
+          "nodos_ids": [
+            "pre_alg_02b_ecuaciones_log",
+            "pre_alg_03_inecuaciones"
+          ]
+        },
+        {
+          "id": "alg_u3",
+          "titulo": "Unidad 3: Funciones y Límites Iniciales",
+          "descripcion": "Restricciones de dominio real y cálculo inicial de límites indeterminados.",
+          "bases_requeridas": [
+            {
+              "id": "pre_alg_01_factorizacion",
+              "nombre": "Factorización y Productos Notables"
+            },
+            {
+              "id": "pre_alg_02b_ecuaciones_log",
+              "nombre": "Ecuaciones Exponenciales y Logarítmicas"
+            },
+            {
+              "id": "pre_alg_03_inecuaciones",
+              "nombre": "Inecuaciones Racionales y Valor Absoluto"
+            }
+          ],
+          "nodos_ids": [
+            "pre_alg_04_funciones",
+            "pre_alg_05_limites_alg"
+          ]
+        }
       ]
     },
     {
@@ -1153,6 +1207,59 @@
           ],
           "respuesta_correcta": "$x = \\frac{\\pi}{6}$ y $x = \\frac{11\\pi}{6}$",
           "explicacion_breve": "Se tiene $\\cos(x) = \\frac{\\sqrt{3}}{2}$, positivo en I y IV cuadrante: $\\frac{\\pi}{6}$ y $\\frac{11\\pi}{6}$."
+        }
+      ],
+      "unidades": [
+        {
+          "id": "trig_u1",
+          "titulo": "Unidad 1: Razones e Identidades Fundamentales",
+          "descripcion": "Ángulos notables, signos por cuadrante e identidades pitagóricas esenciales.",
+          "bases_requeridas": [],
+          "nodos_ids": [
+            "pre_trig_01_razones",
+            "pre_trig_02_identidades"
+          ]
+        },
+        {
+          "id": "trig_u2",
+          "titulo": "Unidad 2: Ángulo Doble y Resolución de Triángulos",
+          "descripcion": "Transformación de ángulos compuestos y leyes de senos y cosenos.",
+          "bases_requeridas": [
+            {
+              "id": "pre_trig_01_razones",
+              "nombre": "Razones Trigonométricas y Cuadrantes"
+            },
+            {
+              "id": "pre_trig_02_identidades",
+              "nombre": "Identidades Fundamentales y Pitagóricas"
+            }
+          ],
+          "nodos_ids": [
+            "pre_trig_03_angulo_doble",
+            "pre_trig_03b_ley_senos_cosenos"
+          ]
+        },
+        {
+          "id": "trig_u3",
+          "titulo": "Unidad 3: Ecuaciones y Límites Trigonométricos",
+          "descripcion": "Soluciones generales en intervalos acotados y límites trigonométricos clave.",
+          "bases_requeridas": [
+            {
+              "id": "pre_trig_02_identidades",
+              "nombre": "Identidades Fundamentales y Pitagóricas"
+            },
+            {
+              "id": "pre_trig_03_angulo_doble",
+              "nombre": "Ángulo Compuesto, Doble y Mitad"
+            },
+            {
+              "id": "pre_trig_03b_ley_senos_cosenos",
+              "nombre": "Ley de Senos y Ley de Cosenos"
+            }
+          ],
+          "nodos_ids": [
+            "pre_trig_04_ecuaciones"
+          ]
         }
       ]
     }

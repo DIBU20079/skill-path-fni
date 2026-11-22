@@ -179,6 +179,19 @@ export async function apiDemoLogin() {
   return data;
 }
 
+export async function apiTesterSync(etapa = null) {
+  const { response, data } = await requestJson("/api/tester/sync", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(etapa ? { etapa } : {}),
+  });
+  if (!response.ok || !data) {
+    const detail = data?.detalle || data?.error || `HTTP ${response.status}`;
+    throw new Error(detail);
+  }
+  return data;
+}
+
 export async function apiLogout() {
   const { response, data } = await requestJson("/api/logout", {
     method: "POST",

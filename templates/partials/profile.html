@@ -11,6 +11,7 @@
                   <div class="d-flex flex-wrap justify-content-center justify-content-sm-start gap-2 mb-1">
                     <span id="profile-stage-badge" class="badge rounded-pill text-bg-primary">Ruta Pre-U</span>
                     <span id="profile-rank-badge" class="badge rounded-pill profile-rank-pill">🏅 Postulante</span>
+                    <span id="profile-tester-badge" class="badge rounded-pill profile-tester-pill d-none">🛠️ Modo Tester</span>
                   </div>
                   <h2 id="profile-display-name" class="h3 fw-black mb-0">Estudiante</h2>
                   <div id="profile-username-handle" class="small text-secondary fw-semibold mb-2">
@@ -31,6 +32,39 @@
           </div>
 
           <div class="row g-4">
+            <!-- Panel exclusivo Modo Tester (oculto para cuentas estándar) -->
+            <div id="profile-tester-card" class="col-12 d-none">
+              <div class="duo-card tester-sandbox-card p-4">
+                <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2">
+                  <div>
+                    <span class="badge rounded-pill profile-tester-pill mb-1">🛠️ MODO TESTER ACTIVO</span>
+                    <h3 class="h5 fw-black mb-0">Control Rápido de Pruebas FNI</h3>
+                  </div>
+                  <button type="button" id="btn-tester-sync-all" class="btn btn-duo btn-duo-amber">
+                    <span id="btn-tester-sync-label">🔄 Sincronizar / Desbloquear todo</span>
+                    <span id="btn-tester-sync-spinner" class="d-none">
+                      <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                      Sincronizando...
+                    </span>
+                  </button>
+                </div>
+                <p class="small text-secondary mb-3">
+                  Accede a cualquier nodo, unidad o simulacro sin bloqueos. Cambia de etapa al instante o resincroniza el sandbox cuando se agreguen nuevas materias.
+                </p>
+                <div class="d-flex flex-wrap gap-2">
+                  <button type="button" id="btn-tester-stage-preu" class="btn btn-duo btn-duo-outline-secondary btn-sm">
+                    🎓 Ir a Etapa Pre-U
+                  </button>
+                  <button type="button" id="btn-tester-stage-facultad" class="btn btn-duo btn-duo-green btn-sm">
+                    🚀 Ir a Etapa Facultad
+                  </button>
+                </div>
+                <div id="profile-tester-feedback" class="alert alert-success d-none mt-3 mb-0" role="status">
+                  ✅ Sandbox de Tester sincronizado y desbloqueado para todas las materias actuales.
+                </div>
+              </div>
+            </div>
+
             <!-- Rango FNI y Medallas y Logros (única ubicación en Perfil) -->
             <div class="col-12">
               <div class="duo-card p-4">

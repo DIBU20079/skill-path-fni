@@ -8,6 +8,7 @@ import {
   apiLogout,
   apiMe,
   apiRegister,
+  apiTesterSync,
   fetchSkillsDB,
 } from "./api.js";
 import {
@@ -39,10 +40,13 @@ import {
   startPlacementExam,
   startSimulacroExam,
   startSkipExam,
+  startSkipUnitExam,
   stopDiagnosticTimer,
 } from "./diagnostic.js";
 import {
   configureSkilltreeHandlers,
+  handleUnitFreePractice,
+  handleUnitValidateAndSkip,
   renderCaminoSection,
   renderErrorVault,
   renderGlobalSubjectsProgress,
@@ -151,6 +155,23 @@ function renderPerfilSection() {
   dom["profile-demo-feedback"]?.classList.add("d-none");
 
   const isFacultad = state.etapa === "facultad";
+  const isTester = Boolean(state.is_tester);
+
+  dom["profile-tester-badge"]?.classList.toggle("d-none", !isTester);
+  dom["profile-tester-card"]?.classList.toggle("d-none", !isTester);
+  dom["profile-tester-feedback"]?.classList.add("d-none");
+
+  if (dom["btn-tester-stage-preu"]) {
+    dom["btn-tester-stage-preu"].className = `btn btn-duo btn-sm ${
+      !isFacultad ? "btn-duo-blue" : "btn-duo-outline-secondary"
+    }`;
+  }
+  if (dom["btn-tester-stage-facultad"]) {
+    dom["btn-tester-stage-facultad"].className = `btn btn-duo btn-sm ${
+      isFacultad ? "btn-duo-green" : "btn-duo-outline-secondary"
+    }`;
+  }
+
   if (dom["btn-profile-stage-preu"]) {
     dom["btn-profile-stage-preu"].className = `btn btn-duo ${
       !isFacultad ? "btn-duo-blue" : "btn-duo-outline-secondary"
@@ -201,6 +222,42 @@ function switchStageFromProfile(targetStage) {
   updateGreetingUI();
   updateTopbar();
   renderPerfilSection();
+}
+
+function setTesterSyncLoading(isLoading) {
+  const btn = dom["btn-tester-sync-all"];
+  if (btn) btn.disabled = isLoading;
+  dom["btn-tester-sync-label"]?.classList.toggle("d-none", isLoading);
+  dom["btn-tester-sync-spinner"]?.classList.toggle("d-none", !isLoading);
+}
+
+async function handleTesterSyncAll() {
+  if (!state.is_tester) return;
+  const feedbackEl = dom["profile-tester-feedback"];
+  if (feedbackEl) {
+    feedbackEl.className = "alert alert-success d-none mt-3 mb-0";
+    feedbackEl.textContent =
+      "✅ Sandbox de Tester sincronizado y desbloqueado para todas las materias actuales.";
+  }
+
+  setTesterSyncLoading(true);
+  try {
+    appContext.skillsDB = await fetchSkillsDB();
+    const syncedUser = await apiTesterSync(state.etapa);
+    hydrateStateFromUser(syncedUser);
+    updateGreetingUI();
+    updateTopbar();
+    renderPerfilSection();
+    feedbackEl?.classList.remove("d-none");
+  } catch (error) {
+    console.error("Error sincronizando Modo Tester:", error);
+    if (feedbackEl) {
+      feedbackEl.textContent = `❌ ${error.message || "No se pudo sincronizar el sandbox."}`;
+      feedbackEl.className = "alert alert-danger mt-3 mb-0";
+    }
+  } finally {
+    setTesterSyncLoading(false);
+  }
 }
 
 function loadDemoProfile() {
@@ -593,10 +650,17 @@ function bindEvents() {
     }
   });
 
-  // Perfil
+  // Modal Check de Bases antes de adelantar a una Unidad
+  dom["btn-unit-validate-skip"]?.addEventListener("click", handleUnitValidateAndSkip);
+  dom["btn-unit-free-practice"]?.addEventListener("click", handleUnitFreePractice);
+
+  // Perfil y Panel Modo Tester
   dom["profile-name-form"]?.addEventListener("submit", handleProfileNameSave);
   dom["btn-profile-stage-preu"]?.addEventListener("click", () => switchStageFromProfile("pre_u"));
   dom["btn-profile-stage-facultad"]?.addEventListener("click", () => switchStageFromProfile("facultad"));
+  dom["btn-tester-stage-preu"]?.addEventListener("click", () => switchStageFromProfile("pre_u"));
+  dom["btn-tester-stage-facultad"]?.addEventListener("click", () => switchStageFromProfile("facultad"));
+  dom["btn-tester-sync-all"]?.addEventListener("click", handleTesterSyncAll);
   dom["btn-profile-repeat-diag"]?.addEventListener("click", launchActiveMateriaPlacement);
   dom["btn-load-demo-profile"]?.addEventListener("click", loadDemoProfile);
   dom["btn-profile-reset-all"]?.addEventListener("click", () => {
@@ -675,6 +739,7 @@ async function init() {
     onOpenNode: openNodeModal,
     onEnterSection: enterAppSection,
     onSkipToNode: startSkipExam,
+    onSkipToUnit: startSkipUnitExam,
     onStartSimulacro: startSimulacroExam,
     onOvercomeError: abrirRetoSuperarError,
   });

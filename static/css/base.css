@@ -1070,6 +1070,18 @@ body.has-app-nav .app-main {
   font-weight: 800;
 }
 
+.profile-tester-pill {
+  background-color: #ede9fe;
+  color: #5b21b6;
+  border: 1px solid #c4b5fd;
+  font-weight: 800;
+}
+
+.tester-sandbox-card {
+  border-color: #c4b5fd;
+  background: linear-gradient(180deg, #faf5ff 0%, #ffffff 100%);
+}
+
 .profile-subject-row {
   background-color: #f8fafc;
   border: 1px solid var(--border-soft);

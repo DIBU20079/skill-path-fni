@@ -18,7 +18,7 @@ Guía de arquitectura, restricciones técnicas, reglas pedagógicas y contratos 
   - CDNs permitidos exclusivamente: **Bootstrap 5**, **Bootstrap Icons**, **KaTeX** (con extensión `auto-render`) y **Chart.js** (solo para gráficos radar).
   - **Sin pizarra digital**: Prohibido implementar `<canvas>` de dibujo o pizarras interactivas; la práctica del Paso 3 se basa en foto del cuaderno físico (`<input type="file" accept="image/*" capture="environment">`) y/o explicación escrita en texto.
 - **Persistencia**: Persistencia híbrida multi-dispositivo: caché inmediata en `localStorage` bajo la clave `skillpath_fni_progress_v1` + sincronización en la nube vía HTTPS REST (`services/db_cloud.py` -> tabla `usuarios` en **Supabase** usando `requests`, limpiando `SUPABASE_URL` y `SUPABASE_KEY` con `.strip().strip("()\"'")` y `.rstrip("/")`, con headers `apikey` + `Content-Type` + `Prefer: return=representation` y **sin** `Authorization: Bearer` cuando `SUPABASE_KEY` comienza con `sb_secret_`). Si faltan variables de Supabase, usa `data/usuarios_fallback.json` como respaldo local:
-  - `nombre`, `etapa`, `materia_activa`, `materias_iniciadas`, `xp`, `racha`, `nodos_estado`, `nodos_pasos` (progreso real `0..3` de sub-pasos por nodo), `metricas_ia_materia` (`{ intentos_ia, aprobados_ia }` por materia), `historial_errores` (cada entrada con `id`, `resumen`, `tema`, `materia`, `materia_id`, `tipo_error`, `fecha`, `superado`), `diagnostico_completado`, `diagnostico_resultados`, `xp_otorgado_nodos`, `nodo_retorno`, `contadores_medallas`, `simulacros_mejor_nota`.
+  - `nombre`, `etapa`, `is_tester`, `materia_activa`, `materias_iniciadas`, `xp`, `racha`, `nodos_estado`, `nodos_pasos` (progreso real `0..3` de sub-pasos por nodo), `metricas_ia_materia` (`{ intentos_ia, aprobados_ia }` por materia), `historial_errores` (cada entrada con `id`, `resumen`, `tema`, `materia`, `materia_id`, `tipo_error`, `fecha`, `superado`), `diagnostico_completado`, `diagnostico_resultados`, `xp_otorgado_nodos`, `nodo_retorno`, `contadores_medallas`, `simulacros_mejor_nota`.
   - **Regla de Oro de XP**: El `xp` es un puntaje permanente de dominio que **nunca** se gasta ni se resta.
 - **Calidad**: Cero funciones vacías, cero `// TODO`, cero placeholders o datos truncados.
 
@@ -38,9 +38,9 @@ Guía de arquitectura, restricciones técnicas, reglas pedagógicas y contratos 
 ├── routes/
 │   ├── __init__.py               # Exporta los 4 Blueprints
 │   ├── views.py                  # GET / -> renderiza index.html
-│   ├── api_skills.py             # GET /api/skills (combina pre_u.json + facultad.json)
+│   ├── api_skills.py             # GET /api/skills (combina pre_u.json + facultad.json con arreglo `unidades`)
 │   ├── api_ai.py                 # POST /api/{evaluar,generar-ejercicio,ejemplo-analogo,generar-ejercicio-error,explicar-paso,generar-ejemplo-guiado}
-│   └── api_auth.py               # POST /api/{register,login,demo-login,logout,progreso} y GET /api/me
+│   └── api_auth.py               # POST /api/{register,login,demo-login,tester/sync,logout,progreso} y GET /api/me
 ├── services/
 │   ├── __init__.py
 │   ├── ai_client.py              # Cliente Gemini compartido, timeout y fallback de modelos
@@ -48,18 +48,18 @@ Guía de arquitectura, restricciones técnicas, reglas pedagógicas y contratos 
 │   ├── ai_generator.py           # Ejercicios 3 pasos (base/parcial_fni), ejemplo análogo, reto de error y guía paso a paso
 │   └── db_cloud.py               # Cliente HTTPS Supabase REST (`usuarios`) + respaldo data/usuarios_fallback.json
 ├── data/
-│   ├── pre_u.json                # Materias, preguntas_examen y skills de la etapa Pre-U
-│   └── facultad.json             # Materias, preguntas_examen y skills de la etapa Facultad
+│   ├── pre_u.json                # Materias, unidades, preguntas_examen y skills de la etapa Pre-U
+│   └── facultad.json             # Materias, unidades, preguntas_examen y skills de la etapa Facultad
 ├── templates/
 │   ├── index.html                # Shell HTML, CDNs, CSS modulares e entry ES Module (main.js)
 │   └── partials/
 │       ├── navbar.html           # Navegación Duolingo, topbar con saludo, Ubicación y botón Salir
 │       ├── auth_welcome.html     # Login, Registro (Pre-U/Facultad) y Acceso Rápido Demo (Jurados)
-│       ├── diagnostic.html       # Motor de examen reutilizable (Ubicación por materia + Salto de Nivel)
-│       ├── skilltree.html        # Inicio de materia, camino vertical de nodos, "⚡ Saltar aquí" y Temas Críticos
+│       ├── diagnostic.html       # Motor de examen reutilizable (Ubicación por materia + Salto de Unidad)
+│       ├── skilltree.html        # Inicio de materia, camino por unidades, Modal Check de Bases y Temas Críticos
 │       ├── materias.html         # Catálogo curricular multi-materia
 │       ├── skills_stats.html     # Mis Skills 100% por materia: selector, 4 KPIs, radar de temas, desglose y Baúl Activo
-│       ├── profile.html          # Sección Perfil: identidad (@username), Rango, Medallas, avance global y Demo
+│       ├── profile.html          # Sección Perfil: identidad (@username), Modo Tester, Rango, Medallas, avance global y Demo
 │       └── challenge_modal.html  # Modal de 3 pasos (Concepto, Práctica, Reto Foto)
 └── static/
     ├── css/
@@ -137,9 +137,10 @@ La función `auditar_resolucion(enunciado, prerrequisito, texto_usuario, imagen_
   - Acepta `{materia, tema, paso_anterior, paso_actual, explicacion_actual}` (`paso_actual` obligatorio) y llama a `explicar_paso_algebraico(...)` devolviendo HTTP `200` con `{"aclaracion": "..."}` (2–3 líneas en LaTeX explicando la transformación entre pasos).
 - **`POST /api/generar-ejemplo-guiado` (`routes/api_ai.py`)**:
   - Acepta `{materia, tema, enunciado_previo}` (`materia` y `tema` obligatorios) y llama a `generar_ejemplo_guiado(...)` devolviendo HTTP `200` con `{"enunciado", "pasos": [{"titulo", "expresion", "explicacion"}], "resultado_final"}` en LaTeX.
-- **`POST /api/register`, `POST /api/login`, `POST /api/demo-login`, `POST /api/logout`, `GET /api/me`, `POST /api/progreso`, `GET /api/auth/status` (`routes/api_auth.py`)**:
+- **`POST /api/register`, `POST /api/login`, `POST /api/demo-login`, `POST /api/tester/sync`, `POST /api/logout`, `GET /api/me`, `POST /api/progreso`, `GET /api/auth/status` (`routes/api_auth.py`)**:
   - Gestión real de cuentas, contraseñas con `werkzeug.security`, sesión persistente Flask (`session["username"]`) y sincronización automática con Supabase (`services/db_cloud.py`) o respaldo JSON local (`data/usuarios_fallback.json`).
   - `/api/demo-login` inicia sesión en `"jurado_demo"` con progreso precargado (320 XP, racha de 4 días, 3 nodos dominados en Cálculo I y 2 errores en el Baúl).
+  - `/api/login` auto-crea y autentica `tester` (`1234`) con `construir_estado_tester()` si aún no existe; `/api/tester/sync` reconstruye y guarda el sandbox tester leyendo dinámicamente todas las materias y nodos actuales.
   - `/api/me` responde `401` si no existe sesión activa.
 
 ---
@@ -148,7 +149,7 @@ La función `auditar_resolucion(enunciado, prerrequisito, texto_usuario, imagen_
 
 - Dos etapas de primer nivel: `pre_u` y `facultad`.
 - Cada etapa contiene `materias`: catálogo multi-materia por etapa (`pre_u`: **Álgebra Pre-U** [6 temas, 3 unidades] y **Trigonometría** [5 temas, 3 unidades]; `facultad`: **Cálculo I** [9 temas, 4 unidades] y **Física I** [6 temas, 3 unidades]).
-- Cada materia contiene `id`, `nombre`, `codigo`, `icono`, `color`, `descripcion`, `preguntas_examen` (preguntas de opción múltiple en LaTeX vinculadas por `skill_id` y `nivel_nodo` de básico a avanzado) y `skills` ordenados por `ranking_criticidad` y encadenados por `prerrequisito_id`.
+- Cada materia contiene `id`, `nombre`, `codigo`, `icono`, `color`, `descripcion`, `unidades` (`id`, `titulo`, `descripcion`, `bases_requeridas: [{ id, nombre }]`, `nodos_ids`), `preguntas_examen` (preguntas de opción múltiple en LaTeX vinculadas por `skill_id` y `nivel_nodo` de básico a avanzado) y `skills` ordenados por `ranking_criticidad` y encadenados por `prerrequisito_id`.
 - Campos obligatorios de cada skill (especialmente para colaboradores de `feat/datos`):
   - `id`, `ranking_criticidad`, `frecuencia_examen`, `materia`, **`unidad`** (ej. `"Unidad 1: Funciones y Dominios"`), `nombre`, `area`, `prerrequisito_id`, `xp`, `tip_auxiliar`.
   - **`guia_aprendizaje`**:
@@ -168,16 +169,17 @@ La función `auditar_resolucion(enunciado, prerrequisito, texto_usuario, imagen_
     }
     ```
   - `paso1_concepto` (`titulo`, `enunciado_latex`, `opciones`, `respuesta_correcta`, `explicacion`), `paso2_practica` (`titulo`, `enunciado_latex`, `respuesta_correcta`, `respuestas_aceptadas`, `pista`), `paso3_reto_foto` (`titulo`, `enunciado_latex`, `prerrequisito_evaluado`, `instrucciones`).
-- **Camino Agrupado por Unidades**: `renderCaminoSection()` agrupa los nodos por `unidad`, inserta cabeceras `.unit-divider-banner` (`X/Y dominados`) y mantiene **"⚡ Saltar aquí"** desde el 3.º nodo y **"🏆 Simulacro de Parcial"** al final.
+- **Camino Agrupado por Unidades y Check de Bases**: cada materia incluye el arreglo `unidades` (`id`, `titulo`, `descripcion`, `bases_requeridas`, `nodos_ids`). `renderCaminoSection()` renderiza un encabezado visual por unidad y, cuando una unidad está bloqueada (o en Modo Tester), muestra un único botón **"⚡ Adelantar a esta unidad"** que abre `#unitBasesModal` (*Check de Bases*), cruzando `bases_requeridas` contra `nodos_estado` (`✅ Dominado` vs `⚠️ Base pendiente`) con dos opciones: **"🎯 Validar bases y saltar"** (examen de 3–4 preguntas previas, `>= 75%` marca anteriores en verde + `+60 XP`) y **"🔓 Entrar en Práctica Libre (bajo aviso)"** (activa solo el nodo 1 de esa unidad sin desbloquear anteriores ni regalar XP).
+- **Cuenta Tester (`tester` / `1234`)**: sin botón de acceso rápido en `auth_welcome.html`; al iniciar sesión con `tester`/`1234`, `POST /api/login` auto-crea o autentica la cuenta usando `construir_estado_tester()` (leyendo todas las materias y nodos actuales con `is_tester: true`, `1500 XP`, `racha: 7`, mezcla de `unlocked`/`active`/`blocker`, métricas IA y Baúl). Cuando `state.is_tester === true`, permite probar cualquier nodo/unidad/simulacro sin bloqueos y habilita en **Perfil** el badge `🛠️ Modo Tester`, selector rápido **Pre-U / Facultad** y el botón **"Sincronizar / Desbloquear todo"** (`POST /api/tester/sync`).
 - **Modal de Tema en Dos Pestañas (`📖 Aprender` / `✍️ Practicar`)**:
   - **`📖 Aprender`**: Idea Clave, Formulario Esencial, Receta Rápida, Ejemplo Guiado interactivo paso a paso (`👁️ Ver Paso N`, `Mostrar todos`, botón **"❓ ¿Por qué pasó esto?"** vía `/api/explicar-paso` y **"🤖 Ver otro ejemplo guiado con IA"** vía `/api/generar-ejemplo-guiado`), Trampas Típicas de Examen y CTA **"Listo, ir a Practicar →"**. Se abre aquí por defecto para nodos `active` o `blocker`; desde el Baúl Activo (`abrirRetoSuperarError`) abre directo en **`✍️ Practicar`**.
   - **`✍️ Practicar`**: Paso 1, Paso 2 y Paso 3 con botón desplegable **"🧾 Formulario del tema"**, selector de dificultad (**"🟢 Nivel Base"** / **"🔥 Nivel Parcial FNI"** que suma **+35 XP extra** al aprobar), compresión de imagen (`1280px`, JPEG `0.78`), carga animada, ejemplo análogo gratuito tras 2 fallos y bonos XP.
 - **Navegación estilo Duolingo**: barra lateral izquierda en escritorio y barra inferior fija (grid de 4 columnas) en móvil con 4 secciones claramente separadas:
-  - **Camino**: Ruta vertical por unidades con "⚡ Saltar aquí", "🏆 Simulacro de Parcial" y tarjeta lateral de **Temas Críticos** (oculta en `<= 991px`) con etiquetas cualitativas (`🔥 Fijo en Parcial` / `⭐ Muy frecuente` / `📌 Base clave`), barras de progreso real del estudiante (`nodos_pasos`) y tarjetas clicables hacia cada nodo.
+  - **Camino**: Ruta vertical por unidades con **"⚡ Adelantar a esta unidad"** + modal **Check de Bases** (`#unitBasesModal`), **"🏆 Simulacro de Parcial"** y tarjeta lateral de **Temas Críticos** (oculta en `<= 991px`) con etiquetas cualitativas (`🔥 Fijo en Parcial` / `⭐ Muy frecuente` / `📌 Base clave`), barras de progreso real del estudiante (`nodos_pasos`) y tarjetas clicables hacia cada nodo.
   - **Materias**: Catálogo curricular multi-materia por etapa.
   - **Mis Skills**: Analítica 100% específica por materia (sin Medallas ni Rango FNI). Incluye Selector de Materia, 4 KPIs (`col-6 col-md-3`: dominio real, temas completados, precisión en auditoría IA con `metricas_ia_materia` y alertas activas), Resumen Pre-Examen (Top 3 de la materia), Radar Chart.js dinámico con nombres cortos de los nodos reales (destruyendo la instancia previa antes de recrear), Desglose por Tema con acceso a "Practicar" / "Ver en Camino" y **Baúl de Errores Activo** con toggle `"Solo esta materia"` vs `"Todas las materias"`.
-  - **Perfil**: Único espacio para identidad (`nombre`, `@username`, etapa, Rango actual, XP total, Racha), progreso de Rango FNI, cuadrícula completa de **Medallas y Logros**, **Resumen de Avance Global entre Materias**, cambio de etapa/nombre, **Cargar Perfil Demo**, **Cerrar Sesión (Salir)** y acordeón `<details>` cerrado (`⚙️ Opciones avanzadas`) para reinicio con confirmación.
-- **Motor de examen reutilizable (`static/js/diagnostic.js`)**: Ubicación por materia, Salto de Nivel (`>= 75%`, `+60 XP`) y Simulacro de Parcial (`>= 60%` de nodos verdes, reloj global `05:00`, aprueba con `>= 51/100`, `+100 XP`).
+  - **Perfil**: Único espacio para identidad (`nombre`, `@username`, etapa, Rango actual, XP total, Racha), panel discreto **Modo Tester** (cuando `state.is_tester === true`), progreso de Rango FNI, cuadrícula completa de **Medallas y Logros**, **Resumen de Avance Global entre Materias**, cambio de etapa/nombre, **Cargar Perfil Demo**, **Cerrar Sesión (Salir)** y acordeón `<details>` cerrado (`⚙️ Opciones avanzadas`) para reinicio con confirmación.
+- **Motor de examen reutilizable (`static/js/diagnostic.js`)**: Ubicación por materia, Validar bases y saltar de Unidad (`>= 75%`, `+60 XP`) y Simulacro de Parcial (`>= 60%` de nodos verdes, reloj global `05:00`, aprueba con `>= 51/100`, `+100 XP`).
 - **XP Permanente, Rangos FNI, Medallas y Baúl Activo**: `state.xp` nunca se resta; 5 Rangos FNI; 6 Medallas FNI; Baúl Activo con `id` y `superado` (**+30 XP**).
 - **Estado Rojo (`blocker`)**: Cuando `/api/evaluar` detecta `requiere_repetir_modulo: true`, el prerrequisito pasa a rojo para refuerzo guiado con retorno automático.
 - **KaTeX**: Ejecutar `renderMathInElement` tras cada cambio de pestaña, paso revelado, formulario desplegable o respuesta IA; `.katex-display` mantiene `overflow-x: auto; max-width: 100%;`.
