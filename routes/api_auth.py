@@ -26,13 +26,27 @@ TESTER_USERNAME = "tester"
 TESTER_PASSWORD = "1234"
 
 
+LEGACY_BRAND_NAMES = {
+    "Tester FNI": "Tester Skill-Path",
+    "Jurado Demo FNI": "Jurado Demo",
+}
+
+
+def _normalizar_nombre_marca(nombre: str) -> str:
+    limpio = str(nombre or "").strip()
+    return LEGACY_BRAND_NAMES.get(limpio, limpio)
+
+
 def _serializar_usuario_publico(usuario: dict[str, Any]) -> dict[str, Any]:
     """Expone solo campos seguros del usuario sin incluir `password_hash`."""
+    estado_bruto = dict(usuario.get("estado_json") or {})
+    if "nombre" in estado_bruto:
+        estado_bruto["nombre"] = _normalizar_nombre_marca(estado_bruto.get("nombre", ""))
     return {
-        "nombre": usuario.get("nombre", ""),
+        "nombre": _normalizar_nombre_marca(usuario.get("nombre", "")),
         "username": usuario.get("username", ""),
         "etapa": usuario.get("etapa", "pre_u"),
-        "estado_json": usuario.get("estado_json") or {},
+        "estado_json": estado_bruto,
     }
 
 
@@ -76,7 +90,7 @@ def _estado_demo_jurados() -> dict[str, Any]:
     """Estado precargado realista para el botón Acceso Rápido Demo (Jurados)."""
     hoy = date.today().strftime("%d/%m")
     return {
-        "nombre": "Jurado Demo FNI",
+        "nombre": "Jurado Demo",
         "etapa": "facultad",
         "is_tester": False,
         "onboarding_completado": True,
@@ -284,7 +298,7 @@ def construir_estado_tester(etapa_actual: str = "facultad") -> dict[str, Any]:
     ]
 
     return {
-        "nombre": "Tester FNI",
+        "nombre": "Tester Skill-Path",
         "etapa": etapa_limpia,
         "is_tester": True,
         "onboarding_completado": True,
@@ -473,7 +487,7 @@ def login():
             usuario = crear_usuario(
                 username=TESTER_USERNAME,
                 password_hash=generate_password_hash(TESTER_PASSWORD),
-                nombre="Tester FNI",
+                nombre="Tester Skill-Path",
                 etapa="facultad",
                 estado_inicial=construir_estado_tester("facultad"),
             )
@@ -496,7 +510,7 @@ def login():
             if _tester_necesita_actualizacion(estado_actual):
                 etapa_actual = str(usuario.get("etapa") or estado_actual.get("etapa") or "facultad")
                 estado_nuevo = construir_estado_tester(etapa_actual)
-                estado_nuevo["nombre"] = str(usuario.get("nombre") or "Tester FNI").strip() or "Tester FNI"
+                estado_nuevo["nombre"] = _normalizar_nombre_marca(usuario.get("nombre") or "Tester Skill-Path") or "Tester Skill-Path"
                 actualizar_estado(
                     username=TESTER_USERNAME,
                     estado_json=estado_nuevo,
@@ -540,7 +554,7 @@ def tester_sync():
             etapa_final = "facultad"
 
         nuevo_estado = construir_estado_tester(etapa_actual=etapa_final)
-        nombre_usuario = str(usuario.get("nombre") or "Tester FNI").strip() or "Tester FNI"
+        nombre_usuario = _normalizar_nombre_marca(usuario.get("nombre") or "Tester Skill-Path") or "Tester Skill-Path"
         nuevo_estado["nombre"] = nombre_usuario
 
         actualizar_estado(
@@ -570,7 +584,7 @@ def demo_login():
             usuario = crear_usuario(
                 username=DEMO_USERNAME,
                 password_hash=generate_password_hash("demo_fni_2026"),
-                nombre="Jurado Demo FNI",
+                nombre="Jurado Demo",
                 etapa="facultad",
                 estado_inicial=_estado_demo_jurados(),
             )

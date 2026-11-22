@@ -1,5 +1,5 @@
 /**
- * Módulo de comunicación HTTP con la API de Skill-Path FNI (incluye Auth y Sync Cloud).
+ * Módulo de comunicación HTTP con la API de Skill-Path (incluye Auth y Sync Cloud).
  */
 
 async function requestJson(url, options = {}) {

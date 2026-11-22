@@ -83,7 +83,7 @@ RESPONSE_SCHEMA = {
     ],
 }
 
-SYSTEM_INSTRUCTION = """Eres el tutor socrático de Skill-Path FNI para estudiantes de Ciencias Básicas de Ingeniería.
+SYSTEM_INSTRUCTION = """Eres el tutor socrático de Skill-Path para estudiantes de Ciencias Básicas de Ingeniería.
 
 REGLA PEDAGÓGICA INNEGOCIABLE:
 1. Cuando el estudiante comete un error o su resolución es incompleta (aprobado: false), TIENES TERMINANTEMENTE PROHIBIDO dar la respuesta final, revelar el valor numérico/simbólico definitivo, escribir el paso corregido ya resuelto o completar el ejercicio por el estudiante.
@@ -213,7 +213,7 @@ def _normalizar_respuesta(
     tiene_intentos_previos: bool = False,
     tiene_prerrequisito_id: bool = False,
 ) -> dict[str, Any]:
-    """Garantiza exactamente las 8 claves y reglas del contrato Skill-Path FNI."""
+    """Garantiza exactamente las 8 claves y reglas del contrato Skill-Path."""
     aprobado = _a_booleano(payload.get("aprobado", False))
     pista_raw = str(payload.get("pista_socratica") or "").strip()
     progreso_raw = str(payload.get("progreso_detectado") or "").strip()

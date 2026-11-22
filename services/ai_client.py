@@ -1,4 +1,4 @@
-"""Cliente compartido y utilidades de invocación Gemini para Skill-Path FNI."""
+"""Cliente compartido y utilidades de invocación Gemini para Skill-Path."""
 
 from __future__ import annotations
 

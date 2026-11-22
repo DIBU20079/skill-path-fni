@@ -1,4 +1,4 @@
-"""Servicios de dominio e integraciones externas de Skill-Path FNI."""
+"""Servicios de dominio e integraciones externas de Skill-Path."""
 
 from services.ai_auditor import auditar_resolucion
 from services.ai_generator import generar_ejercicio_dinamico

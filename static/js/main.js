@@ -284,7 +284,7 @@ function loadDemoProfile() {
   const primaryMat = materias[0];
   const primarySkills = getMateriaSkills(primaryMat);
 
-  state.nombre = state.nombre || "Alex FNI";
+  state.nombre = state.nombre || "Estudiante Demo";
   state.etapa = targetStage;
   state.materia_activa = primaryMat?.id || null;
   appContext.skillsSelectedMateriaId = primaryMat?.id || null;

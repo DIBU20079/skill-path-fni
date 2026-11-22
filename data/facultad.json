@@ -1,6 +1,6 @@
 {
   "id": "facultad",
-  "nombre": "Ruta Facultad de Ingeniería (FNI)",
+  "nombre": "Ruta Facultad de Ingeniería",
   "descripcion": "Domina los temas de mayor reprobación en primeros semestres de Ingeniería: Cálculo I y Física I.",
   "materias": [
     {
@@ -1001,7 +1001,7 @@
         {
           "id": "calc1_u3",
           "titulo": "Unidad 3: Derivadas y Aplicaciones",
-          "descripcion": "Regla de la cadena, derivación implícita/logarítmica y problemas de optimización FNI.",
+          "descripcion": "Regla de la cadena, derivación implícita/logarítmica y problemas de optimización universitaria.",
           "bases_requeridas": [
             {
               "id": "fac_cal_01b_funciones_dominios",

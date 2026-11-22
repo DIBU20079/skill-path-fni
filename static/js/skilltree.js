@@ -226,7 +226,7 @@ export function scrollToPathNode(skillId) {
 function renderSubjectOnboardingCard(materia, skills) {
   if (dom["onboarding-subject-code"]) {
     dom["onboarding-subject-code"].textContent =
-      `${materia.codigo || "FNI"} · ${skills.length} TEMAS CRÍTICOS`;
+      `${materia.codigo || "CURSO"} · ${skills.length} TEMAS CRÍTICOS`;
   }
   if (dom["onboarding-subject-title"]) {
     dom["onboarding-subject-title"].textContent = materia.nombre;

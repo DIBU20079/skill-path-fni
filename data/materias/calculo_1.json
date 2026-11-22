@@ -59,7 +59,7 @@
     {
       "id": "calc1_u3",
       "titulo": "Unidad 3: Derivadas y Aplicaciones",
-      "descripcion": "Regla de la cadena, derivación implícita/logarítmica y problemas de optimización FNI.",
+      "descripcion": "Regla de la cadena, derivación implícita/logarítmica y problemas de optimización universitaria.",
       "bases_requeridas": [
         {
           "id": "geo_02_rectas_pendientes",

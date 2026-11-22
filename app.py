@@ -1,4 +1,4 @@
-"""Punto de entrada minimalista del servidor Flask para Skill-Path FNI."""
+"""Punto de entrada minimalista del servidor Flask para Skill-Path."""
 
 from __future__ import annotations
 

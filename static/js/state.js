@@ -649,7 +649,7 @@ export function obtenerRangoFNI(xp = state.xp) {
   const xpActual = Math.max(0, Math.round(Number(xp) || 0));
   const tiers = [
     { min: 0, max: 199, nivel: 1, titulo: "Postulante", next: 200 },
-    { min: 200, max: 499, nivel: 2, titulo: "Ingresante FNI", next: 500 },
+    { min: 200, max: 499, nivel: 2, titulo: "Ingresante", next: 500 },
     { min: 500, max: 999, nivel: 3, titulo: "Estudiante Nivelado", next: 1000 },
     { min: 1000, max: 1999, nivel: 4, titulo: "Aspirante a Auxiliar", next: 2000 },
     { min: 2000, max: Infinity, nivel: 5, titulo: "Auxiliar de Ciencias Básicas", next: null },
@@ -726,9 +726,9 @@ export function obtenerMedallas(estado = state) {
       desbloqueada: hasSimPassed,
     },
     {
-      id: "constancia_fni",
+      id: "constancia",
       icono: "🔥",
-      nombre: "Constancia FNI",
+      nombre: "Constancia",
       descripcion: "Mantén una racha de 3+ días resolviendo retos.",
       desbloqueada: Number(est.racha || 0) >= 3,
     },
@@ -1493,7 +1493,7 @@ export function updateGreetingUI() {
     dom["sidebar-user-avatar"].textContent = inicial;
   }
   if (dom["sidebar-user-stage"]) {
-    dom["sidebar-user-stage"].textContent = state.etapa ? etapaLabel : "5 Materias FNI";
+    dom["sidebar-user-stage"].textContent = state.etapa ? etapaLabel : "5 Materias";
   }
   if (dom["path-user-greeting"]) {
     dom["path-user-greeting"].textContent = `CAMINO DE ${nombre.toUpperCase()}`;

@@ -71,7 +71,7 @@ DYNAMIC_EXERCISE_SCHEMA = {
     "required": ["paso1_concepto", "paso2_practica", "paso3_reto_foto"],
 }
 
-EXERCISE_GEN_SYSTEM_INSTRUCTION = """Eres un docente universitario de Ciencias Básicas de Ingeniería (FNI) creando retos inéditos en español.
+EXERCISE_GEN_SYSTEM_INSTRUCTION = """Eres un docente universitario de Ciencias Básicas de Ingeniería creando retos inéditos en español.
 
 REGLAS ESTRICTAS DE GENERACIÓN:
 1. Genera un ejercicio completamente nuevo y distinto a los ejemplos estándar, adaptado exactamente a la materia y tema solicitados, reforzando las fallas del historial de errores si existen.
@@ -187,7 +187,7 @@ def generar_ejercicio_dinamico(
     dificultad_limpia = "parcial_fni" if raw_diff == "parcial_fni" else "base"
 
     bloque_dificultad = (
-        "NIVEL DE DIFICULTAD: EXAMEN PARCIAL DE INGENIERÍA FNI (parcial_fni). "
+        "NIVEL DE DIFICULTAD: EXAMEN PARCIAL UNIVERSITARIO DE INGENIERÍA. "
         "Eleva la exigencia técnica respecto al nivel base: combina propiedades o pasos intermedios "
         "(por ejemplo, racionalización + factorización, regla de la cadena + producto, plano inclinado con fricción + descomposición o casos límite con trampa típica de parcial universitario), "
         "manteniendo un enunciado perfectamente resoluble a mano en una hoja."
@@ -234,7 +234,7 @@ ANALOGOUS_EXAMPLE_SCHEMA = {
     "required": ["enunciado", "pasos", "conclusion"],
 }
 
-ANALOGOUS_EXAMPLE_SYSTEM_INSTRUCTION = """Eres un docente universitario de Ciencias Básicas de Ingeniería (FNI) creando un ejemplo de andamiaje pedagógico en español.
+ANALOGOUS_EXAMPLE_SYSTEM_INSTRUCTION = """Eres un docente universitario de Ciencias Básicas de Ingeniería creando un ejemplo de andamiaje pedagógico en español.
 
 REGLAS ESTRICTAS:
 1. Genera un ejercicio ANÁLOGO y DIFERENTE del `ejercicio_actual`, del mismo tema y nivel de dificultad.
@@ -253,7 +253,7 @@ ERROR_DRILL_SCHEMA = {
     "required": ["enunciado", "pista_inicial", "objetivo"],
 }
 
-ERROR_DRILL_SYSTEM_INSTRUCTION = """Eres un tutor socrático de Ciencias Básicas de Ingeniería (FNI) diseñando micro-retos correctivos en español.
+ERROR_DRILL_SYSTEM_INSTRUCTION = """Eres un tutor socrático de Ciencias Básicas de Ingeniería diseñando micro-retos correctivos en español.
 
 REGLAS ESTRICTAS:
 1. Crea un ejercicio universitario breve, claro y resoluble en una hoja de papel que ataque DIRECTAMENTE el error recurrente indicado en `tipo_error` y `detalle_error`.
@@ -351,7 +351,7 @@ def generar_ejercicio_error(
     detalle_error: str,
 ) -> dict[str, str]:
     """Genera un ejercicio focalizado en superar un error específico del Baúl."""
-    materia_limpia = (materia or "").strip() or "Ciencias Básicas FNI"
+    materia_limpia = (materia or "").strip() or "Ciencias Básicas"
     tema_limpio = (tema or "").strip()
     tipo_limpio = (tipo_error or "").strip() or "error_operativo"
     detalle_limpio = (detalle_error or "").strip()
@@ -391,7 +391,7 @@ STEP_EXPLAIN_SCHEMA = {
     "required": ["aclaracion"],
 }
 
-STEP_EXPLAIN_SYSTEM_INSTRUCTION = """Eres un auxiliar de docencia universitario de Ciencias Básicas (FNI) muy claro y directo.
+STEP_EXPLAIN_SYSTEM_INSTRUCTION = """Eres un auxiliar de docencia universitario de Ciencias Básicas muy claro y directo.
 
 REGLAS ESTRICTAS:
 1. Explica en 2 a 3 líneas muy concretas exactamente qué transformación matemática o física ocurrió entre `paso_anterior` y `paso_actual`.
@@ -420,7 +420,7 @@ GUIDED_EXAMPLE_SCHEMA = {
     "required": ["enunciado", "pasos", "resultado_final"],
 }
 
-GUIDED_EXAMPLE_SYSTEM_INSTRUCTION = """Eres un docente universitario de Ciencias Básicas de Ingeniería (FNI) creando ejemplos guiados paso a paso en español.
+GUIDED_EXAMPLE_SYSTEM_INSTRUCTION = """Eres un docente universitario de Ciencias Básicas de Ingeniería creando ejemplos guiados paso a paso en español.
 
 REGLAS ESTRICTAS:
 1. Genera un ejemplo modelo universitario COMPLETAMENTE NUEVO para la materia y tema solicitados (distinto al `enunciado_previo` si se proporciona).
@@ -484,7 +484,7 @@ def explicar_paso_algebraico(
     explicacion_actual: str = "",
 ) -> dict[str, str]:
     """Explica en 2-3 líneas qué transformación ocurrió entre paso_anterior y paso_actual."""
-    materia_limpia = (materia or "").strip() or "Ciencias Básicas FNI"
+    materia_limpia = (materia or "").strip() or "Ciencias Básicas"
     tema_limpio = (tema or "").strip() or "Resolución guiada"
     anterior_limpio = (paso_anterior or "").strip() or "Enunciado inicial del problema"
     actual_limpio = (paso_actual or "").strip()
@@ -533,7 +533,7 @@ def generar_ejemplo_guiado(
     )
 
     prompt = (
-        "Genera un ejemplo guiado paso a paso de nivel universitario FNI.\n\n"
+        "Genera un ejemplo guiado paso a paso de nivel universitario de ingeniería.\n\n"
         f"MATERIA: {materia_limpia}\n"
         f"TEMA: {tema_limpio}\n"
         f"{nota_previo}"

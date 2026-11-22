@@ -1,4 +1,4 @@
-# Skill-Path FNI
+# Skill-Path
 
 Plataforma educativa gamificada estilo Duolingo para Ciencias Básicas de Ingeniería (Pre-U y Facultad), con **auditoría socrática por IA** de fotos del cuaderno usando Gemini.
 

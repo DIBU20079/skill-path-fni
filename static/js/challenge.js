@@ -220,7 +220,7 @@ async function handleExplainGuidedStep(stepIdx, stepCard, whyBtn) {
 
   try {
     const data = await apiExplicarPaso({
-      materia: modalSession.skill?.materia || "Ciencias Básicas FNI",
+      materia: modalSession.skill?.materia || "Ciencias Básicas",
       tema: modalSession.skill?.nombre || "Tema",
       paso_anterior: pasoAnteriorTexto,
       paso_actual: pasoActualTexto,
@@ -547,7 +547,7 @@ export async function abrirRetoSuperarError(errorObj) {
   cleanupModalResources();
   const activeMat = getActiveMateria();
   const materiaNombre =
-    (errorObj.materia || "").trim() || activeMat?.nombre || "Ciencias Básicas FNI";
+    (errorObj.materia || "").trim() || activeMat?.nombre || "Ciencias Básicas";
   const temaNombre = (errorObj.tema || "").trim() || "Refuerzo de Tema";
   const tipoError = (errorObj.tipo_error || "").trim() || "error_operativo";
   const detalleError = (errorObj.resumen || "").trim() || temaNombre;
@@ -773,7 +773,7 @@ export async function handleGenerateDynamicExercise({ stayOnCurrentStep = false 
       feedbackEl.className = "small text-success fw-semibold mb-2";
       feedbackEl.textContent =
         modalSession.activeDifficulty === "parcial_fni"
-          ? "🔥 Nuevo ejercicio Nivel Parcial FNI generado (+35 XP extra al aprobar)."
+          ? "🔥 Nuevo ejercicio Nivel Parcial generado (+35 XP extra al aprobar)."
           : "✨ Nuevo ejercicio inédito generado por Gemini adaptado a tu historial.";
       feedbackEl.classList.remove("d-none");
     }
@@ -1023,7 +1023,7 @@ function getCurrentPromptAndContext() {
       materia:
         (modalSession.errorTarget.materia || "").trim() ||
         activeMat?.nombre ||
-        "Ciencias Básicas FNI",
+        "Ciencias Básicas",
       tema: modalSession.errorTarget.tema || "Refuerzo de error",
       enunciado:
         modalSession.errorDrillData?.enunciado ||
@@ -1040,7 +1040,7 @@ function getCurrentPromptAndContext() {
   const skill = modalSession.skill;
   const paso3 = modalSession.activeExercise?.paso3_reto_foto || skill?.paso3_reto_foto;
   return {
-    materia: skill?.materia || "Ciencias Básicas FNI",
+    materia: skill?.materia || "Ciencias Básicas",
     tema: skill?.nombre || "Tema",
     enunciado: paso3?.enunciado_latex || "",
     prerrequisito: paso3?.prerrequisito_evaluado || "",
@@ -1624,7 +1624,7 @@ function processAuditResponse(data) {
         }
         if (modalSession.activeDifficulty === "parcial_fni") {
           state.xp += 35;
-          bonusChips.push("🔥 +35 XP Dominio Parcial FNI");
+          bonusChips.push("🔥 +35 XP Dominio Parcial");
         }
         modalSession.exerciseApprovedAwarded = true;
       }

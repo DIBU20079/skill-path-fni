@@ -1,4 +1,4 @@
-"""Registro de Flask Blueprints de Skill-Path FNI."""
+"""Registro de Flask Blueprints de Skill-Path."""
 
 from routes.api_ai import api_ai_bp
 from routes.api_auth import api_auth_bp
