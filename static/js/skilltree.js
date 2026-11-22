@@ -316,7 +316,7 @@ export function renderCaminoSection() {
     unitBanner.className = `unit-divider-banner unit-theme-${unitIdx % 4}`;
     unitBanner.dataset.unitId = unit.id;
     unitBanner.innerHTML = `
-      <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
+      <div class="unit-banner-top d-flex flex-wrap align-items-center justify-content-between gap-2">
         <div class="unit-divider-title">${escapeHtml(unit.titulo)}</div>
         <span class="unit-progress-pill">${doneInUnit}/${totalInUnit} dominados</span>
       </div>
@@ -334,7 +334,7 @@ export function renderCaminoSection() {
       const advanceBtn = document.createElement("button");
       advanceBtn.type = "button";
       advanceBtn.className = "btn btn-unit-advance mt-2";
-      advanceBtn.textContent = "⚡ Adelantar a esta unidad";
+      advanceBtn.textContent = "⚡ Adelantar unidad";
       advanceBtn.setAttribute(
         "aria-label",
         `Revisar bases requeridas para adelantar a ${unit.titulo}`
@@ -496,14 +496,14 @@ function renderSimulacroPathNode(container, materia, skills) {
         ? `4-5 preguntas · 05:00 min · Apruebas con ≥ 51/100 (+100 XP)${
             typeof bestScore === "number" ? ` · Mejor nota: ${bestScore}/100` : ""
           }`
-        : `Bloqueado · Te ${missing === 1 ? "falta 1 tema" : `faltan ${missing} temas`} en verde (≥ 60%)`
+        : `Domina ${requiredCount} temas (${unlockedCount}/${requiredCount} listos · ≥ 60%)`
     }</div>
   `;
 
   if (unlocked) {
     const startBtn = document.createElement("button");
     startBtn.type = "button";
-    startBtn.className = "btn btn-duo btn-duo-amber btn-skip-level mt-2";
+    startBtn.className = "btn btn-duo btn-duo-green btn-skip-level mt-2";
     startBtn.textContent = "🏆 Iniciar Simulacro (+100 XP)";
     startBtn.addEventListener("click", () => startSimulacroHandler(materia.id));
     labelCard.appendChild(startBtn);
@@ -585,14 +585,14 @@ export function renderMateriasSection() {
     dom["materias-stage-pill"].textContent = `${allMaterias.length} Materias · Acceso Libre`;
   }
 
-  const mode = appContext.materiasViewMode === "levels" ? "levels" : "network";
-  dom["btn-materias-view-network"]?.classList.toggle("active", mode === "network");
-  dom["btn-materias-view-network"]?.setAttribute("aria-selected", String(mode === "network"));
+  const mode = appContext.materiasViewMode === "network" ? "network" : "levels";
   dom["btn-materias-view-levels"]?.classList.toggle("active", mode === "levels");
   dom["btn-materias-view-levels"]?.setAttribute("aria-selected", String(mode === "levels"));
+  dom["btn-materias-view-network"]?.classList.toggle("active", mode === "network");
+  dom["btn-materias-view-network"]?.setAttribute("aria-selected", String(mode === "network"));
 
-  dom["materias-network-view"]?.classList.toggle("d-none", mode !== "network");
   dom["materias-levels-view"]?.classList.toggle("d-none", mode !== "levels");
+  dom["materias-network-view"]?.classList.toggle("d-none", mode !== "network");
 
   if (mode === "network") {
     renderKnowledgeNetwork();
@@ -606,12 +606,12 @@ export function renderMateriasSection() {
     {
       nivel: 0,
       stageKey: "pre_u",
-      label: "🟢 Nivel 0 · Fundamentos (Pre-U / Base de Ingeniería)",
+      label: "Nivel 0 · Fundamentos",
     },
     {
       nivel: 1,
       stageKey: "facultad",
-      label: "🔵 Nivel 1 · Ciencias Básicas I (Facultad FNI)",
+      label: "Nivel 1 · Ciencias Básicas I",
     },
   ];
 
@@ -626,90 +626,49 @@ export function renderMateriasSection() {
     groupDiv.appendChild(heading);
 
     const row = document.createElement("div");
-    row.className = "row g-4";
+    row.className = "row g-3 g-md-4";
 
     materias.forEach((mat) => {
-      const skills = getMateriaSkills(mat);
-      const total = skills.length;
-      const done = skills.filter((s) => state.nodos_estado[s.id] === "unlocked").length;
       const pct = calcularDominioMateria(mat, state);
       const initiated = Boolean(state.is_tester) || isMateriaIniciada(mat.id);
       const isCurrentActive = initiated && state.materia_activa === mat.id;
       const matStageKey = mat.etapa || stageKey;
+      const iconColorClass = getSubjectIconClass(mat.color);
+      const levelText = mat.codigo ? `Nivel ${nivel} · ${mat.codigo}` : `Nivel ${nivel}`;
+      const btnLabel = initiated ? "Continuar" : "Entrar";
 
       const col = document.createElement("div");
       col.className = "col-12 col-md-6";
 
       const card = document.createElement("article");
-      card.className = `duo-card subject-catalog-card p-4 h-100 d-flex flex-column${isCurrentActive ? " is-active-subject" : ""}`;
-
-      const iconColorClass = getSubjectIconClass(mat.color);
-
-      const topicsHtml = skills
-        .map((skill) => {
-          const st = initiated ? state.nodos_estado[skill.id] || "locked" : "locked";
-          const priority = obtenerPrioridadTema(skill);
-          const statusDot =
-            st === "unlocked"
-              ? "✅"
-              : st === "blocker"
-                ? "🚨"
-                : st === "active"
-                  ? "⚡"
-                  : "🔒";
-          return `
-            <div class="subject-topic-row">
-              <span class="fw-semibold text-dark text-truncate">
-                ${statusDot} #${escapeHtml(skill.ranking_criticidad)} ${escapeHtml(skill.nombre)}
-              </span>
-              <span class="priority-pill ${priority.badgeClass}">
-                ${escapeHtml(priority.label)}
-              </span>
-            </div>
-          `;
-        })
-        .join("");
-
-      const statusBadgeHtml = isCurrentActive
-        ? '<span class="badge rounded-pill text-bg-primary">En curso</span>'
-        : initiated
-          ? '<span class="badge rounded-pill text-bg-success">Iniciada</span>'
-          : '<span class="badge rounded-pill text-bg-light border text-secondary">Nueva</span>';
-
-      const btnLabel = initiated ? "Ir al Camino" : "Comenzar Materia";
-      const btnIcon = initiated ? "bi-map-fill" : "bi-rocket-takeoff-fill";
+      card.className = `duo-card subject-catalog-card p-3 p-sm-4 h-100 d-flex flex-column${isCurrentActive ? " is-active-subject" : ""}`;
 
       card.innerHTML = `
-        <div class="d-flex align-items-start justify-content-between gap-3 mb-3">
-          <div class="d-flex align-items-center gap-3">
-            <span class="subject-icon-box ${iconColorClass}">
-              <i class="bi ${escapeHtml(mat.icono || "bi-book-fill")}"></i>
-            </span>
-            <div>
-              <span class="badge rounded-pill text-bg-light border mb-1">${escapeHtml(mat.codigo || `NIVEL ${nivel}`)}</span>
-              <h3 class="h5 fw-black mb-0">${escapeHtml(mat.nombre)}</h3>
-            </div>
+        <div class="d-flex align-items-center gap-3 mb-2 min-w-0">
+          <span class="subject-icon-box ${iconColorClass}">
+            <i class="bi ${escapeHtml(mat.icono || "bi-book-fill")}"></i>
+          </span>
+          <div class="min-w-0 flex-grow-1">
+            <div class="small fw-bold text-secondary">${escapeHtml(levelText)}</div>
+            <h3 class="h5 fw-black mb-0">${escapeHtml(mat.nombre)}</h3>
           </div>
-          ${statusBadgeHtml}
         </div>
 
-        <p class="small text-secondary mb-3">${escapeHtml(mat.descripcion || "")}</p>
+        <p class="small text-secondary subject-card-desc mb-3">${escapeHtml(mat.descripcion || "")}</p>
 
         <div class="mb-3">
           <div class="d-flex justify-content-between small fw-bold mb-1">
-            <span>Avance: ${done}/${total} temas</span>
+            <span class="text-secondary">Progreso</span>
             <span class="text-success">${pct}%</span>
           </div>
-          <div class="duo-progress-track">
+          <div class="duo-progress-track duo-progress-track-slim">
             <div class="duo-progress-fill" style="width: ${pct}%;"></div>
           </div>
         </div>
 
-        <div class="subject-topics-list mb-4">${topicsHtml}</div>
-
-        <div class="mt-auto pt-2">
-          <button type="button" class="btn btn-duo ${initiated ? "btn-duo-green" : "btn-duo-blue"} w-100 btn-go-subject-path">
-            <i class="bi ${btnIcon} me-2"></i>${btnLabel}
+        <div class="mt-auto pt-1">
+          <button type="button" class="btn btn-duo btn-duo-green w-100 btn-go-subject-path">
+            ${btnLabel}
           </button>
         </div>
       `;
@@ -896,7 +855,6 @@ function renderSkillsKpis(selectedMat, skills) {
   const completedCount = skills.filter(
     (s) => state.nodos_estado[s.id] === "unlocked"
   ).length;
-  const remainingCount = Math.max(0, skills.length - completedCount);
 
   const aiStats = obtenerMetricasIAMateria(selectedMat.id, state);
   const history = Array.isArray(state.historial_errores) ? state.historial_errores : [];
@@ -925,11 +883,9 @@ function renderSkillsKpis(selectedMat, skills) {
   }
   if (dom["skills-kpi-completed-sub"]) {
     dom["skills-kpi-completed-sub"].textContent =
-      skills.length > 0 && remainingCount === 0
+      skills.length > 0 && completedCount === skills.length
         ? "¡Todos dominados!"
-        : remainingCount === 1
-          ? "Falta 1 tema por dominar"
-          : `Faltan ${remainingCount} temas`;
+        : `${completedCount} de ${skills.length} temas dominados`;
   }
 
   if (dom["skills-kpi-ai-accuracy"]) {

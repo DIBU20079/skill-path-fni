@@ -1427,6 +1427,7 @@ export function handleFullProgressReset() {
     resetState(preservedName);
     state.etapa = preservedStage;
     state.is_tester = wasTester;
+    state.onboarding_completado = true;
     saveState();
     updateGreetingUI();
     updateTopbar();

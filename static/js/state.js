@@ -76,6 +76,7 @@ export function createDefaultState() {
     nombre: "",
     etapa: null,
     is_tester: false,
+    onboarding_completado: false,
     materia_activa: null,
     materias_iniciadas: {},
     xp: 0,
@@ -214,6 +215,7 @@ function normalizeStateObject(parsed) {
     ...parsed,
     nombre: typeof parsed.nombre === "string" ? parsed.nombre.trim() : "",
     is_tester: Boolean(parsed.is_tester),
+    onboarding_completado: Boolean(parsed.onboarding_completado),
     materia_activa: canonicalMateriaActiva,
     materias_iniciadas: cleanInitiated,
     xp: Math.max(0, Number.isFinite(Number(parsed.xp)) ? Number(parsed.xp) : 0),
@@ -274,7 +276,7 @@ export function resolveCanonicalMateriaId(materiaId) {
 export const appContext = {
   skillsDB: null,
   activeSection: "materias",
-  materiasViewMode: "network", // "network" | "levels"
+  materiasViewMode: "levels", // "levels" | "network"
   networkSelectedType: null, // "node" | "edge" | null
   networkSelectedId: null,
   skillsSelectedMateriaId: null,
@@ -294,14 +296,21 @@ function persistLocalOnly() {
   }
 }
 
-function scheduleCloudSync() {
+function scheduleCloudSync(immediate = false) {
   if (!appContext.currentUser || appContext.suppressCloudSync) return;
 
   if (cloudSyncTimerId !== null) {
     window.clearTimeout(cloudSyncTimerId);
+    cloudSyncTimerId = null;
   }
   const snapshot = JSON.parse(JSON.stringify(state));
   const stageSnapshot = state.etapa || appContext.currentUser.etapa || null;
+
+  if (immediate) {
+    return apiGuardarProgreso(snapshot, stageSnapshot).catch((err) => {
+      console.warn("Sincronización inmediata pendiente:", err?.message || err);
+    });
+  }
 
   cloudSyncTimerId = window.setTimeout(() => {
     cloudSyncTimerId = null;
@@ -312,9 +321,24 @@ function scheduleCloudSync() {
   }, 300);
 }
 
-export function saveState() {
+export function saveState(options = {}) {
   persistLocalOnly();
-  scheduleCloudSync();
+  return scheduleCloudSync(Boolean(options?.immediate));
+}
+
+export function shouldShowOnboarding() {
+  const username = String(appContext.currentUser?.username || "").trim().toLowerCase();
+  if (!username) return false;
+  if (state.is_tester || username === "tester" || username === "jurado_demo") {
+    return false;
+  }
+  if (state.onboarding_completado === true) return false;
+  const hasInitiated =
+    state.materias_iniciadas &&
+    typeof state.materias_iniciadas === "object" &&
+    Object.values(state.materias_iniciadas).some(Boolean);
+  if (hasInitiated) return false;
+  return true;
 }
 
 export function resetState(preservedName = "") {
@@ -1126,14 +1150,18 @@ export function cacheDom() {
     "top-navbar",
     "brand-home-link",
     "btn-topbar-subject",
-    "nav-user-greeting",
     "nav-subject-name",
-    "nav-progress-text",
-    "nav-progress-percent",
     "nav-progress-bar",
     "nav-streak-count",
     "nav-xp-count",
     "view-stage-selector",
+    "view-onboarding",
+    "onboarding-step-1",
+    "onboarding-step-2",
+    "onboarding-welcome-title",
+    "btn-onboarding-continue",
+    "onboarding-subjects-grid",
+    "btn-onboarding-explore-all",
     "auth-global-error",
     "auth-global-error-text",
     "btn-auth-retry",
@@ -1426,6 +1454,7 @@ export function cacheDom() {
 export function showView(viewName) {
   const views = {
     "stage-selector": dom["view-stage-selector"],
+    onboarding: dom["view-onboarding"],
     diagnostic: dom["view-diagnostic"],
     camino: dom["view-camino"],
     materias: dom["view-materias"],
@@ -1440,7 +1469,10 @@ export function showView(viewName) {
 
   const isAppShell = ["camino", "materias", "skills", "perfil"].includes(viewName);
   dom["app-nav"]?.classList.toggle("d-none", !isAppShell);
-  dom["top-navbar"]?.classList.toggle("d-none", viewName === "stage-selector");
+  dom["top-navbar"]?.classList.toggle(
+    "d-none",
+    viewName === "stage-selector" || viewName === "onboarding"
+  );
   document.body.classList.toggle("has-app-nav", isAppShell);
 }
 
@@ -1451,9 +1483,6 @@ export function updateGreetingUI() {
   const etapaLabel =
     state.etapa === "facultad" ? "Nivel 1 · Ciencias Básicas" : "Nivel 0 · Fundamentos";
 
-  if (dom["nav-user-greeting"]) {
-    dom["nav-user-greeting"].textContent = `¡Hola, ${nombre}!`;
-  }
   if (dom["sidebar-user-name"]) {
     dom["sidebar-user-name"].textContent = nombre;
   }
@@ -1489,30 +1518,16 @@ export function updateTopbar() {
   const skills = getMateriaSkills(activeMat);
   const total = skills.length;
   const completed = skills.filter((s) => state.nodos_estado[s.id] === "unlocked").length;
-  const remaining = Math.max(0, total - completed);
   const percent = total > 0 ? Math.round((completed / total) * 100) : 0;
 
   if (dom["nav-subject-name"]) {
     dom["nav-subject-name"].textContent = activeMat
       ? activeMat.nombre
       : state.etapa === "facultad"
-        ? "Facultad FNI"
-        : "Pre-U FNI";
+        ? "Cálculo I"
+        : "Álgebra Base";
   }
 
-  if (dom["nav-progress-text"]) {
-    if (total > 0 && remaining === 0) {
-      dom["nav-progress-text"].innerHTML = "<strong>¡Materia completada!</strong>";
-    } else if (remaining === 1) {
-      dom["nav-progress-text"].innerHTML = "Falta <strong>1</strong> tema";
-    } else {
-      dom["nav-progress-text"].innerHTML = `Faltan <strong>${remaining}</strong> temas`;
-    }
-  }
-
-  if (dom["nav-progress-percent"]) {
-    dom["nav-progress-percent"].textContent = `${percent}%`;
-  }
   if (dom["nav-progress-bar"]) {
     dom["nav-progress-bar"].style.width = `${percent}%`;
     dom["nav-progress-bar"].setAttribute("aria-valuenow", String(percent));

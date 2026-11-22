@@ -43,12 +43,11 @@
   </nav>
 
   <!-- =========================================================
-       BARRA SUPERIOR ULTRA-COMPACTA (1 fila de ~56px + barra de progreso fina 100%)
+       BARRA SUPERIOR MINIMALISTA (1 fila ~54px + línea fina 4px sin texto)
        ========================================================= -->
-  <header id="top-navbar" class="topbar sticky-top d-none" aria-label="Barra de progreso y estado del estudiante">
+  <header id="top-navbar" class="topbar sticky-top d-none" aria-label="Barra de estado de materia y progreso">
     <div class="container-xl topbar-compact-shell">
       <div class="topbar-main-row">
-        <!-- Izquierda: Pastilla/botón de materia activa (abre Materias al hacer clic) y saludo solo en escritorio -->
         <div class="topbar-brand-group min-w-0">
           <a href="#" id="brand-home-link" class="brand-logo text-decoration-none d-none" title="Skill-Path FNI">
             <span class="brand-badge">
@@ -62,13 +61,11 @@
             title="Cambiar materia activa"
           >
             <span aria-hidden="true">📘</span>
-            <span id="nav-subject-name" class="text-truncate">Álgebra Pre-U</span>
+            <span id="nav-subject-name" class="text-truncate">Álgebra de Supervivencia</span>
             <span class="subject-caret" aria-hidden="true">▾</span>
           </button>
-          <span id="nav-user-greeting" class="greeting-pill d-none d-lg-inline-flex text-truncate">¡Hola, Estudiante!</span>
         </div>
 
-        <!-- Derecha: Solo las dos pastillas compactas de Racha y XP en la misma línea (flex-nowrap) -->
         <div class="topbar-actions-group flex-nowrap">
           <div class="stat-pill stat-pill-streak" title="Racha actual">
             <span class="stat-emoji" aria-hidden="true">🔥</span>
@@ -81,25 +78,18 @@
           </div>
         </div>
       </div>
+    </div>
 
-      <!-- Debajo: Barra de progreso fina ocupando el 100% del ancho -->
-      <div class="topbar-progress-group">
-        <div class="d-flex justify-content-between align-items-center mb-1">
-          <span id="nav-progress-text" class="progress-caption">Faltan <strong>5</strong> temas</span>
-          <span id="nav-progress-percent" class="progress-percent-tag">0%</span>
-        </div>
-        <div class="duo-progress-track duo-progress-track-slim">
-          <div
-            id="nav-progress-bar"
-            class="duo-progress-fill"
-            role="progressbar"
-            style="width: 0%;"
-            aria-valuenow="0"
-            aria-valuemin="0"
-            aria-valuemax="100"
-            aria-label="Progreso de temas completados"
-          ></div>
-        </div>
-      </div>
+    <div class="topbar-thin-progress-track">
+      <div
+        id="nav-progress-bar"
+        class="topbar-thin-progress-fill"
+        role="progressbar"
+        style="width: 0%;"
+        aria-valuenow="0"
+        aria-valuemin="0"
+        aria-valuemax="100"
+        aria-label="Progreso en la materia activa"
+      ></div>
     </div>
   </header>

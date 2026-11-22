@@ -44,13 +44,13 @@
             <div class="col-12 col-md-6">
               <div class="onboarding-option-card onboarding-option-placement h-100 p-3 p-sm-4 d-flex flex-column justify-content-between">
                 <div>
-                  <span class="badge rounded-pill text-bg-primary mb-2">RECOMENDADO SI TIENES BASE</span>
+                  <span class="badge rounded-pill text-bg-light border text-secondary mb-2">RECOMENDADO SI TIENES BASE</span>
                   <h3 class="h5 fw-black mb-2">🎯 Hacer Examen de Ubicación</h3>
                   <p class="small text-secondary mb-3">
                     Responde 5 preguntas de básico a avanzado de esta materia para desbloquear en verde los nodos que ya dominas.
                   </p>
                 </div>
-                <button type="button" id="btn-start-placement-exam" class="btn btn-duo btn-duo-blue w-100 py-2">
+                <button type="button" id="btn-start-placement-exam" class="btn btn-duo btn-duo-outline-secondary w-100 py-2">
                   🎯 Hacer Examen de Ubicación
                 </button>
               </div>
@@ -63,19 +63,19 @@
           <!-- Columna izquierda (8 cols): Árbol vertical de la materia activa -->
           <div class="col-12 col-lg-8">
             <div class="duo-card p-3 p-sm-4">
-              <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-3">
-                <div>
+              <div class="camino-header-row d-flex flex-wrap justify-content-between align-items-start gap-3 mb-3">
+                <div class="min-w-0">
                   <span id="path-user-greeting" class="path-kicker">CAMINO DE ESTUDIO</span>
                   <h2 id="path-route-title" class="h4 fw-black mb-1">Materia Activa</h2>
                   <p id="path-route-desc" class="text-secondary small mb-0">
-                    Supera los 3 pasos de cada nodo o usa "⚡ Adelantar a esta unidad" desde el encabezado de cada unidad.
+                    Supera los 3 pasos de cada nodo o usa "⚡ Adelantar unidad" desde cada unidad.
                   </p>
                 </div>
-                <div class="d-flex flex-wrap gap-2">
+                <div class="camino-header-actions d-flex flex-wrap gap-2">
                   <button type="button" id="btn-path-placement" class="btn btn-duo btn-duo-outline-secondary btn-sm" title="Recalibrar esta materia con el Examen de Ubicación">
                     <i class="bi bi-bullseye me-1"></i>Examen de Ubicación
                   </button>
-                  <button type="button" id="btn-go-subjects" class="btn btn-duo btn-duo-outline-primary btn-sm">
+                  <button type="button" id="btn-go-subjects" class="btn btn-duo btn-duo-outline-secondary btn-sm">
                     <i class="bi bi-journals me-1"></i>Cambiar materia
                   </button>
                 </div>
@@ -86,26 +86,11 @@
                   <span class="small fw-bold text-dark">
                     <i class="bi bi-speedometer2 text-primary me-1"></i>Preparación para Examen
                   </span>
-                  <span id="path-readiness-badge" class="badge rounded-pill text-bg-primary">0%</span>
+                  <span id="path-readiness-badge" class="badge rounded-pill text-bg-light border text-primary">0%</span>
                 </div>
                 <div class="duo-progress-track duo-progress-track-slim">
                   <div id="path-readiness-bar" class="duo-progress-fill" style="width: 0%;"></div>
                 </div>
-              </div>
-
-              <div class="node-legend mb-4" aria-label="Leyenda de estados de los nodos">
-                <span class="legend-item">
-                  <span class="legend-dot legend-dot-unlocked"></span>Desbloqueado
-                </span>
-                <span class="legend-item">
-                  <span class="legend-dot legend-dot-active"></span>Activo
-                </span>
-                <span class="legend-item">
-                  <span class="legend-dot legend-dot-blocker"></span>Refuerzo de prerrequisito
-                </span>
-                <span class="legend-item">
-                  <span class="legend-dot legend-dot-locked"></span>Bloqueado (adelanta por unidad)
-                </span>
               </div>
 
               <div id="duolingo-path-container" class="duolingo-path" aria-live="polite">

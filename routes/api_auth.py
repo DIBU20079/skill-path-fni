@@ -48,6 +48,7 @@ def _estado_inicial_base(nombre: str, etapa: str) -> dict[str, Any]:
         "nombre": nombre,
         "etapa": etapa,
         "is_tester": False,
+        "onboarding_completado": False,
         "materia_activa": None,
         "materias_iniciadas": {},
         "xp": 0,
@@ -78,6 +79,7 @@ def _estado_demo_jurados() -> dict[str, Any]:
         "nombre": "Jurado Demo FNI",
         "etapa": "facultad",
         "is_tester": False,
+        "onboarding_completado": True,
         "materia_activa": "calculo_1",
         "materias_iniciadas": {
             "algebra_base": True,
@@ -285,6 +287,7 @@ def construir_estado_tester(etapa_actual: str = "facultad") -> dict[str, Any]:
         "nombre": "Tester FNI",
         "etapa": etapa_limpia,
         "is_tester": True,
+        "onboarding_completado": True,
         "materia_activa": materia_activa,
         "materias_iniciadas": materias_iniciadas,
         "xp": 1500,
@@ -319,7 +322,7 @@ def construir_estado_tester(etapa_actual: str = "facultad") -> dict[str, Any]:
 
 def _tester_necesita_actualizacion(estado_actual: dict[str, Any]) -> bool:
     """Detecta si una cuenta tester existente no tiene aún todas las materias/nodos actuales."""
-    if not estado_actual.get("is_tester"):
+    if not estado_actual.get("is_tester") or not estado_actual.get("onboarding_completado"):
         return True
     combinado = cargar_skills_combinados()
     materias = combinado.get("materias") or []
@@ -571,6 +574,16 @@ def demo_login():
                 etapa="facultad",
                 estado_inicial=_estado_demo_jurados(),
             )
+        else:
+            estado_actual = dict(usuario.get("estado_json") or {})
+            if not estado_actual.get("onboarding_completado"):
+                estado_actual["onboarding_completado"] = True
+                actualizar_estado(
+                    username=DEMO_USERNAME,
+                    estado_json=estado_actual,
+                    etapa=str(usuario.get("etapa") or "facultad"),
+                )
+                usuario = {**usuario, "estado_json": estado_actual}
         _iniciar_sesion(DEMO_USERNAME)
         return jsonify(_serializar_usuario_publico(usuario)), 200
     except RuntimeError as exc:

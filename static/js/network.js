@@ -318,7 +318,7 @@ function renderTopicClaveRows(topics, emptyMessage) {
           </span>
         </div>
       </div>
-      <button type="button" class="btn btn-duo btn-duo-blue btn-sm flex-shrink-0 btn-jump-topic">
+      <button type="button" class="btn btn-duo btn-duo-outline-secondary btn-sm flex-shrink-0 btn-jump-topic">
         Ir al tema
       </button>
     `;
@@ -446,7 +446,15 @@ export function renderNodeInspector(matId) {
     body.appendChild(descP);
   }
 
-  // 1. Bases específicas entrantes (prerrequisitos y correquisitos relevantes)
+  // CTA principal: Abrir Camino de esta Materia
+  const openBtn = document.createElement("button");
+  openBtn.type = "button";
+  openBtn.className = "btn btn-duo btn-duo-green w-100";
+  openBtn.innerHTML = '<i class="bi bi-signpost-split-fill me-2"></i>Abrir Camino de esta Materia';
+  openBtn.addEventListener("click", () => openSubjectCaminoHandler(mat.id));
+  body.appendChild(openBtn);
+
+  // Bases específicas entrantes dentro de desplegable cerrado por defecto
   const incomingConns = (network.conexiones || []).filter(
     (c) => c.destino === mat.id || (c.tipo === "correquisito" && c.origen === mat.id)
   );
@@ -464,20 +472,24 @@ export function renderNodeInspector(matId) {
     });
   });
 
-  const basesSection = document.createElement("div");
-  const basesTitle = document.createElement("div");
-  basesTitle.className = "inspector-section-title";
-  basesTitle.textContent = "Bases específicas que necesitas";
-  basesSection.appendChild(basesTitle);
-  basesSection.appendChild(
-    renderTopicClaveRows(
-      incomingTopics,
-      "Materia base inicial de Nivel 0: empieza directamente desde su Unidad 1."
-    )
-  );
-  body.appendChild(basesSection);
+  if (incomingTopics.length > 0) {
+    const detailsEl = document.createElement("details");
+    detailsEl.className = "inspector-bases-details";
+    const summaryEl = document.createElement("summary");
+    summaryEl.className = "inspector-bases-summary";
+    summaryEl.innerHTML = `<span><span class="inspector-bases-chevron me-1">▸</span>Ver temas base recomendados (${incomingTopics.length})</span>`;
+    detailsEl.appendChild(summaryEl);
 
-  // 2. Para qué te sirve (materias que apoya)
+    const innerWrap = document.createElement("div");
+    innerWrap.className = "mt-2";
+    innerWrap.appendChild(
+      renderTopicClaveRows(incomingTopics, "Sin temas base registrados.")
+    );
+    detailsEl.appendChild(innerWrap);
+    body.appendChild(detailsEl);
+  }
+
+  // Para qué te sirve (materias que apoya)
   const outgoingConns = (network.conexiones || []).filter(
     (c) => c.origen === mat.id || (c.tipo === "correquisito" && c.destino === mat.id)
   );
@@ -493,25 +505,20 @@ export function renderNodeInspector(matId) {
     }
   });
 
-  const supportSection = document.createElement("div");
-  const supportTitle = document.createElement("div");
-  supportTitle.className = "inspector-section-title";
-  supportTitle.textContent = "Para qué te sirve (materias que apoya)";
-  supportSection.appendChild(supportTitle);
+  if (supportTargets.length > 0) {
+    const supportSection = document.createElement("div");
+    const supportTitle = document.createElement("div");
+    supportTitle.className = "inspector-section-title";
+    supportTitle.textContent = "Conecta con";
+    supportSection.appendChild(supportTitle);
 
-  if (supportTargets.length === 0) {
-    const emptySup = document.createElement("div");
-    emptySup.className = "small text-secondary";
-    emptySup.textContent = "Asignatura troncal de Ciencias Básicas I.";
-    supportSection.appendChild(emptySup);
-  } else {
     const pillsWrap = document.createElement("div");
     pillsWrap.className = "d-flex flex-wrap gap-2";
     supportTargets.forEach(({ mat: targetMat, isCoreq }) => {
       const pill = document.createElement("button");
       pill.type = "button";
       pill.className = "inspector-support-pill";
-      pill.textContent = `${isCoreq ? "↔ Correquisito: " : "→ "}${targetMat.nombre}`;
+      pill.textContent = `${isCoreq ? "↔ " : "→ "}${targetMat.nombre}`;
       pill.addEventListener("click", () => {
         appContext.networkSelectedType = "node";
         appContext.networkSelectedId = targetMat.id;
@@ -521,16 +528,8 @@ export function renderNodeInspector(matId) {
       pillsWrap.appendChild(pill);
     });
     supportSection.appendChild(pillsWrap);
+    body.appendChild(supportSection);
   }
-  body.appendChild(supportSection);
-
-  // 3. CTA principal: Abrir Camino de esta Materia
-  const openBtn = document.createElement("button");
-  openBtn.type = "button";
-  openBtn.className = "btn btn-duo btn-duo-green w-100 mt-1";
-  openBtn.innerHTML = '<i class="bi bi-signpost-split-fill me-2"></i>Abrir Camino de esta Materia';
-  openBtn.addEventListener("click", () => openSubjectCaminoHandler(mat.id));
-  body.appendChild(openBtn);
 }
 
 export function renderEdgeInspector(conn) {
@@ -550,11 +549,8 @@ export function renderEdgeInspector(conn) {
   }
   if (dom["inspector-badges"]) {
     dom["inspector-badges"].innerHTML = `
-      <span class="badge rounded-pill ${isCoreq ? "text-bg-primary" : "text-bg-secondary"}">
-        ${isCoreq ? "Correquisito mutuo" : "Prerrequisito directo"}
-      </span>
       <span class="badge rounded-pill text-bg-light border text-secondary">
-        ${(conn.temas_clave || []).length} temas clave
+        ${isCoreq ? "Correquisito" : "Prerrequisito"}
       </span>
     `;
   }
@@ -572,18 +568,35 @@ export function renderEdgeInspector(conn) {
     body.appendChild(descP);
   }
 
-  const topicsTitle = document.createElement("div");
-  topicsTitle.className = "inspector-section-title";
-  topicsTitle.textContent = "Temas clave de esta conexión";
-  body.appendChild(topicsTitle);
-  body.appendChild(
-    renderTopicClaveRows(conn.temas_clave || [], "No hay temas clave registrados.")
-  );
+  const topics = Array.isArray(conn.temas_clave) ? conn.temas_clave : [];
+  if (topics.length > 0) {
+    const detailsEl = document.createElement("details");
+    detailsEl.className = "inspector-bases-details";
+    const summaryEl = document.createElement("summary");
+    summaryEl.className = "inspector-bases-summary";
+    summaryEl.innerHTML = `<span><span class="inspector-bases-chevron me-1">▸</span>Ver temas base recomendados (${topics.length})</span>`;
+    detailsEl.appendChild(summaryEl);
+
+    const innerWrap = document.createElement("div");
+    innerWrap.className = "mt-2";
+    innerWrap.appendChild(renderTopicClaveRows(topics, "Sin temas base registrados."));
+    detailsEl.appendChild(innerWrap);
+    body.appendChild(detailsEl);
+  }
+
+  if (destMat) {
+    const destBtn = document.createElement("button");
+    destBtn.type = "button";
+    destBtn.className = "btn btn-duo btn-duo-green w-100 mt-1";
+    destBtn.innerHTML = `<i class="bi bi-signpost-split-fill me-2"></i>Abrir Camino de ${escapeHtml(destMat.nombre)}`;
+    destBtn.addEventListener("click", () => openSubjectCaminoHandler(destMat.id));
+    body.appendChild(destBtn);
+  }
 
   if (originMat) {
     const originBtn = document.createElement("button");
     originBtn.type = "button";
-    originBtn.className = "btn btn-duo btn-duo-outline-secondary btn-sm w-100 mt-1";
+    originBtn.className = "btn btn-duo btn-duo-outline-secondary btn-sm w-100";
     originBtn.textContent = `Ver ficha de ${originMat.nombre}`;
     originBtn.addEventListener("click", () => {
       appContext.networkSelectedType = "node";

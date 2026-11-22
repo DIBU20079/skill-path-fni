@@ -71,6 +71,7 @@ import {
   clearSessionLocalState,
   dom,
   ensureConsistentNodeStatesForStage,
+  escapeHtml,
   findMateriaById,
   findSkillGlobal,
   getActiveMateria,
@@ -87,6 +88,7 @@ import {
   renderMath,
   renderSkillsLoadError,
   saveState,
+  shouldShowOnboarding,
   showView,
   startMateriaFromScratch,
   state,
@@ -454,10 +456,69 @@ function showAuthBoxError(el, message) {
   el.classList.remove("d-none");
 }
 
+function renderOnboardingSubjects() {
+  const grid = dom["onboarding-subjects-grid"];
+  if (!grid) return;
+
+  const materias = getAllMaterias();
+  grid.innerHTML = "";
+
+  materias.forEach((mat) => {
+    const levelTag =
+      Number(mat.nivel ?? (mat.etapa === "facultad" ? 1 : 0)) === 0
+        ? "Nivel 0"
+        : "Nivel 1";
+    const matStage = mat.etapa || (Number(mat.nivel) === 0 ? "pre_u" : "facultad");
+
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "onboarding-subject-pick";
+    btn.dataset.materiaId = mat.id;
+    btn.innerHTML = `
+      <span class="subject-icon-box onboarding-subject-icon">
+        <i class="bi ${escapeHtml(mat.icono || "bi-book-fill")}"></i>
+      </span>
+      <span class="min-w-0 flex-grow-1 text-start">
+        <span class="d-block fw-black text-dark">${escapeHtml(mat.nombre)}</span>
+        <span class="d-block small text-secondary">${escapeHtml(levelTag)}${mat.codigo ? ` · ${escapeHtml(mat.codigo)}` : ""}</span>
+      </span>
+      <i class="bi bi-chevron-right text-secondary flex-shrink-0"></i>
+    `;
+    btn.addEventListener("click", () => {
+      state.onboarding_completado = true;
+      state.etapa = matStage;
+      state.materia_activa = mat.id;
+      appContext.skillsSelectedMateriaId = mat.id;
+      if (appContext.currentUser) {
+        appContext.currentUser.etapa = matStage;
+      }
+      saveState({ immediate: true });
+      enterAppSection("camino");
+    });
+    grid.appendChild(btn);
+  });
+}
+
+function startQuickOnboarding() {
+  const nombre = state.nombre || appContext.currentUser?.nombre || "Estudiante";
+  if (dom["onboarding-welcome-title"]) {
+    dom["onboarding-welcome-title"].textContent = `¡Hola, ${nombre}!`;
+  }
+  dom["onboarding-step-1"]?.classList.remove("d-none");
+  dom["onboarding-step-2"]?.classList.add("d-none");
+  renderOnboardingSubjects();
+  showView("onboarding");
+}
+
 async function applyAuthenticatedUser(userData) {
   hydrateStateFromUser(userData);
   updateGreetingUI();
   updateTopbar();
+
+  if (shouldShowOnboarding()) {
+    startQuickOnboarding();
+    return;
+  }
 
   const allMaterias = getAllMaterias();
   const activeInitiated =
@@ -465,6 +526,7 @@ async function applyAuthenticatedUser(userData) {
   const anyInitiated = allMaterias.find((m) => isMateriaIniciada(m.id));
 
   if (state.is_tester && state.materia_activa) {
+    appContext.materiasViewMode = "levels";
     enterAppSection("materias");
   } else if (activeInitiated) {
     enterAppSection("camino");
@@ -474,7 +536,7 @@ async function applyAuthenticatedUser(userData) {
     saveState();
     enterAppSection("camino");
   } else {
-    // Catálogo unificado abre directo en Red de Conocimientos / Materias
+    appContext.materiasViewMode = "levels";
     enterAppSection("materias");
   }
 }
@@ -599,6 +661,18 @@ function bindEvents() {
   dom["form-auth-register"]?.addEventListener("submit", handleRegisterSubmit);
   dom["btn-auth-demo-login"]?.addEventListener("click", handleDemoLoginClick);
   dom["btn-auth-retry"]?.addEventListener("click", () => window.location.reload());
+
+  // Bienvenida rápida de 2 pasos (usuarios nuevos)
+  dom["btn-onboarding-continue"]?.addEventListener("click", () => {
+    dom["onboarding-step-1"]?.classList.add("d-none");
+    dom["onboarding-step-2"]?.classList.remove("d-none");
+  });
+  dom["btn-onboarding-explore-all"]?.addEventListener("click", () => {
+    state.onboarding_completado = true;
+    appContext.materiasViewMode = "levels";
+    saveState({ immediate: true });
+    enterAppSection("materias");
+  });
 
   dom["btn-profile-logout"]?.addEventListener("click", handleLogoutClick);
   dom["btn-topbar-subject"]?.addEventListener("click", () =>
