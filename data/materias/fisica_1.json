@@ -1,0 +1,738 @@
+{
+  "id": "fisica_1",
+  "nombre": "Física I - FIS 1100",
+  "codigo": "FIS 1100",
+  "nivel": 1,
+  "etapa": "facultad",
+  "area": "fisica",
+  "icono": "bi-lightning-charge-fill",
+  "color": "coral",
+  "descripcion": "Domina FIS-1100 por Unidades: vectores, cinemática 1D/2D, dinámica con fricción y poleas, y energía mecánica.",
+  "unidades": [
+    {
+      "id": "fis1_u1",
+      "titulo": "Unidad 1: Vectores y Cinemática 1D/2D",
+      "descripcion": "Descomposición vectorial 2D/3D, MRU/MRUV, caída libre y movimiento parabólico.",
+      "bases_requeridas": [
+        {
+          "id": "trig_01_razones_circulo",
+          "nombre": "Razones, Círculo Trigonométrico y Descomposición Vectorial"
+        },
+        {
+          "id": "geo_01_plano_distancias",
+          "nombre": "Plano Cartesiano, Distancia entre Puntos y Punto Medio"
+        },
+        {
+          "id": "geo_04_parabola",
+          "nombre": "Parábola Vertical/Horizontal y Trayectorias"
+        }
+      ],
+      "nodos_ids": [
+        "fac_fis_01_vectores",
+        "fac_fis_01b_cinematica_1d",
+        "fac_fis_02_cinematica"
+      ]
+    },
+    {
+      "id": "fis1_u2",
+      "titulo": "Unidad 2: Dinámica y Leyes de Newton",
+      "descripcion": "Diagramas de cuerpo libre en planos inclinados, rozamiento, poleas y fuerza centrípeta.",
+      "bases_requeridas": [
+        {
+          "id": "alg_05_despejes_formulas",
+          "nombre": "Despeje de Fórmulas Físicas y Variables Restringidas"
+        },
+        {
+          "id": "trig_02_ley_senos_cosenos",
+          "nombre": "Ley de Senos, Ley de Cosenos y Triángulos Aplicados"
+        },
+        {
+          "id": "geo_03_circunferencia",
+          "nombre": "Circunferencia y Completación de Cuadrados"
+        },
+        {
+          "id": "fac_fis_01_vectores",
+          "nombre": "Vectores y Descomposición 2D/3D"
+        },
+        {
+          "id": "fac_fis_01b_cinematica_1d",
+          "nombre": "Cinemática 1D (MRU, MRUV y Caída Libre)"
+        },
+        {
+          "id": "fac_fis_02_cinematica",
+          "nombre": "Movimiento en 2D y Tiro Parabólico"
+        }
+      ],
+      "nodos_ids": [
+        "fac_fis_03_dinamica",
+        "fac_fis_03b_poleas_circular"
+      ]
+    },
+    {
+      "id": "fis1_u3",
+      "titulo": "Unidad 3: Trabajo y Energía",
+      "descripcion": "Teorema trabajo-energía, conservación mecánica y pérdidas por fricción.",
+      "bases_requeridas": [
+        {
+          "id": "alg_05_despejes_formulas",
+          "nombre": "Despeje de Fórmulas Físicas y Variables Restringidas"
+        },
+        {
+          "id": "alg_02_signos_jerarquia",
+          "nombre": "Jerarquía de Operaciones, Signos y Radicales Anidados"
+        },
+        {
+          "id": "fac_fis_01_vectores",
+          "nombre": "Vectores y Descomposición 2D/3D"
+        },
+        {
+          "id": "fac_fis_03_dinamica",
+          "nombre": "Leyes de Newton y Plano Inclinado"
+        },
+        {
+          "id": "fac_fis_03b_poleas_circular",
+          "nombre": "Poleas, Tensión y Dinámica Circular"
+        }
+      ],
+      "nodos_ids": [
+        "fac_fis_04_energia"
+      ]
+    }
+  ],
+  "skills": [
+    {
+      "id": "fac_fis_01_vectores",
+      "ranking_criticidad": 1,
+      "frecuencia_examen": "96%",
+      "materia": "Física I - FIS 1100",
+      "unidad": "Unidad 1: Vectores y Cinemática 1D/2D",
+      "nombre": "Vectores y Descomposición 2D/3D",
+      "area": "Álgebra y Trig.",
+      "prerrequisito_id": null,
+      "xp": 120,
+      "tip_auxiliar": "Dibuja siempre el ángulo respecto al eje elegido antes de asignar $\\cos(\\theta)$ y $\\sin(\\theta)$: no siempre $x$ lleva coseno si el ángulo se mide desde la vertical.",
+      "guia_aprendizaje": {
+        "idea_clave": "Los vectores representan magnitudes con dirección y sentido (fuerzas, velocidades, desplazamientos). Descomponer en ejes ortogonales permite sumar cualquier sistema vectorial mediante álgebra escalar por componentes.",
+        "formulas": [
+          {
+            "nombre": "Descomposición cartesiana",
+            "latex": "$$A_x = A\\cos\\theta, \\qquad A_y = A\\sin\\theta$$"
+          },
+          {
+            "nombre": "Módulo en 3D",
+            "latex": "$$\\|\\vec{A}\\| = \\sqrt{A_x^2 + A_y^2 + A_z^2}$$"
+          },
+          {
+            "nombre": "Producto escalar",
+            "latex": "$$\\vec{A}\\cdot\\vec{B} = A_x B_x + A_y B_y + A_z B_z = \\|\\vec{A}\\|\\|\\vec{B}\\|\\cos\\theta$$"
+          }
+        ],
+        "receta": [
+          "Traza el sistema de coordenadas y mide el ángulo de cada vector respecto al eje elegido.",
+          "Descompón cada vector aplicando el signo ($+$ o $-$) según el cuadrante al que apunta.",
+          "Suma independientemente las componentes en $x$, $y$ y $z$ para hallar $\\vec{R} = (R_x, R_y, R_z)$.",
+          "Calcula el módulo con Pitágoras y verifica el cuadrante antes de tomar $\\arctan(|R_y|/|R_x|)$."
+        ],
+        "ejemplo_guiado": {
+          "enunciado": "Dados $\\vec{F}_1 = 10\\text{ N}$ a $37^\\circ$ sobre $+x$ ($\\cos 37^\\circ \\approx 0.8$, $\\sin 37^\\circ \\approx 0.6$) y $\\vec{F}_2 = (-2, 0)\\text{ N}$, halla la resultante $\\vec{R} = \\vec{F}_1 + \\vec{F}_2$ y su módulo.",
+          "pasos": [
+            {
+              "titulo": "Paso 1: Descomponer F1 en componentes",
+              "expresion": "$$F_{1x} = 10(0.8) = 8\\text{ N}, \\qquad F_{1y} = 10(0.6) = 6\\text{ N}$$",
+              "explicacion": "Proyectamos la magnitud de $\\vec{F}_1$ sobre los ejes $x$ e $y$ en el primer cuadrante."
+            },
+            {
+              "titulo": "Paso 2: Sumar componente a componente",
+              "expresion": "$$R_x = 8 + (-2) = 6\\text{ N}, \\qquad R_y = 6 + 0 = 6\\text{ N}$$",
+              "explicacion": "Cada eje se suma de manera independiente respetando los signos."
+            },
+            {
+              "titulo": "Paso 3: Calcular el módulo resultante",
+              "expresion": "$$\\|\\vec{R}\\| = \\sqrt{6^2 + 6^2} = \\sqrt{72} = 6\\sqrt{2}\\text{ N}$$",
+              "explicacion": "Aplicamos el teorema de Pitágoras sobre el vector resultante $\\vec{R} = (6, 6)\\text{ N}$."
+            }
+          ],
+          "resultado_final": "$$\\vec{R} = (6, 6)\\text{ N}, \\quad \\|\\vec{R}\\| = 6\\sqrt{2}\\text{ N}$$"
+        },
+        "trampas_examen": [
+          "Usar $\\cos\\theta$ automáticamente para $x$ cuando el problema da el ángulo medido respecto al eje vertical $y$.",
+          "Sumar magnitudes escalarmente ($A + B$) sin tener en cuenta que apuntan en direcciones distintas."
+        ]
+      },
+      "paso1_concepto": {
+        "titulo": "Condición de perpendicularidad",
+        "enunciado_latex": "Si dos vectores no nulos $\\vec{A}$ y $\\vec{B}$ cumplen que su producto escalar es $\\vec{A} \\cdot \\vec{B} = 0$, ¿qué ángulo forman entre sí?",
+        "opciones": [
+          "$90^\\circ$ (son perpendiculares)",
+          "$0^\\circ$ (son paralelos)",
+          "$180^\\circ$ (son opuestos)",
+          "$45^\\circ$"
+        ],
+        "respuesta_correcta": "$90^\\circ$ (son perpendiculares)",
+        "explicacion": "Como $\\vec{A} \\cdot \\vec{B} = \\|\\vec{A}\\|\\|\\vec{B}\\|\\cos(\\theta) = 0$ con módulos no nulos, necesariamente $\\theta = 90^\\circ$."
+      },
+      "paso2_practica": {
+        "titulo": "Módulo en 3D",
+        "enunciado_latex": "Calcula el módulo numérico exacto del vector $\\vec{R} = 3\\hat{\\imath} - 4\\hat{\\jmath} + 12\\hat{k}$.",
+        "respuesta_correcta": "13",
+        "respuestas_aceptadas": [
+          "13",
+          "13.0"
+        ],
+        "pista": "Calcula $\\sqrt{3^2 + (-4)^2 + 12^2}$."
+      },
+      "paso3_reto_foto": {
+        "titulo": "Reto de examen: Resultante vectorial",
+        "enunciado_latex": "Dados los vectores fuerza $\\vec{A} = (3, 4)\\text{ N}$ y $\\vec{B} = (-2, 2)\\text{ N}$, determina las componentes del vector resultante $\\vec{R} = 2\\vec{A} - \\vec{B}$, su módulo $\\|\\vec{R}\\|$ y el ángulo $\\theta$ respecto al semieje $+x$.",
+        "prerrequisito_evaluado": "Álgebra vectorial por componentes, Teorema de Pitágoras y función inversa $\\arctan(R_y/R_x)$.",
+        "instrucciones": "Calcula componente a componente $2\\vec{A} - \\vec{B}$ en tu hoja, halla $\\|\\vec{R}\\|$ y determina el ángulo de dirección."
+      },
+      "prioridad": "🔥 Fijo en Parcial"
+    },
+    {
+      "id": "fac_fis_01b_cinematica_1d",
+      "ranking_criticidad": 2,
+      "frecuencia_examen": "93%",
+      "materia": "Física I - FIS 1100",
+      "unidad": "Unidad 1: Vectores y Cinemática 1D/2D",
+      "nombre": "Cinemática 1D (MRU, MRUV y Caída Libre)",
+      "area": "Física I",
+      "prerrequisito_id": "fac_fis_01_vectores",
+      "xp": 130,
+      "tip_auxiliar": "En problemas de encuentro entre dos móviles fija UN único origen de coordenadas $x = 0$ y UN mismo reloj $t$; si uno sale después, su tiempo de viaje es $(t - t_0)$.",
+      "guia_aprendizaje": {
+        "idea_clave": "La cinemática rectilínea describe posición, velocidad y aceleración en una dimensión. El movimiento rectilíneo uniformemente variado (MRUV) y la caída libre vertical ($a = -g$) rigen problemas clásicos de frenado, alcance y encuentros.",
+        "formulas": [
+          {
+            "nombre": "Velocidad en MRUV",
+            "latex": "$$v = v_0 + a t$$"
+          },
+          {
+            "nombre": "Posición en MRUV",
+            "latex": "$$x = x_0 + v_0 t + \\frac{1}{2}a t^2$$"
+          },
+          {
+            "nombre": "Ecuación sin tiempo (Torricelli)",
+            "latex": "$$v^2 = v_0^2 + 2a(x - x_0)$$"
+          }
+        ],
+        "receta": [
+          "Elige un origen fijo $x = 0$ (o $y = 0$ al nivel del suelo) y define qué sentido es positivo.",
+          "Lista los datos conocidos verificando unidades coherentes en el SI (pasa $\\text{km/h}$ a $\\text{m/s}$ dividiendo entre $3.6$).",
+          "Elige la ecuación de MRUV que contiene únicamente una incógnita (usa Torricelli si falta el tiempo).",
+          "En problemas de encuentro, escribe $x_1(t)$ y $x_2(t)$ en función del mismo reloj $t$ e iguala $x_1(t) = x_2(t)$."
+        ],
+        "ejemplo_guiado": {
+          "enunciado": "Un automóvil viaja a $72\\text{ km/h}$ y frena con desaceleración constante de $4\\text{ m/s}^2$ hasta detenerse. ¿Qué distancia recorre durante el frenado?",
+          "pasos": [
+            {
+              "titulo": "Paso 1: Convertir la velocidad a m/s y asignar signos",
+              "expresion": "$$v_0 = \\frac{72}{3.6} = 20\\text{ m/s}, \\qquad v_f = 0, \\qquad a = -4\\text{ m/s}^2$$",
+              "explicacion": "Pasamos a unidades del SI y colocamos aceleración negativa porque se opone al movimiento."
+            },
+            {
+              "titulo": "Paso 2: Aplicar la ecuación independiente del tiempo",
+              "expresion": "$$0^2 = 20^2 + 2(-4)d \\implies 8d = 400$$",
+              "explicacion": "Como no conocemos el tiempo de frenado, la ecuación cuadrática de velocidades despeja $d$ directo."
+            },
+            {
+              "titulo": "Paso 3: Despejar la distancia de frenado",
+              "expresion": "$$d = \\frac{400}{8} = 50\\text{ m}$$",
+              "explicacion": "Obtenemos el recorrido total antes del reposo."
+            }
+          ],
+          "resultado_final": "$$d = 50\\text{ m}$$"
+        },
+        "trampas_examen": [
+          "Mezclar $\\text{km/h}$ con $\\text{m/s}^2$ sin convertir entre $3.6$.",
+          "Poner signo positivo a la aceleración cuando el móvil está frenando."
+        ]
+      },
+      "paso1_concepto": {
+        "titulo": "Signo en desaceleración",
+        "enunciado_latex": "Si un móvil avanza hacia $+x$ con rapidez decreciente, ¿cuáles son los signos de su velocidad $v_x$ y aceleración $a_x$?",
+        "opciones": [
+          "$v_x > 0$ y $a_x < 0$ (tienen sentidos opuestos)",
+          "$v_x > 0$ y $a_x > 0$",
+          "$v_x < 0$ y $a_x < 0$",
+          "$v_x = 0$ y $a_x = 0$"
+        ],
+        "respuesta_correcta": "$v_x > 0$ y $a_x < 0$ (tienen sentidos opuestos)",
+        "explicacion": "Frenar significa que el vector aceleración apunta en dirección opuesta al vector velocidad."
+      },
+      "paso2_practica": {
+        "titulo": "Distancia recorrida desde el reposo",
+        "enunciado_latex": "Un tren parte del reposo con aceleración constante $a = 2\\text{ m/s}^2$. ¿Cuántos metros recorre en los primeros $6\\text{ s}$?",
+        "respuesta_correcta": "36",
+        "respuestas_aceptadas": [
+          "36",
+          "36.0"
+        ],
+        "pista": "Usa $d = \\frac{1}{2}at^2$ con $v_0 = 0$."
+      },
+      "paso3_reto_foto": {
+        "titulo": "Reto de examen: Encuentro con MRU y MRUV",
+        "enunciado_latex": "Un motociclista en reposo parte con aceleración constante $a = 2\\text{ m/s}^2$ justo en el instante en que un camión lo adelanta con velocidad constante de $12\\text{ m/s}$. ¿En qué tiempo $t$ y a qué distancia $x$ del punto de partida alcanza la moto al camión?",
+        "prerrequisito_evaluado": "Planteamiento simultáneo de posiciones $x_{\\text{moto}}(t) = x_{\\text{camión}}(t)$ y descarte de $t = 0$.",
+        "instrucciones": "Escribe las ecuaciones de posición de ambos vehículos respecto al mismo origen, iguala $x_1(t) = x_2(t)$, resuelve $t > 0$ y calcula $x$."
+      },
+      "prioridad": "⭐ Muy frecuente"
+    },
+    {
+      "id": "fac_fis_02_cinematica",
+      "ranking_criticidad": 3,
+      "frecuencia_examen": "94%",
+      "materia": "Física I - FIS 1100",
+      "unidad": "Unidad 1: Vectores y Cinemática 1D/2D",
+      "nombre": "Movimiento en 2D y Tiro Parabólico",
+      "area": "Física I",
+      "prerrequisito_id": "fac_fis_01b_cinematica_1d",
+      "xp": 140,
+      "tip_auxiliar": "El tiempo $t$ une el eje $x$ (MRU: $x = v_{0x}t$) con el eje $y$ (MRUV: $y = y_0 + v_{0y}t - \\frac{1}{2}gt^2$). En altura máxima, $v_y = 0$, pero $v_x$ NO es cero.",
+      "guia_aprendizaje": {
+        "idea_clave": "El movimiento parabólico resulta de superponer dos movimientos independientes: horizontal uniforme ($a_x = 0$) y vertical bajo gravedad constante ($a_y = -g$). La única variable compartida entre ambos ejes es el tiempo $t$.",
+        "formulas": [
+          {
+            "nombre": "Velocidades iniciales",
+            "latex": "$$v_{0x} = v_0\\cos\\theta, \\qquad v_{0y} = v_0\\sin\\theta$$"
+          },
+          {
+            "nombre": "Ecuaciones paramétricas",
+            "latex": "$$x(t) = v_{0x}t, \\qquad y(t) = y_0 + v_{0y}t - \\frac{1}{2}gt^2$$"
+          },
+          {
+            "nombre": "Altura máxima y alcance simétrico",
+            "latex": "$$H_{\\max} = \\frac{v_{0y}^2}{2g}, \\qquad R = \\frac{v_0^2\\sin(2\\theta)}{g} \\;(y_{\\text{fin}}=y_0)$$"
+          }
+        ],
+        "receta": [
+          "Descompón la velocidad inicial en $v_{0x}$ y $v_{0y}$ al principio del ejercicio.",
+          "Anota si el lanzamiento parte y vuelve al mismo nivel ($y = y_0$) o desde una elevación ($y_0 > 0$).",
+          "Usa el eje vertical $y$ para despejar el tiempo (altura máxima con $v_y = 0$, o impacto con $y(t) = y_{\\text{objetivo}}$).",
+          "Reemplaza el tiempo hallado en $x = v_{0x}t$ o calcula la rapidez final $\\sqrt{v_x^2 + v_y^2}$."
+        ],
+        "ejemplo_guiado": {
+          "enunciado": "Desde el borde de un edificio de $h = 45\\text{ m}$ se lanza horizontalmente una esfera con $v_0 = 15\\text{ m/s}$ ($g = 10\\text{ m/s}^2$). Calcula el tiempo de caída y el alcance horizontal.",
+          "pasos": [
+            {
+              "titulo": "Paso 1: Identificar componentes iniciales horizontales y verticales",
+              "expresion": "$$v_{0x} = 15\\text{ m/s}, \\qquad v_{0y} = 0\\text{ m/s}, \\qquad y_0 = 45\\text{ m}$$",
+              "explicacion": "Al lanzarse horizontalmente ($\\theta = 0^\\circ$), la velocidad vertical inicial es nula."
+            },
+            {
+              "titulo": "Paso 2: Hallar el tiempo hasta llegar al suelo (y = 0)",
+              "expresion": "$$0 = 45 + 0 - \\frac{1}{2}(10)t^2 \\implies 5t^2 = 45 \\implies t = 3\\text{ s}$$",
+              "explicacion": "Resolvemos la caída vertical seleccionando la raíz positiva del tiempo."
+            },
+            {
+              "titulo": "Paso 3: Calcular el alcance horizontal",
+              "expresion": "$$x = v_{0x} \\cdot t = 15 \\cdot 3 = 45\\text{ m}$$",
+              "explicacion": "La componente horizontal se mantiene constante durante los $3\\text{ s}$ de vuelo."
+            }
+          ],
+          "resultado_final": "$$t = 3\\text{ s}, \\qquad x = 45\\text{ m}$$"
+        },
+        "trampas_examen": [
+          "Aplicar $R = v_0^2 \\sin(2\\theta)/g$ cuando el punto de impacto está a distinta altura que el de lanzamiento.",
+          "Afirmar que la velocidad total del proyectil es cero en la altura máxima (solo $v_y = 0$; queda $v_x = v_{0x}$)."
+        ]
+      },
+      "paso1_concepto": {
+        "titulo": "Velocidad en movimiento parabólico",
+        "enunciado_latex": "En un tiro parabólico ideal sin resistencia del aire, ¿cómo se comporta la componente horizontal de la velocidad $v_x$ durante todo el vuelo?",
+        "opciones": [
+          "Permanece constante porque $a_x = 0$",
+          "Se hace cero en el punto de altura máxima",
+          "Disminuye linealmente por efecto de la gravedad",
+          "Aumenta de manera constante hasta impactar"
+        ],
+        "respuesta_correcta": "Permanece constante porque $a_x = 0$",
+        "explicacion": "La aceleración gravitatoria apunta únicamente en dirección vertical, por lo que no hay aceleración horizontal."
+      },
+      "paso2_practica": {
+        "titulo": "Tiempo de subida vertical",
+        "enunciado_latex": "Se lanza una piedra verticalmente hacia arriba con rapidez inicial $v_0 = 20\\text{ m/s}$ (usa $g = 10\\text{ m/s}^2$). ¿Cuántos segundos tarda en alcanzar su altura máxima?",
+        "respuesta_correcta": "2",
+        "respuestas_aceptadas": [
+          "2",
+          "2.0"
+        ],
+        "pista": "En la altura máxima $v_y = 0$, usa $v_y = v_0 - g t$."
+      },
+      "paso3_reto_foto": {
+        "titulo": "Reto de examen: Lanzamiento de proyectil",
+        "enunciado_latex": "Un proyectil se dispara desde el nivel del suelo con rapidez inicial $v_0 = 20\\text{ m/s}$ y ángulo $\\theta = 30^\\circ$ sobre la horizontal (usa $g = 10\\text{ m/s}^2$). Calcula $v_{0x}$, $v_{0y}$, el tiempo total de vuelo $T$ y el alcance horizontal máximo $R$.",
+        "prerrequisito_evaluado": "Descomposición trigonométrica de velocidad inicial y ecuaciones independientes de MRU y caída libre.",
+        "instrucciones": "Descompón $v_0$ en tu hoja usando $\\sin(30^\\circ) = 0.5$ y $\\cos(30^\\circ) = \\frac{\\sqrt{3}}{2}$, halla el tiempo total cuando $y = 0$ y calcula el alcance $R = v_{0x} T$."
+      },
+      "prioridad": "🔥 Fijo en Parcial"
+    },
+    {
+      "id": "fac_fis_03_dinamica",
+      "ranking_criticidad": 4,
+      "frecuencia_examen": "92%",
+      "materia": "Física I - FIS 1100",
+      "unidad": "Unidad 2: Dinámica y Leyes de Newton",
+      "nombre": "Leyes de Newton y Plano Inclinado",
+      "area": "Física I",
+      "prerrequisito_id": "fac_fis_02_cinematica",
+      "xp": 160,
+      "tip_auxiliar": "Nunca asumas $N = mg$ en un plano inclinado o si hay fuerzas diagonales. Haz siempre $\\sum F_y = 0$ en el eje perpendicular al plano para hallar la normal $N$ primero.",
+      "guia_aprendizaje": {
+        "idea_clave": "Las leyes de Newton conectan las fuerzas netas con la aceleración de un cuerpo ($\\sum \\vec{F} = m\\vec{a}$). El éxito en exámenes depende de dibujar un Diagrama de Cuerpo Libre (DCL) completo y rotar los ejes a lo largo del plano inclinado.",
+        "formulas": [
+          {
+            "nombre": "Segunda Ley de Newton",
+            "latex": "$$\\sum F_x = m a_x, \\qquad \\sum F_y = m a_y$$"
+          },
+          {
+            "nombre": "Fuerza de rozamiento cinético",
+            "latex": "$$f_k = \\mu_k N \\quad (\\text{siempre opuesta al deslizamiento})$$"
+          },
+          {
+            "nombre": "Componentes del peso en plano",
+            "latex": "$$W_\\parallel = mg\\sin\\theta, \\qquad W_\\perp = mg\\cos\\theta$$"
+          }
+        ],
+        "receta": [
+          "Aísla el bloque y dibuja todas las fuerzas reales en el DCL: peso $mg$ vertical hacia abajo, normal $N$ perpendicular a la superficie, tensiones y fricción contraria al movimiento.",
+          "Elige el eje $+x$ en la dirección esperada de la aceleración y el eje $y$ perpendicular a la superficie.",
+          "Resuelve primero $\\sum F_y = 0$ para obtener el valor numérico real de la fuerza normal $N$.",
+          "Calcula $f_k = \\mu_k N$ y sustituye en $\\sum F_x = ma$ para despejar $a$."
+        ],
+        "ejemplo_guiado": {
+          "enunciado": "Un bloque de $m = 5\\text{ kg}$ es jalado por una fuerza $F = 30\\text{ N}$ inclinada $37^\\circ$ sobre la horizontal ($\\cos 37^\\circ = 0.8$, $\\sin 37^\\circ = 0.6$) sobre un piso con $\\mu_k = 0.2$ ($g = 10\\text{ m/s}^2$). Halla su aceleración.",
+          "pasos": [
+            {
+              "titulo": "Paso 1: Hallar la normal N con sumatoria vertical",
+              "expresion": "$$N + F\\sin 37^\\circ - mg = 0 \\implies N = 5(10) - 30(0.6) = 32\\text{ N}$$",
+              "explicacion": "La componente vertical hacia arriba de $F$ alivia el contacto sobre el suelo, reduciendo $N$ por debajo de $mg$."
+            },
+            {
+              "titulo": "Paso 2: Calcular la fuerza de rozamiento cinético",
+              "expresion": "$$f_k = \\mu_k N = 0.2 \\times 32 = 6.4\\text{ N}$$",
+              "explicacion": "La fricción depende siempre de la normal $N$, nunca directamente de $mg$."
+            },
+            {
+              "titulo": "Paso 3: Aplicar Segunda Ley en el eje horizontal",
+              "expresion": "$$F\\cos 37^\\circ - f_k = ma \\implies 30(0.8) - 6.4 = 5a \\implies a = \\frac{17.6}{5} = 3.52\\text{ m/s}^2$$",
+              "explicacion": "Restamos la fricción de la fuerza impulsora horizontal y dividimos por la masa."
+            }
+          ],
+          "resultado_final": "$$a = 3.52\\text{ m/s}^2$$"
+        },
+        "trampas_examen": [
+          "Suponer $N = mg$ cuando hay fuerzas diagonales o plano inclinado.",
+          "Poner $f_k$ en el mismo sentido que el movimiento o olvidar incluir la normal en el DCL."
+        ]
+      },
+      "paso1_concepto": {
+        "titulo": "Componentes del peso en plano inclinado",
+        "enunciado_latex": "Para un bloque de masa $m$ sobre un plano inclinado ángulo $\\theta$ respecto a la horizontal, ¿cuál es la expresión de la fuerza normal $N$ si no hay otras fuerzas perpendiculares al plano?",
+        "opciones": [
+          "$N = mg\\cos(\\theta)$",
+          "$N = mg\\sin(\\theta)$",
+          "$N = mg$",
+          "$N = mg\\tan(\\theta)$"
+        ],
+        "respuesta_correcta": "$N = mg\\cos(\\theta)$",
+        "explicacion": "La componente perpendicular al plano del peso es $mg\\cos(\\theta)$, equilibrada con $N$."
+      },
+      "paso2_practica": {
+        "titulo": "Segunda Ley de Newton",
+        "enunciado_latex": "Un bloque de $m = 5\\text{ kg}$ sobre un piso horizontal sin fricción recibe $F_1 = 22\\text{ N}$ hacia la derecha y $F_2 = 7\\text{ N}$ hacia la izquierda. ¿Cuál es la magnitud de su aceleración en $\\text{m/s}^2$?",
+        "respuesta_correcta": "3",
+        "respuestas_aceptadas": [
+          "3",
+          "3.0"
+        ],
+        "pista": "Aplica $a = \\frac{F_{\\text{neta}}}{m}$."
+      },
+      "paso3_reto_foto": {
+        "titulo": "Reto de examen: Plano inclinado con fricción",
+        "enunciado_latex": "Un bloque de $m = 4\\text{ kg}$ desciende por un plano inclinado $\\theta = 37^\\circ$ ($\\sin 37^\\circ \\approx 0.6$, $\\cos 37^\\circ \\approx 0.8$) con coeficiente de rozamiento cinético $\\mu_k = 0.25$ ($g = 10\\text{ m/s}^2$). Dibuja el diagrama de cuerpo libre (DCL) y calcula la normal $N$, la fuerza de fricción $f_k$ y la aceleración $a$.",
+        "prerrequisito_evaluado": "Descomposición del peso en plano inclinado, diagrama de cuerpo libre y fuerza de fricción $f_k = \\mu_k N$.",
+        "instrucciones": "Dibuja el DCL con ejes rotados en tu cuaderno, plantea $\\sum F_y = 0$ para hallar $N$, calcula $f_k$ y aplica $\\sum F_x = ma$."
+      },
+      "prioridad": "⭐ Muy frecuente"
+    },
+    {
+      "id": "fac_fis_03b_poleas_circular",
+      "ranking_criticidad": 5,
+      "frecuencia_examen": "88%",
+      "materia": "Física I - FIS 1100",
+      "unidad": "Unidad 2: Dinámica y Leyes de Newton",
+      "nombre": "Poleas, Tensión y Dinámica Circular",
+      "area": "Física I",
+      "prerrequisito_id": "fac_fis_03_dinamica",
+      "xp": 170,
+      "tip_auxiliar": "En sistemas acoplados por una cuerda ideal, plantea las ecuaciones por separado de cada masa, súmalas para cancelar la tensión $T$ y luego sustituye $a$ para hallar $T$.",
+      "guia_aprendizaje": {
+        "idea_clave": "Cuando varios bloques se unen mediante cuerdas inextensibles sobre poleas ideales, todos comparten la misma magnitud de aceleración $a$ y tensión $T$. En trayectorias curvas, la fuerza neta hacia el centro produce aceleración centrípeta $a_c = v^2/R$.",
+        "formulas": [
+          {
+            "nombre": "Sistema acoplado",
+            "latex": "$$\\sum F_{\\text{sistema}} = (m_1 + m_2)a$$"
+          },
+          {
+            "nombre": "Aceleración y fuerza centrípeta",
+            "latex": "$$a_c = \\frac{v^2}{R} = \\omega^2 R, \\qquad \\sum F_{\\text{radial}} = m\\frac{v^2}{R}$$"
+          }
+        ],
+        "receta": [
+          "Dibuja un DCL separado para cada masa del sistema acoplado (ej. $m_1$ y $m_2$).",
+          "Define el sentido positivo de movimiento consistente para TODA la cuerda (si $m_2$ baja, $m_1$ avanza).",
+          "Escribe $\\sum F = m_i a$ para cada cuerpo y suma ambas ecuaciones para eliminar $T$ y hallar $a$.",
+          "En dinámica circular, recuerda que la fuerza centrípeta NO es una fuerza extra: es la resultante de fuerzas reales ($N, T, f, mg$) hacia el centro."
+        ],
+        "ejemplo_guiado": {
+          "enunciado": "Dos bloques $m_1 = 3\\text{ kg}$ (sobre una mesa horizontal lisa) y $m_2 = 2\\text{ kg}$ (colgando verticalmente) se unen por una cuerda ideal sobre una polea sin fricción ($g = 10\\text{ m/s}^2$). Calcula $a$ y $T$.",
+          "pasos": [
+            {
+              "titulo": "Paso 1: Ecuación de Newton para cada bloque",
+              "expresion": "$$\\text{Bloque 1: } T = m_1 a = 3a \\qquad \\text{Bloque 2: } m_2 g - T = m_2 a \\implies 20 - T = 2a$$",
+              "explicacion": "La mesa no tiene fricción, así que $T$ acelera a $m_1$, mientras que en $m_2$ el peso tira hacia abajo y $T$ hacia arriba."
+            },
+            {
+              "titulo": "Paso 2: Sumar las ecuaciones para cancelar T",
+              "expresion": "$$20 = (3 + 2)a \\implies 5a = 20 \\implies a = 4\\text{ m/s}^2$$",
+              "explicacion": "La suma elimina la tensión interna de la cuerda y despeja la aceleración común."
+            },
+            {
+              "titulo": "Paso 3: Calcular la tensión de la cuerda",
+              "expresion": "$$T = 3a = 3(4) = 12\\text{ N}$$",
+              "explicacion": "Sustituimos $a = 4\\text{ m/s}^2$ en la primera ecuación; nótese que $T = 12\\text{ N} < m_2 g = 20\\text{ N}$ porque $m_2$ acelera hacia abajo."
+            }
+          ],
+          "resultado_final": "$$a = 4\\text{ m/s}^2, \\qquad T = 12\\text{ N}$$"
+        },
+        "trampas_examen": [
+          "Asumir que la tensión $T$ iguala al peso colgante $m_2 g$ cuando el sistema está acelerando.",
+          "Dibujar la fuerza centrípeta como una flecha independiente adicional al peso, tensión o normal en un DCL."
+        ]
+      },
+      "paso1_concepto": {
+        "titulo": "Tensión en cuerpo acelerado verticalmente",
+        "enunciado_latex": "Si un bloque colgante de peso $mg$ desciende acelerando hacia abajo con aceleración $a > 0$, ¿cómo se compara la tensión de la cuerda $T$ respecto a $mg$?",
+        "opciones": [
+          "$T < mg$, porque $mg - T = ma > 0$",
+          "$T = mg$ siempre",
+          "$T > mg$ porque desciende",
+          "$T = 0$"
+        ],
+        "respuesta_correcta": "$T < mg$, porque $mg - T = ma > 0$",
+        "explicacion": "Para que acelere hacia abajo, la fuerza hacia abajo ($mg$) debe superar a la fuerza hacia arriba ($T$)."
+      },
+      "paso2_practica": {
+        "titulo": "Máquina de Atwood clásica",
+        "enunciado_latex": "En una máquina de Atwood ideal se cuelgan dos masas $m_1 = 2\\text{ kg}$ y $m_2 = 6\\text{ kg}$ ($g = 10\\text{ m/s}^2$). Calcula la magnitud de la aceleración del sistema en $\\text{m/s}^2$.",
+        "respuesta_correcta": "5",
+        "respuestas_aceptadas": [
+          "5",
+          "5.0"
+        ],
+        "pista": "Usa $a = \\frac{m_2 - m_1}{m_1 + m_2} g$."
+      },
+      "paso3_reto_foto": {
+        "titulo": "Reto de examen: Polea con fricción en la mesa",
+        "enunciado_latex": "Un bloque de $m_1 = 4\\text{ kg}$ descansa sobre una mesa horizontal rugosa ($\\mu_k = 0.25$) unido mediante cuerda y polea ideal a un bloque colgante $m_2 = 6\\text{ kg}$ ($g = 10\\text{ m/s}^2$). Dibuja los DCL de ambos cuerpos y calcula la aceleración $a$ y la tensión $T$.",
+        "prerrequisito_evaluado": "DCL acoplados por cuerda ideal, normal y fricción en mesa horizontal y sistema de dos ecuaciones.",
+        "instrucciones": "Plantea por separado el DCL de $m_1$ (incluyendo $f_k = \\mu_k N_1$) y de $m_2$, suma las ecuaciones de movimiento para hallar $a$ y luego sustituye para hallar $T$."
+      },
+      "prioridad": "📌 Base clave"
+    },
+    {
+      "id": "fac_fis_04_energia",
+      "ranking_criticidad": 6,
+      "frecuencia_examen": "90%",
+      "materia": "Física I - FIS 1100",
+      "unidad": "Unidad 3: Trabajo y Energía",
+      "nombre": "Trabajo y Conservación de la Energía",
+      "area": "Física I",
+      "prerrequisito_id": "fac_fis_03b_poleas_circular",
+      "xp": 180,
+      "tip_auxiliar": "Define claramente tu nivel de referencia $h = 0$ antes de escribir $E_M = K + U_g + U_e$. Si hay fricción, recuerda que $W_{f} = -f_k d = \\Delta E_M$.",
+      "guia_aprendizaje": {
+        "idea_clave": "El enfoque energético relaciona posiciones iniciales y finales sin depender de la geometría curva de la trayectoria ni de calcular la aceleración en cada instante. Solo las fuerzas no conservativas (como el rozamiento) alteran la energía mecánica total.",
+        "formulas": [
+          {
+            "nombre": "Energía mecánica total",
+            "latex": "$$E_M = \\frac{1}{2}mv^2 + mgh + \\frac{1}{2}kx^2$$"
+          },
+          {
+            "nombre": "Trabajo de fuerza constante",
+            "latex": "$$W = F\\,d\\cos\\phi$$"
+          },
+          {
+            "nombre": "Balance con fricción",
+            "latex": "$$E_{M,0} + W_{\\text{no cons.}} = E_{M,f} \\implies \\Delta E_M = -f_k d$$"
+          }
+        ],
+        "receta": [
+          "Identifica claramente el estado inicial (0) y el estado final (f) fijando el nivel de altura $h = 0$.",
+          "Anota qué formas de energía están presentes en cada punto ($K$ por rapidez, $U_g$ por altura, $U_e$ por resorte deformado).",
+          "Verifica si existen fuerzas no conservativas como rozamiento $f_k$ o fuerza externa en el tramo de distancia $d$.",
+          "Iguala $E_{M,0} - f_k d = E_{M,f}$ y despeja la rapidez, altura o compresión pedida."
+        ],
+        "ejemplo_guiado": {
+          "enunciado": "Un bloque de $m = 2\\text{ kg}$ parte del reposo desde lo alto de un plano curvo liso a $h = 3.2\\text{ m}$ y luego frena sobre un piso rugoso horizontal con $\\mu_k = 0.4$ ($g = 10\\text{ m/s}^2$). ¿Qué distancia $d$ recorre sobre el piso rugoso hasta detenerse?",
+          "pasos": [
+            {
+              "titulo": "Paso 1: Evaluar energía mecánica inicial y final",
+              "expresion": "$$E_{M,0} = mgh = (2)(10)(3.2) = 64\\text{ J}, \\qquad E_{M,f} = 0\\text{ J}$$",
+              "explicacion": "Inicia desde el reposo arriba ($K_0 = 0$) y termina detenido al nivel $h = 0$ ($E_{M,f} = 0$)."
+            },
+            {
+              "titulo": "Paso 2: Expresar el trabajo negativo de la fricción en el piso",
+              "expresion": "$$f_k = \\mu_k N = \\mu_k mg = 0.4(2)(10) = 8\\text{ N}, \\qquad W_f = -f_k d = -8d$$",
+              "explicacion": "Solo el tramo horizontal tiene rozamiento cinético opuesto al desplazamiento."
+            },
+            {
+              "titulo": "Paso 3: Aplicar el balance energético total",
+              "expresion": "$$64 - 8d = 0 \\implies d = 8\\text{ m}$$",
+              "explicacion": "Toda la energía potencial gravitatoria inicial se disipa por trabajo de fricción."
+            }
+          ],
+          "resultado_final": "$$d = 8\\text{ m}$$"
+        },
+        "trampas_examen": [
+          "Sumar $+f_k d$ en el lado equivocado de la igualdad (la fricción siempre DISIPA energía mecánica, $E_{M,f} < E_{M,0}$).",
+          "Olvidar la distancia total recorrida sobre la superficie inclinada al calcular $W_f = -f_k d$ usando la altura $h$ en vez de la hipotenusa $d$."
+        ]
+      },
+      "paso1_concepto": {
+        "titulo": "Teorema del Trabajo y la Energía Cinética",
+        "enunciado_latex": "Según el Teorema Trabajo-Energía, ¿a qué equivale el trabajo neto $W_{\\text{neto}}$ realizado sobre una partícula?",
+        "opciones": [
+          "A la variación de su energía cinética $\\Delta K = K_f - K_0$",
+          "A su energía potencial gravitatoria final $mgh_f$",
+          "A la suma de su masa y su aceleración",
+          "Siempre a cero si actúa la gravedad"
+        ],
+        "respuesta_correcta": "A la variación de su energía cinética $\\Delta K = K_f - K_0$",
+        "explicacion": "El trabajo neto de todas las fuerzas que actúan sobre un cuerpo iguala el cambio en su energía cinética $\\frac{1}{2}mv_f^2 - \\frac{1}{2}mv_0^2$."
+      },
+      "paso2_practica": {
+        "titulo": "Caída libre por conservación de energía",
+        "enunciado_latex": "Un cuerpo de $m = 2\\text{ kg}$ cae desde el reposo desde una altura $h = 5\\text{ m}$ sin rozamiento ($g = 10\\text{ m/s}^2$). ¿Con qué rapidez (en $\\text{m/s}$) llega al nivel del suelo?",
+        "respuesta_correcta": "10",
+        "respuestas_aceptadas": [
+          "10",
+          "10.0"
+        ],
+        "pista": "Iguala $mgh = \\frac{1}{2}mv^2$ y despeja $v = \\sqrt{2gh}$."
+      },
+      "paso3_reto_foto": {
+        "titulo": "Reto de examen: Rampa lisa y resorte",
+        "enunciado_latex": "Un bloque de $m = 2\\text{ kg}$ se suelta desde el reposo en una rampa lisa a altura $h = 2.5\\text{ m}$ sobre un tramo horizontal sin fricción, hasta comprimir un resorte ideal de constante $k = 400\\text{ N/m}$ ($g = 10\\text{ m/s}^2$). Calcula la compresión máxima $x$ del resorte por conservación de la energía mecánica.",
+        "prerrequisito_evaluado": "Energía potencial gravitatoria $mgh$, energía potencial elástica $\\frac{1}{2}kx^2$ y planteo de conservación energética.",
+        "instrucciones": "Identifica los estados inicial y final en tu hoja, plantea $E_{M,0} = E_{M,f}$ explicando qué energías se anulan y despeja la compresión máxima $x$."
+      },
+      "prioridad": "⭐ Muy frecuente"
+    }
+  ],
+  "preguntas_examen": [
+    {
+      "id": "exam_fac_fis_1",
+      "skill_id": "fac_fis_01_vectores",
+      "nivel_nodo": 1,
+      "tema": "Vectores y Descomposición 2D/3D",
+      "area": "Álgebra y Trig.",
+      "tiempo_segundos": 60,
+      "enunciado_latex": "Si un vector $\\vec{A}$ en el plano tiene componentes $A_x = 6\\text{ u}$ y $A_y = 8\\text{ u}$, ¿cuál es su módulo $\\|\\vec{A}\\|$?",
+      "opciones": [
+        "$10\\text{ u}$",
+        "$14\\text{ u}$",
+        "$48\\text{ u}$",
+        "$\\sqrt{14}\\text{ u}$"
+      ],
+      "respuesta_correcta": "$10\\text{ u}$",
+      "explicacion_breve": "Por Pitágoras, $\\|\\vec{A}\\| = \\sqrt{6^2 + 8^2} = 10\\text{ u}$."
+    },
+    {
+      "id": "exam_fac_fis_2",
+      "skill_id": "fac_fis_01b_cinematica_1d",
+      "nivel_nodo": 2,
+      "tema": "Cinemática 1D (MRU, MRUV y Caída Libre)",
+      "area": "Física I",
+      "tiempo_segundos": 60,
+      "enunciado_latex": "Un móvil parte del reposo con aceleración rectilínea constante $a = 4\\text{ m/s}^2$. ¿Qué distancia recorre en los primeros $t = 3\\text{ s}$?",
+      "opciones": [
+        "$18\\text{ m}$",
+        "$12\\text{ m}$",
+        "$36\\text{ m}$",
+        "$6\\text{ m}$"
+      ],
+      "respuesta_correcta": "$18\\text{ m}$",
+      "explicacion_breve": "Con $v_0 = 0$, $d = \\frac{1}{2} a t^2 = \\frac{1}{2}(4)(3^2) = 18\\text{ m}$."
+    },
+    {
+      "id": "exam_fac_fis_3",
+      "skill_id": "fac_fis_02_cinematica",
+      "nivel_nodo": 3,
+      "tema": "Movimiento en 2D y Tiro Parabólico",
+      "area": "Física I",
+      "tiempo_segundos": 60,
+      "enunciado_latex": "Un proyectil se lanza desde el suelo con $v_{0y} = 30\\text{ m/s}$ ($g = 10\\text{ m/s}^2$). ¿Cuánto tiempo permanece en el aire hasta regresar al suelo?",
+      "opciones": [
+        "$6\\text{ s}$",
+        "$3\\text{ s}$",
+        "$1.5\\text{ s}$",
+        "$9\\text{ s}$"
+      ],
+      "respuesta_correcta": "$6\\text{ s}$",
+      "explicacion_breve": "El tiempo de subida es $t_s = \\frac{v_{0y}}{g} = 3\\text{ s}$; el vuelo simétrico total dura $2t_s = 6\\text{ s}$."
+    },
+    {
+      "id": "exam_fac_fis_4",
+      "skill_id": "fac_fis_03_dinamica",
+      "nivel_nodo": 4,
+      "tema": "Leyes de Newton y Plano Inclinado",
+      "area": "Física I",
+      "tiempo_segundos": 60,
+      "enunciado_latex": "Sobre un bloque de masa $m = 5\\text{ kg}$ en una mesa horizontal sin fricción actúa una fuerza neta horizontal de $20\\text{ N}$. ¿Cuál es su aceleración?",
+      "opciones": [
+        "$4\\text{ m/s}^2$",
+        "$100\\text{ m/s}^2$",
+        "$2.5\\text{ m/s}^2$",
+        "$9.8\\text{ m/s}^2$"
+      ],
+      "respuesta_correcta": "$4\\text{ m/s}^2$",
+      "explicacion_breve": "Por la segunda ley de Newton, $a = \\frac{F_{\\text{neta}}}{m} = \\frac{20}{5} = 4\\text{ m/s}^2$."
+    },
+    {
+      "id": "exam_fac_fis_5",
+      "skill_id": "fac_fis_03b_poleas_circular",
+      "nivel_nodo": 5,
+      "tema": "Poleas, Tensión y Dinámica Circular",
+      "area": "Física I",
+      "tiempo_segundos": 60,
+      "enunciado_latex": "Una partícula de $m = 2\\text{ kg}$ describe una circunferencia horizontal de radio $R = 4\\text{ m}$ con rapidez constante $v = 6\\text{ m/s}$. ¿Cuál es la magnitud de la fuerza centrípeta neta?",
+      "opciones": [
+        "$18\\text{ N}$",
+        "$9\\text{ N}$",
+        "$12\\text{ N}$",
+        "$36\\text{ N}$"
+      ],
+      "respuesta_correcta": "$18\\text{ N}$",
+      "explicacion_breve": "$F_c = m\\frac{v^2}{R} = 2 \\cdot \\frac{6^2}{4} = 18\\text{ N}$."
+    },
+    {
+      "id": "exam_fac_fis_6",
+      "skill_id": "fac_fis_04_energia",
+      "nivel_nodo": 6,
+      "tema": "Trabajo y Conservación de la Energía",
+      "area": "Física I",
+      "tiempo_segundos": 60,
+      "enunciado_latex": "Calcula la energía cinética de una partícula de masa $m = 2\\text{ kg}$ cuando se mueve con rapidez $v = 5\\text{ m/s}$.",
+      "opciones": [
+        "$25\\text{ J}$",
+        "$50\\text{ J}$",
+        "$10\\text{ J}$",
+        "$5\\text{ J}$"
+      ],
+      "respuesta_correcta": "$25\\text{ J}$",
+      "explicacion_breve": "La energía cinética es $K = \\frac{1}{2}mv^2 = \\frac{1}{2}(2)(5^2) = 25\\text{ J}$."
+    }
+  ]
+}

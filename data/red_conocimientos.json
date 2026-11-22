@@ -1,0 +1,276 @@
+{
+  "materias": [
+    {
+      "id": "algebra_base",
+      "nombre": "Álgebra de Supervivencia",
+      "codigo": "NIV-0 · ALG",
+      "nivel": 0,
+      "etapa": "pre_u",
+      "area": "matematicas",
+      "archivo": "algebra_base.json",
+      "descripcion": "Fundamentos operativos reales para sobrevivir a Cálculo I y Física I sin errores de signo, factorización o despeje."
+    },
+    {
+      "id": "trigonometria",
+      "nombre": "Trigonometría Aplicada",
+      "codigo": "NIV-0 · TRIG",
+      "nivel": 0,
+      "etapa": "pre_u",
+      "area": "matematicas",
+      "archivo": "trigonometria.json",
+      "descripcion": "Círculo trigonométrico, vectores no ortogonales, identidades y ecuaciones indispensables para Cálculo I y Física I."
+    },
+    {
+      "id": "geometria_analitica",
+      "nombre": "Geometría Analítica",
+      "codigo": "NIV-0 · GEO",
+      "nivel": 0,
+      "etapa": "pre_u",
+      "area": "matematicas",
+      "archivo": "geometria_analitica.json",
+      "descripcion": "Pendientes, distancias, rectas tangentes/normales y cónicas para visualizar funciones, optimización y trayectorias."
+    },
+    {
+      "id": "calculo_1",
+      "nombre": "Cálculo I - MAT 1101",
+      "codigo": "MAT 1101",
+      "nivel": 1,
+      "etapa": "facultad",
+      "area": "matematicas",
+      "archivo": "calculo_1.json",
+      "descripcion": "Domina MAT-1101 por Unidades: inecuaciones, dominios, límites, derivación, optimización e integrales."
+    },
+    {
+      "id": "fisica_1",
+      "nombre": "Física I - FIS 1100",
+      "codigo": "FIS 1100",
+      "nivel": 1,
+      "etapa": "facultad",
+      "area": "fisica",
+      "archivo": "fisica_1.json",
+      "descripcion": "Domina FIS-1100 por Unidades: vectores, cinemática 1D/2D, dinámica con fricción y poleas, y energía mecánica."
+    }
+  ],
+  "conexiones": [
+    {
+      "id": "conn_alg_geo",
+      "origen": "algebra_base",
+      "destino": "geometria_analitica",
+      "tipo": "prerrequisito",
+      "etiqueta": "Factorización y despejes para cónicas",
+      "descripcion": "Completar cuadrados en circunferencias, parábolas y elipses exige factorización y despejes limpios.",
+      "temas_clave": [
+        {
+          "materia_id": "algebra_base",
+          "nodo_id": "alg_03_factorizacion_notables",
+          "nombre": "Factorización y Productos Notables (Fórmulas Inversas)"
+        },
+        {
+          "materia_id": "algebra_base",
+          "nodo_id": "alg_05_despejes_formulas",
+          "nombre": "Despeje de Fórmulas Físicas y Variables Restringidas"
+        }
+      ]
+    },
+    {
+      "id": "conn_alg_cal1",
+      "origen": "algebra_base",
+      "destino": "calculo_1",
+      "tipo": "prerrequisito",
+      "etiqueta": "Base algebraica para dominios, límites y derivadas",
+      "descripcion": "Los límites 0/0, dominios e inecuaciones de MAT 1101 se resuelven con exponentes, factorización, conjugados y tablas de signos.",
+      "temas_clave": [
+        {
+          "materia_id": "algebra_base",
+          "nodo_id": "alg_01_potencias_raices",
+          "nombre": "Leyes de Exponentes, Potencias Negativas y Radicales"
+        },
+        {
+          "materia_id": "algebra_base",
+          "nodo_id": "alg_04_fracciones_racionalizacion",
+          "nombre": "Fracciones Complejas, Cancelación Válida y Racionalización"
+        },
+        {
+          "materia_id": "algebra_base",
+          "nodo_id": "alg_06_inecuaciones_validez",
+          "nombre": "Valor Absoluto, Inecuaciones y Conjuntos de Validez"
+        }
+      ]
+    },
+    {
+      "id": "conn_alg_fis1",
+      "origen": "algebra_base",
+      "destino": "fisica_1",
+      "tipo": "prerrequisito",
+      "etiqueta": "Despeje de sistemas, signos y radicales",
+      "descripcion": "Cada diagrama de cuerpo libre, MRUV y conservación energética requiere despejar incógnitas y cuidar signos y raíces.",
+      "temas_clave": [
+        {
+          "materia_id": "algebra_base",
+          "nodo_id": "alg_02_signos_jerarquia",
+          "nombre": "Jerarquía de Operaciones, Signos y Radicales Anidados"
+        },
+        {
+          "materia_id": "algebra_base",
+          "nodo_id": "alg_05_despejes_formulas",
+          "nombre": "Despeje de Fórmulas Físicas y Variables Restringidas"
+        }
+      ]
+    },
+    {
+      "id": "conn_trig_geo",
+      "origen": "trigonometria",
+      "destino": "geometria_analitica",
+      "tipo": "prerrequisito",
+      "etiqueta": "Ángulos de inclinación, razones y ley de cosenos",
+      "descripcion": "La pendiente $m = \\tan\\alpha$ y la distancia angular en el plano usan directamente razones y triángulos oblicuángulos.",
+      "temas_clave": [
+        {
+          "materia_id": "trigonometria",
+          "nodo_id": "trig_01_razones_circulo",
+          "nombre": "Razones, Círculo Trigonométrico y Descomposición Vectorial"
+        },
+        {
+          "materia_id": "trigonometria",
+          "nodo_id": "trig_02_ley_senos_cosenos",
+          "nombre": "Ley de Senos, Ley de Cosenos y Triángulos Aplicados"
+        }
+      ]
+    },
+    {
+      "id": "conn_trig_cal1",
+      "origen": "trigonometria",
+      "destino": "calculo_1",
+      "tipo": "prerrequisito",
+      "etiqueta": "Identidades y ángulo doble para límites/integrales",
+      "descripcion": "Límites trigonométricos, derivadas de funciones circulares e integrales por reducción usan identidades pitagóricas y ángulo doble.",
+      "temas_clave": [
+        {
+          "materia_id": "trigonometria",
+          "nodo_id": "trig_03_identidades_pitagoricas",
+          "nombre": "Identidades Fundamentales y Pitagóricas"
+        },
+        {
+          "materia_id": "trigonometria",
+          "nodo_id": "trig_04_angulo_doble_compuesto",
+          "nombre": "Ángulo Compuesto, Doble y Mitad"
+        },
+        {
+          "materia_id": "trigonometria",
+          "nodo_id": "trig_05_ecuaciones_trig",
+          "nombre": "Ecuaciones Trigonométricas e Inversas Acotadas"
+        }
+      ]
+    },
+    {
+      "id": "conn_trig_fis1",
+      "origen": "trigonometria",
+      "destino": "fisica_1",
+      "tipo": "prerrequisito",
+      "etiqueta": "Descomposición de vectores y planos inclinados",
+      "descripcion": "Descomponer fuerzas, velocidades parabólicas y tensiones depende del círculo trigonométrico y la ley de cosenos.",
+      "temas_clave": [
+        {
+          "materia_id": "trigonometria",
+          "nodo_id": "trig_01_razones_circulo",
+          "nombre": "Razones, Círculo Trigonométrico y Descomposición Vectorial"
+        },
+        {
+          "materia_id": "trigonometria",
+          "nodo_id": "trig_02_ley_senos_cosenos",
+          "nombre": "Ley de Senos, Ley de Cosenos y Triángulos Aplicados"
+        }
+      ]
+    },
+    {
+      "id": "conn_geo_cal1",
+      "origen": "geometria_analitica",
+      "destino": "calculo_1",
+      "tipo": "prerrequisito",
+      "etiqueta": "Recta tangente/normal, pendientes y gráficas",
+      "descripcion": "La derivada es la pendiente de la recta tangente, y Optimización modela áreas y distancias sobre cónicas.",
+      "temas_clave": [
+        {
+          "materia_id": "geometria_analitica",
+          "nodo_id": "geo_02_rectas_pendientes",
+          "nombre": "Pendiente, Recta Tangente/Normal y Paralelismo/Perpendicularidad"
+        },
+        {
+          "materia_id": "geometria_analitica",
+          "nodo_id": "geo_03_circunferencia",
+          "nombre": "Circunferencia y Completación de Cuadrados"
+        },
+        {
+          "materia_id": "geometria_analitica",
+          "nodo_id": "geo_04_parabola",
+          "nombre": "Parábola Vertical/Horizontal y Trayectorias"
+        }
+      ]
+    },
+    {
+      "id": "conn_geo_fis1",
+      "origen": "geometria_analitica",
+      "destino": "fisica_1",
+      "tipo": "prerrequisito",
+      "etiqueta": "Trayectorias parabólicas, ejes y movimiento circular",
+      "descripcion": "Tiro parabólico, sistemas de coordenadas y dinámica circular aplican parábolas, circunferencias y ejes perpendiculares.",
+      "temas_clave": [
+        {
+          "materia_id": "geometria_analitica",
+          "nodo_id": "geo_01_plano_distancias",
+          "nombre": "Plano Cartesiano, Distancia entre Puntos y Punto Medio"
+        },
+        {
+          "materia_id": "geometria_analitica",
+          "nodo_id": "geo_03_circunferencia",
+          "nombre": "Circunferencia y Completación de Cuadrados"
+        },
+        {
+          "materia_id": "geometria_analitica",
+          "nodo_id": "geo_04_parabola",
+          "nombre": "Parábola Vertical/Horizontal y Trayectorias"
+        }
+      ]
+    },
+    {
+      "id": "conn_cal1_fis1",
+      "origen": "calculo_1",
+      "destino": "fisica_1",
+      "tipo": "correquisito",
+      "etiqueta": "Razón de cambio, máximos cinemáticos y trabajo integral",
+      "descripcion": "Cálculo I formaliza velocidad/aceleración instantánea $dx/dt$, optimización de alcances y trabajo como integral $\\int F\\,dx$, mientras Física I da sentido físico inmediato al cálculo.",
+      "temas_clave": [
+        {
+          "materia_id": "calculo_1",
+          "nodo_id": "fac_cal_04_derivadas",
+          "nombre": "Derivadas por Regla de la Cadena"
+        },
+        {
+          "materia_id": "calculo_1",
+          "nodo_id": "fac_cal_05_optimizacion",
+          "nombre": "Optimización y Máximos/Mínimos"
+        },
+        {
+          "materia_id": "calculo_1",
+          "nodo_id": "fac_cal_06_integrales_basicas",
+          "nombre": "Integrales Indefinidas y Sustitución"
+        },
+        {
+          "materia_id": "fisica_1",
+          "nodo_id": "fac_fis_01b_cinematica_1d",
+          "nombre": "Cinemática 1D (MRU, MRUV y Caída Libre)"
+        },
+        {
+          "materia_id": "fisica_1",
+          "nodo_id": "fac_fis_02_cinematica",
+          "nombre": "Movimiento en 2D y Tiro Parabólico"
+        },
+        {
+          "materia_id": "fisica_1",
+          "nodo_id": "fac_fis_04_energia",
+          "nombre": "Trabajo y Conservación de la Energía"
+        }
+      ]
+    }
+  ]
+}

@@ -116,8 +116,13 @@ function buildPlacementQuestionsForMateria(materia) {
 
 function buildSkipQuestionsForTarget(materia, targetIdx, requiredBaseIds = []) {
   const skills = getMateriaSkills(materia);
+  const ownSkillIds = new Set(skills.map((s) => s.id));
   const previousAll = skills.slice(0, Math.max(1, targetIdx));
-  const requiredSet = new Set(Array.isArray(requiredBaseIds) ? requiredBaseIds : []);
+  const requiredSet = new Set(
+    (Array.isArray(requiredBaseIds) ? requiredBaseIds : []).filter((id) =>
+      ownSkillIds.has(id)
+    )
+  );
 
   const prioritizedSkills = [
     ...previousAll.filter((s) => requiredSet.has(s.id)),

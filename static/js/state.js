@@ -11,6 +11,43 @@ export const OPTION_LETTERS = ["A", "B", "C", "D"];
 let cloudSyncTimerId = null;
 
 const SHORT_SKILL_LABELS = {
+  // Nivel 0: Álgebra de Supervivencia
+  alg_01_potencias_raices: "Exp. y Raíces",
+  alg_02_signos_jerarquia: "Signos/Jerarquía",
+  alg_03_factorizacion_notables: "Factorización",
+  alg_04_fracciones_racionalizacion: "Frac./Racionaliz.",
+  alg_05_despejes_formulas: "Despejes",
+  alg_06_inecuaciones_validez: "Inecuac./Validez",
+  // Nivel 0: Trigonometría Aplicada
+  trig_01_razones_circulo: "Razones/Círculo",
+  trig_02_ley_senos_cosenos: "Senos/Cosenos",
+  trig_03_identidades_pitagoricas: "Identidades",
+  trig_04_angulo_doble_compuesto: "Áng. Comp./Doble",
+  trig_05_ecuaciones_trig: "Ec. Trig.",
+  // Nivel 0: Geometría Analítica
+  geo_01_plano_distancias: "Dist./Pto Medio",
+  geo_02_rectas_pendientes: "Rectas/Pend.",
+  geo_03_circunferencia: "Circunferencia",
+  geo_04_parabola: "Parábola",
+  geo_05_elipse_hiperbola: "Elipse/Hipérbola",
+  // Nivel 1: Cálculo I
+  fac_cal_01_inecuaciones_func: "Inecuaciones",
+  fac_cal_01b_funciones_dominios: "Dominios/Func.",
+  fac_cal_02_limites_alg: "Lím. Alg.",
+  fac_cal_03_limites_trig: "Lím. Trig.",
+  fac_cal_03b_continuidad: "Continuidad",
+  fac_cal_04_derivadas: "Derivadas",
+  fac_cal_04b_deriv_implicita_log: "Der. Implícita",
+  fac_cal_05_optimizacion: "Optimización",
+  fac_cal_06_integrales_basicas: "Integrales",
+  // Nivel 1: Física I
+  fac_fis_01_vectores: "Vectores",
+  fac_fis_01b_cinematica_1d: "Cinemática 1D",
+  fac_fis_02_cinematica: "Tiro Paraból.",
+  fac_fis_03_dinamica: "Newton",
+  fac_fis_03b_poleas_circular: "Poleas/Circ.",
+  fac_fis_04_energia: "Energía",
+  // Aliases heredados
   pre_alg_01_factorizacion: "Factorización",
   pre_alg_02_fracciones: "Fracciones Alg.",
   pre_alg_02b_ecuaciones_log: "Exp. y Log.",
@@ -22,21 +59,6 @@ const SHORT_SKILL_LABELS = {
   pre_trig_03_angulo_doble: "Áng. Doble",
   pre_trig_03b_ley_senos_cosenos: "Senos/Cosenos",
   pre_trig_04_ecuaciones: "Ec. y Límites",
-  fac_cal_01_inecuaciones_func: "Inecuaciones",
-  fac_cal_01b_funciones_dominios: "Dominios/Func.",
-  fac_cal_02_limites_alg: "Lím. Alg.",
-  fac_cal_03_limites_trig: "Lím. Trig.",
-  fac_cal_03b_continuidad: "Continuidad",
-  fac_cal_04_derivadas: "Derivadas",
-  fac_cal_04b_deriv_implicita_log: "Der. Implícita",
-  fac_cal_05_optimizacion: "Optimización",
-  fac_cal_06_integrales_basicas: "Integrales",
-  fac_fis_01_vectores: "Vectores",
-  fac_fis_01b_cinematica_1d: "Cinemática 1D",
-  fac_fis_02_cinematica: "Tiro Paraból.",
-  fac_fis_03_dinamica: "Newton",
-  fac_fis_03b_poleas_circular: "Poleas/Circ.",
-  fac_fis_04_energia: "Energía",
 };
 
 function createDefaultMedalCounters() {
@@ -96,7 +118,7 @@ function normalizeErrorEntry(entry, idx = 0) {
     resumen,
     tema: String(entry.tema || "Refuerzo General").trim(),
     materia: String(entry.materia || "").trim(),
-    materia_id: String(entry.materia_id || "").trim(),
+    materia_id: resolveCanonicalMateriaId(entry.materia_id),
     tipo_error: String(entry.tipo_error || "error_operativo").trim(),
     fecha: String(entry.fecha || "").trim(),
     superado: Boolean(entry.superado),
@@ -133,9 +155,13 @@ function normalizeStateObject(parsed) {
       : {};
   const cleanSimScores = {};
   Object.entries(rawSimScores).forEach(([matId, score]) => {
+    const canonId = resolveCanonicalMateriaId(matId);
     const num = Number(score);
-    if (Number.isFinite(num) && num >= 0) {
-      cleanSimScores[matId] = Math.min(100, Math.round(num));
+    if (canonId && Number.isFinite(num) && num >= 0) {
+      cleanSimScores[canonId] = Math.max(
+        cleanSimScores[canonId] || 0,
+        Math.min(100, Math.round(num))
+      );
     }
   });
 
@@ -156,23 +182,40 @@ function normalizeStateObject(parsed) {
   const cleanAiMetrics = {};
   Object.entries(rawAiMetrics).forEach(([matId, mObj]) => {
     if (!mObj || typeof mObj !== "object") return;
+    const canonId = resolveCanonicalMateriaId(matId);
+    if (!canonId) return;
     const intentos = Math.max(0, Math.round(Number(mObj.intentos_ia || 0)) || 0);
     const aprobados = Math.max(
       0,
       Math.min(intentos, Math.round(Number(mObj.aprobados_ia || 0)) || 0)
     );
-    cleanAiMetrics[matId] = { intentos_ia: intentos, aprobados_ia: aprobados };
+    const prev = cleanAiMetrics[canonId] || { intentos_ia: 0, aprobados_ia: 0 };
+    cleanAiMetrics[canonId] = {
+      intentos_ia: prev.intentos_ia + intentos,
+      aprobados_ia: prev.aprobados_ia + aprobados,
+    };
   });
+
+  const cleanInitiated = {};
+  if (parsed.materias_iniciadas && typeof parsed.materias_iniciadas === "object") {
+    Object.entries(parsed.materias_iniciadas).forEach(([matId, flag]) => {
+      const canonId = resolveCanonicalMateriaId(matId);
+      if (canonId && flag) cleanInitiated[canonId] = true;
+    });
+  }
+
+  const canonicalMateriaActiva =
+    typeof parsed.materia_activa === "string" && parsed.materia_activa.trim()
+      ? resolveCanonicalMateriaId(parsed.materia_activa)
+      : null;
 
   const cleanState = {
     ...defaults,
     ...parsed,
     nombre: typeof parsed.nombre === "string" ? parsed.nombre.trim() : "",
     is_tester: Boolean(parsed.is_tester),
-    materias_iniciadas:
-      parsed.materias_iniciadas && typeof parsed.materias_iniciadas === "object"
-        ? { ...parsed.materias_iniciadas }
-        : {},
+    materia_activa: canonicalMateriaActiva,
+    materias_iniciadas: cleanInitiated,
     xp: Math.max(0, Number.isFinite(Number(parsed.xp)) ? Number(parsed.xp) : 0),
     racha: Math.max(0, Number.isFinite(Number(parsed.racha)) ? Number(parsed.racha) : 0),
     nodos_estado:
@@ -215,9 +258,25 @@ export function loadState() {
 
 export const state = loadState();
 export const dom = {};
+export const LEGACY_MATERIA_ALIASES = Object.freeze({
+  pre_algebra: "algebra_base",
+  pre_trigonometria: "trigonometria",
+  fac_calculo1: "calculo_1",
+  fac_fisica1: "fisica_1",
+});
+
+export function resolveCanonicalMateriaId(materiaId) {
+  const clean = String(materiaId || "").trim();
+  if (!clean) return "";
+  return LEGACY_MATERIA_ALIASES[clean] || clean;
+}
+
 export const appContext = {
   skillsDB: null,
   activeSection: "materias",
+  materiasViewMode: "network", // "network" | "levels"
+  networkSelectedType: null, // "node" | "edge" | null
+  networkSelectedId: null,
   skillsSelectedMateriaId: null,
   vaultFilterScope: "subject", // "subject" | "all"
   diagRadarChartInstance: null,
@@ -268,16 +327,14 @@ export function inferInitiatedMateriasFromNodes() {
     state.materias_iniciadas = {};
   }
 
-  for (const stageKey of ["pre_u", "facultad"]) {
-    for (const mat of getStageMaterias(stageKey)) {
-      const skills = getMateriaSkills(mat);
-      const hasProgress = skills.some((s) => {
-        const st = state.nodos_estado[s.id];
-        return st === "unlocked" || st === "blocker" || state.xp_otorgado_nodos[s.id];
-      });
-      if (hasProgress) {
-        state.materias_iniciadas[mat.id] = true;
-      }
+  for (const mat of getAllMaterias()) {
+    const skills = getMateriaSkills(mat);
+    const hasProgress = skills.some((s) => {
+      const st = state.nodos_estado[s.id];
+      return st === "unlocked" || st === "blocker" || state.xp_otorgado_nodos[s.id];
+    });
+    if (hasProgress) {
+      state.materias_iniciadas[mat.id] = true;
     }
   }
 }
@@ -812,20 +869,57 @@ export function launchConfetti() {
    Helpers Multi-Materia e Inicio por Asignatura
    ======================================================================== */
 
+export function getKnowledgeNetwork() {
+  if (!appContext.skillsDB || !appContext.skillsDB.red_conocimientos) {
+    return { nodos: [], conexiones: [] };
+  }
+  return appContext.skillsDB.red_conocimientos;
+}
+
+export function getAllMaterias() {
+  if (!appContext.skillsDB) return [];
+  if (Array.isArray(appContext.skillsDB.materias) && appContext.skillsDB.materias.length > 0) {
+    return appContext.skillsDB.materias;
+  }
+  const combined = [];
+  for (const stageKey of ["pre_u", "facultad"]) {
+    const route = appContext.skillsDB[stageKey];
+    if (route && Array.isArray(route.materias)) {
+      combined.push(...route.materias);
+    }
+  }
+  return combined;
+}
+
+export function getAllCurriculumSkills() {
+  return getAllMaterias().flatMap((m) => getMateriaSkills(m));
+}
+
 export function getRouteData(stageKey = state.etapa) {
   if (!appContext.skillsDB || !stageKey) return null;
   return appContext.skillsDB[stageKey] || null;
 }
 
 export function getStageMaterias(stageKey = state.etapa) {
+  const all = getAllMaterias();
+  if (all.length > 0 && stageKey) {
+    const filtered = all.filter((m) => (m.etapa || (Number(m.nivel) === 0 ? "pre_u" : "facultad")) === stageKey);
+    if (filtered.length > 0) return filtered;
+  }
   const route = getRouteData(stageKey);
   return route && Array.isArray(route.materias) ? route.materias : [];
 }
 
 export function findMateriaById(materiaId) {
-  if (!materiaId || !appContext.skillsDB) return null;
+  const canonical = resolveCanonicalMateriaId(materiaId);
+  if (!canonical || !appContext.skillsDB) return null;
+  const direct = getAllMaterias().find((m) => m.id === canonical);
+  if (direct) {
+    const stageKey = direct.etapa || (Number(direct.nivel) === 0 ? "pre_u" : "facultad");
+    return { materia: direct, stageKey };
+  }
   for (const stageKey of ["pre_u", "facultad"]) {
-    const found = getStageMaterias(stageKey).find((m) => m.id === materiaId);
+    const found = getStageMaterias(stageKey).find((m) => m.id === canonical);
     if (found) return { materia: found, stageKey };
   }
   return null;
@@ -882,14 +976,26 @@ export function getDiagnosticAreasForStage(stageKey = state.etapa) {
 }
 
 export function getActiveMateria() {
-  const materias = getStageMaterias(state.etapa);
-  if (materias.length === 0) return null;
+  const allMaterias = getAllMaterias();
+  const stageMaterias = getStageMaterias(state.etapa);
+  const pool = allMaterias.length > 0 ? allMaterias : stageMaterias;
+  if (pool.length === 0) return null;
 
-  const found = materias.find((m) => m.id === state.materia_activa);
-  if (found) return found;
+  const canonicalActive = resolveCanonicalMateriaId(state.materia_activa);
+  const found = pool.find((m) => m.id === canonicalActive);
+  if (found) {
+    if (state.materia_activa !== found.id) {
+      state.materia_activa = found.id;
+      saveState();
+    }
+    return found;
+  }
 
-  const initiated = materias.find((m) => isMateriaIniciada(m.id));
-  const chosen = initiated || materias[0];
+  const stagePool = stageMaterias.length > 0 ? stageMaterias : pool;
+  const initiated =
+    stagePool.find((m) => isMateriaIniciada(m.id)) ||
+    pool.find((m) => isMateriaIniciada(m.id));
+  const chosen = initiated || stagePool[0] || pool[0];
   state.materia_activa = chosen.id;
   saveState();
   return chosen;
@@ -962,17 +1068,19 @@ export function getAllStageSkills(stageKey = state.etapa) {
 }
 
 export function findSkillGlobal(skillId) {
-  for (const stageKey of ["pre_u", "facultad"]) {
-    for (const mat of getStageMaterias(stageKey)) {
-      const found = getMateriaSkills(mat).find((s) => s.id === skillId);
-      if (found) return { skill: found, materia: mat, stageKey };
+  if (!skillId) return null;
+  for (const mat of getAllMaterias()) {
+    const found = getMateriaSkills(mat).find((s) => s.id === skillId);
+    if (found) {
+      const stageKey = mat.etapa || (Number(mat.nivel) === 0 ? "pre_u" : "facultad");
+      return { skill: found, materia: mat, stageKey };
     }
   }
   return null;
 }
 
-export function ensureConsistentNodeStatesForStage(stageKey = state.etapa) {
-  const materias = getStageMaterias(stageKey);
+export function ensureConsistentNodeStatesForStage(_stageKey = state.etapa) {
+  const materias = getAllMaterias();
   if (materias.length === 0) return;
 
   let changed = false;
@@ -1112,6 +1220,23 @@ export function cacheDom() {
     "btn-unit-free-practice",
     "view-materias",
     "materias-stage-pill",
+    "btn-materias-view-network",
+    "btn-materias-view-levels",
+    "materias-network-view",
+    "materias-levels-view",
+    "knowledge-network-canvas",
+    "btn-net-zoom-in",
+    "btn-net-zoom-out",
+    "btn-net-center",
+    "btn-net-fit",
+    "network-inspector-card",
+    "inspector-kicker",
+    "inspector-title",
+    "inspector-badges",
+    "inspector-progress-wrap",
+    "inspector-progress-text",
+    "inspector-progress-bar",
+    "inspector-body",
     "subjects-catalog-container",
     "view-skills",
     "skills-selected-badge",
@@ -1323,7 +1448,8 @@ export function updateGreetingUI() {
   const nombre = state.nombre || appContext.currentUser?.nombre || "Estudiante";
   const username = appContext.currentUser?.username || "estudiante";
   const inicial = nombre.charAt(0).toUpperCase() || "E";
-  const etapaLabel = state.etapa === "facultad" ? "Facultad (FNI)" : "Pre-U (Admisión)";
+  const etapaLabel =
+    state.etapa === "facultad" ? "Nivel 1 · Ciencias Básicas" : "Nivel 0 · Fundamentos";
 
   if (dom["nav-user-greeting"]) {
     dom["nav-user-greeting"].textContent = `¡Hola, ${nombre}!`;
@@ -1338,7 +1464,7 @@ export function updateGreetingUI() {
     dom["sidebar-user-avatar"].textContent = inicial;
   }
   if (dom["sidebar-user-stage"]) {
-    dom["sidebar-user-stage"].textContent = state.etapa ? etapaLabel : "Elige etapa";
+    dom["sidebar-user-stage"].textContent = state.etapa ? etapaLabel : "5 Materias FNI";
   }
   if (dom["path-user-greeting"]) {
     dom["path-user-greeting"].textContent = `CAMINO DE ${nombre.toUpperCase()}`;
@@ -1354,7 +1480,7 @@ export function updateGreetingUI() {
   }
   if (dom["profile-stage-badge"]) {
     dom["profile-stage-badge"].textContent =
-      state.etapa === "facultad" ? "🚀 Ruta Facultad" : "🎓 Ruta Pre-U";
+      state.etapa === "facultad" ? "🚀 Nivel 1 · Ciencias Básicas" : "🎓 Nivel 0 · Fundamentos";
   }
 }
 

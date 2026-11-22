@@ -1,0 +1,582 @@
+{
+  "id": "geometria_analitica",
+  "nombre": "Geometría Analítica",
+  "codigo": "NIV-0 · GEO",
+  "nivel": 0,
+  "etapa": "pre_u",
+  "area": "matematicas",
+  "icono": "bi-bezier2",
+  "color": "blue",
+  "descripcion": "Pendientes, distancias, rectas tangentes/normales y cónicas para visualizar funciones, optimización y trayectorias.",
+  "unidades": [
+    {
+      "id": "geo_u1",
+      "titulo": "Unidad 1: Plano Cartesiano, Rectas, Pendientes, Paralelismo/Perpendicularidad y Distancias",
+      "descripcion": "Coordenadas, distancia punto-recta, paralelismo/perpendicularidad y forma punto-pendiente para rectas tangentes y normales.",
+      "bases_requeridas": [
+        {
+          "id": "alg_05_despejes_formulas",
+          "nombre": "Despeje de Fórmulas Físicas y Variables Restringidas"
+        },
+        {
+          "id": "trig_01_razones_circulo",
+          "nombre": "Razones, Círculo Trigonométrico y Descomposición Vectorial"
+        }
+      ],
+      "nodos_ids": [
+        "geo_01_plano_distancias",
+        "geo_02_rectas_pendientes"
+      ]
+    },
+    {
+      "id": "geo_u2",
+      "titulo": "Unidad 2: Cónicas Fundamentales",
+      "descripcion": "Circunferencia, parábola, elipse e hipérbola mediante completación de cuadrados e interpretación geométrica.",
+      "bases_requeridas": [
+        {
+          "id": "alg_03_factorizacion_notables",
+          "nombre": "Factorización y Productos Notables (Fórmulas Inversas)"
+        },
+        {
+          "id": "geo_01_plano_distancias",
+          "nombre": "Plano Cartesiano, Distancia entre Puntos y Punto Medio"
+        },
+        {
+          "id": "geo_02_rectas_pendientes",
+          "nombre": "Pendiente, Recta Tangente/Normal y Paralelismo/Perpendicularidad"
+        }
+      ],
+      "nodos_ids": [
+        "geo_03_circunferencia",
+        "geo_04_parabola",
+        "geo_05_elipse_hiperbola"
+      ]
+    }
+  ],
+  "skills": [
+    {
+      "id": "geo_01_plano_distancias",
+      "ranking_criticidad": 1,
+      "frecuencia_examen": "92%",
+      "prioridad": "⭐ Muy frecuente",
+      "materia": "Geometría Analítica",
+      "unidad": "Unidad 1: Plano Cartesiano, Rectas, Pendientes, Paralelismo/Perpendicularidad y Distancias",
+      "nombre": "Plano Cartesiano, Distancia entre Puntos y Punto Medio",
+      "area": "Plano y Rectas",
+      "prerrequisito_id": null,
+      "xp": 100,
+      "tip_auxiliar": "No memorices signos sin pensar: en distancia $(x_2 - x_1)^2$ SIEMPRE da positivo al elevar al cuadrado, mientras en el vector desplazamiento $\\vec{PQ} = Q - P$ el orden sí importa.",
+      "guia_aprendizaje": {
+        "idea_clave": "La métrica euclidiana en $\\mathbb{R}^2$ permite medir longitudes exactas, optimizar distancias mínimas en Cálculo I y ubicar posiciones y trayectorias en Física I.",
+        "formulas": [
+          {
+            "nombre": "Distancia entre puntos",
+            "latex": "$$d(P_1, P_2) = \\sqrt{(x_2 - x_1)^2 + (y_2 - y_1)^2}$$"
+          },
+          {
+            "nombre": "Punto medio",
+            "latex": "$$M = \\left(\\frac{x_1 + x_2}{2},\\; \\frac{y_1 + y_2}{2}\\right)$$"
+          },
+          {
+            "nombre": "Distancia punto a recta",
+            "latex": "$$d(P_0, L) = \\frac{|Ax_0 + By_0 + C|}{\\sqrt{A^2 + B^2}}$$"
+          }
+        ],
+        "receta": [
+          "Identifica claramente coordenadas $(x_1, y_1)$ y $(x_2, y_2)$ antes de restar.",
+          "Respeta signos negativos dentro del paréntesis: $x_2 - (-3) = x_2 + 3$.",
+          "Para distancia mínima de un punto a una recta $Ax + By + C = 0$, iguala primero la recta a cero."
+        ],
+        "ejemplo_guiado": {
+          "enunciado": "Dados $A(-2, 5)$ y $B(4, -3)$, halla la distancia $d(A, B)$, su punto medio $M$, y la distancia de $B$ a la recta $L: 3x + 4y - 10 = 0$.",
+          "pasos": [
+            {
+              "titulo": "Paso 1: Calcular $d(A, B)$ cuidando el signo de $x_1 = -2$",
+              "expresion": "$$d(A,B) = \\sqrt{(4 - (-2))^2 + (-3 - 5)^2} = \\sqrt{6^2 + (-8)^2} = \\sqrt{36 + 64} = 10$$",
+              "explicacion": "$(-8)^2 = +64$, jamás $-64$. Resulta el triángulo 6-8-10."
+            },
+            {
+              "titulo": "Paso 2: Obtener el punto medio $M$",
+              "expresion": "$$M = \\left(\\frac{-2 + 4}{2},\\; \\frac{5 + (-3)}{2}\\right) = (1, 1)$$",
+              "explicacion": "Promediamos las abscisas y las ordenadas por separado."
+            },
+            {
+              "titulo": "Paso 3: Distancia de $B(4, -3)$ a $3x + 4y - 10 = 0$",
+              "expresion": "$$d(B, L) = \\frac{|3(4) + 4(-3) - 10|}{\\sqrt{3^2 + 4^2}} = \\frac{|12 - 12 - 10|}{5} = \\frac{10}{5} = 2$$",
+              "explicacion": "El valor absoluto garantiza distancia no negativa."
+            }
+          ],
+          "resultado_final": "$$d(A, B) = 10, \\quad M = (1, 1), \\quad d(B, L) = 2$$"
+        },
+        "trampas_examen": [
+          "Error frecuente: calcular $(-8)^2$ como $-64$ en vez de $+64$ al restar ordenadas negativas.",
+          "Aplicar $d(P_0, L)$ sin haber pasado la constante $C$ al mismo lado que $Ax + By$."
+        ]
+      },
+      "paso1_concepto": {
+        "titulo": "Orden de signos en distancia euclidiana",
+        "enunciado_latex": "¿Cuál es la distancia exacta entre los puntos $P(-1, -4)$ y $Q(2, 0)$?",
+        "opciones": [
+          "$3$",
+          "$5$",
+          "$\\sqrt{7}$",
+          "$7$"
+        ],
+        "respuesta_correcta": "$5$",
+        "explicacion": "$d = \\sqrt{(2 - (-1))^2 + (0 - (-4))^2} = \\sqrt{3^2 + 4^2} = 5$."
+      },
+      "paso2_practica": {
+        "titulo": "Distancia de un punto al origen",
+        "enunciado_latex": "Calcula la distancia exacta desde el origen $(0,0)$ hasta la recta $6x + 8y - 30 = 0$.",
+        "respuesta_correcta": "3",
+        "respuestas_aceptadas": [
+          "3",
+          "3.0"
+        ],
+        "pista": "$d = \\frac{|0 + 0 - 30|}{\\sqrt{6^2 + 8^2}} = \\frac{30}{10}$."
+      },
+      "paso3_reto_foto": {
+        "titulo": "Métrica y punto medio en papel",
+        "enunciado_latex": "El punto medio de $AB$ es $M(3, -1)$. Si $A$ tiene coordenadas $(-1, 5)$, determina las coordenadas del extremo $B$ y la longitud $d(A, B)$.",
+        "prerrequisito_evaluado": "Despeje de coordenadas mediante punto medio y cálculo de distancia.",
+        "instrucciones": "Iguala $\\frac{-1 + x_B}{2} = 3$ y $\\frac{5 + y_B}{2} = -1$, luego calcula $\\sqrt{(x_B - x_A)^2 + (y_B - y_A)^2}$."
+      }
+    },
+    {
+      "id": "geo_02_rectas_pendientes",
+      "ranking_criticidad": 2,
+      "frecuencia_examen": "96%",
+      "prioridad": "🔥 Fijo en Parcial",
+      "materia": "Geometría Analítica",
+      "unidad": "Unidad 1: Plano Cartesiano, Rectas, Pendientes, Paralelismo/Perpendicularidad y Distancias",
+      "nombre": "Pendiente, Recta Tangente/Normal y Paralelismo/Perpendicularidad",
+      "area": "Plano y Rectas",
+      "prerrequisito_id": "geo_01_plano_distancias",
+      "xp": 115,
+      "tip_auxiliar": "La forma punto-pendiente $y - y_0 = m(x - x_0)$ es la fórmula reina para escribir rectas tangentes y normales usando $m = f'(x_0)$ en Cálculo I.",
+      "guia_aprendizaje": {
+        "idea_clave": "La pendiente $m = \\frac{\\Delta y}{\\Delta x}$ mide razón de cambio constante (velocidad en MRU de Física I) y su relación $m_1 \\cdot m_2 = -1$ construye rectas normales a curvas en MAT-1101.",
+        "formulas": [
+          {
+            "nombre": "Pendiente entre dos puntos",
+            "latex": "$$m = \\frac{y_2 - y_1}{x_2 - x_1} = \\tan\\alpha$$"
+          },
+          {
+            "nombre": "Forma punto-pendiente",
+            "latex": "$$y - y_0 = m(x - x_0)$$"
+          },
+          {
+            "nombre": "Paralelas y perpendiculares",
+            "latex": "$$L_1 \\parallel L_2 \\iff m_1 = m_2, \\qquad L_1 \\perp L_2 \\iff m_1 \\cdot m_2 = -1$$"
+          }
+        ],
+        "receta": [
+          "Despeja $y$ para leer directamente la pendiente $m$ de una recta general $Ax + By + C = 0 \\implies m = -A/B$.",
+          "Si buscas una recta paralela, conserva $m$; si es perpendicular (normal), usa la recíproca opuesta $m_\\perp = -\\frac{1}{m}$.",
+          "Reemplaza $(x_0, y_0)$ y $m$ en $y - y_0 = m(x - x_0)$."
+        ],
+        "ejemplo_guiado": {
+          "enunciado": "Halla la ecuación de la recta $L_2$ que pasa por $P(2, -1)$ y es perpendicular a la recta $L_1: 2x - 3y + 6 = 0$.",
+          "pasos": [
+            {
+              "titulo": "Paso 1: Obtener la pendiente $m_1$ de $L_1$",
+              "expresion": "$$3y = 2x + 6 \\implies y = \\frac{2}{3}x + 2 \\implies m_1 = \\frac{2}{3}$$",
+              "explicacion": "Despejamos $y$ para identificar el coeficiente de $x$."
+            },
+            {
+              "titulo": "Paso 2: Calcular la pendiente perpendicular $m_2$",
+              "expresion": "$$m_1 \\cdot m_2 = -1 \\implies m_2 = -\\frac{1}{2/3} = -\\frac{3}{2}$$",
+              "explicacion": "Invertimos la fracción y cambiamos el signo."
+            },
+            {
+              "titulo": "Paso 3: Aplicar forma punto-pendiente con $P(2, -1)$",
+              "expresion": "$$y - (-1) = -\\frac{3}{2}(x - 2) \\implies y + 1 = -\\frac{3}{2}x + 3 \\implies 3x + 2y - 4 = 0$$",
+              "explicacion": "Podemos dejarla en forma explícita $y = -\\frac{3}{2}x + 2$ o general $3x + 2y - 4 = 0$."
+            }
+          ],
+          "resultado_final": "$$y = -\\frac{3}{2}x + 2 \\quad \\text{ó} \\quad 3x + 2y - 4 = 0$$"
+        },
+        "trampas_examen": [
+          "Pensar que la perpendicular a $m = 2$ tiene pendiente $-2$ (olvidan invertir) o $+\\frac{1}{2}$ (olvidan el signo menos).",
+          "Confundir rectas verticales ($x = c$, pendiente indefinida) con horizontales ($y = c$, $m = 0$)."
+        ]
+      },
+      "paso1_concepto": {
+        "titulo": "Pendiente de recta perpendicular",
+        "enunciado_latex": "Si una recta tiene ecuación $y = 4x - 5$, ¿cuál es la pendiente de cualquier recta perpendicular (normal) a ella?",
+        "opciones": [
+          "$4$",
+          "$-4$",
+          "$-\\frac{1}{4}$",
+          "$\\frac{1}{4}$"
+        ],
+        "respuesta_correcta": "$-\\frac{1}{4}$",
+        "explicacion": "$m_1 \\cdot m_2 = -1 \\implies 4 \\cdot m_2 = -1 \\implies m_2 = -\\frac{1}{4}$."
+      },
+      "paso2_practica": {
+        "titulo": "Ordenada al origen con punto-pendiente",
+        "enunciado_latex": "Una recta pasa por $(3, 7)$ con pendiente $m = 2$. Si la escribes como $y = mx + b$, ¿cuánto vale $b$?",
+        "respuesta_correcta": "1",
+        "respuestas_aceptadas": [
+          "1",
+          "+1"
+        ],
+        "pista": "$y - 7 = 2(x - 3) \\implies y = 2x - 6 + 7$."
+      },
+      "paso3_reto_foto": {
+        "titulo": "Recta tangente y normal con pendiente dada",
+        "enunciado_latex": "Una curva tiene pendiente $m = 3$ en el punto $P(1, 4)$. Escribe la ecuación general de su recta tangente y de su recta perpendicular (normal) en $P$.",
+        "prerrequisito_evaluado": "Forma punto-pendiente y relación de perpendicularidad $m_1 m_2 = -1$.",
+        "instrucciones": "Usa $y - 4 = m(x - 1)$ primero con $m_T = 3$ y luego con $m_N = -1/3$."
+      }
+    },
+    {
+      "id": "geo_03_circunferencia",
+      "ranking_criticidad": 3,
+      "frecuencia_examen": "93%",
+      "prioridad": "⭐ Muy frecuente",
+      "materia": "Geometría Analítica",
+      "unidad": "Unidad 2: Cónicas Fundamentales",
+      "nombre": "Circunferencia y Completación de Cuadrados",
+      "area": "Cónicas",
+      "prerrequisito_id": "geo_02_rectas_pendientes",
+      "xp": 115,
+      "tip_auxiliar": "Para hallar centro $(h, k)$ y radio $R$ desde $x^2 + y^2 + Dx + Ey + F = 0$, completa cuadrados dividiendo entre $2$ los coeficientes lineales y recuerda SUMAR las mitades al cuadrado en ambos miembros.",
+      "guia_aprendizaje": {
+        "idea_clave": "La circunferencia modela movimiento circular en Física I, regiones acotadas en Optimización y fronteras $\\sqrt{R^2 - x^2}$ en Cálculo I.",
+        "formulas": [
+          {
+            "nombre": "Ecuación ordinaria",
+            "latex": "$$(x - h)^2 + (y - k)^2 = R^2$$"
+          },
+          {
+            "nombre": "Semicircunferencia superior",
+            "latex": "$$y = k + \\sqrt{R^2 - (x - h)^2}$$"
+          }
+        ],
+        "receta": [
+          "Si $x^2$ e $y^2$ tienen coeficiente $A \\neq 1$, divide toda la ecuación entre $A$ primero.",
+          "Agrupa las $x$ por un lado, las $y$ por otro y pasa el término independiente $F$ al lado derecho.",
+          "Suma $(D/2)^2$ y $(E/2)^2$ a ambos lados para formar $(x - h)^2 + (y - k)^2 = R^2$.",
+          "Verifica que el lado derecho sea $> 0$ (si es $\\le 0$, no representa una circunferencia real)."
+        ],
+        "ejemplo_guiado": {
+          "enunciado": "Halla el centro $(h, k)$ y radio $R$ de la circunferencia: $$x^2 + y^2 - 4x + 6y - 12 = 0$$",
+          "pasos": [
+            {
+              "titulo": "Paso 1: Agrupar variables y mover la constante $-12$",
+              "expresion": "$$(x^2 - 4x) + (y^2 + 6y) = 12$$",
+              "explicacion": "Separamos los términos en $x$ y en $y$."
+            },
+            {
+              "titulo": "Paso 2: Completar cuadrados sumando $(-4/2)^2=4$ y $(6/2)^2=9$ en ambos lados",
+              "expresion": "$$(x^2 - 4x + 4) + (y^2 + 6y + 9) = 12 + 4 + 9$$",
+              "explicacion": "Todo lo que sumamos a la izquierda para formar binomios al cuadrado debe sumarse también a la derecha."
+            },
+            {
+              "titulo": "Paso 3: Factorizar e identificar $(h, k)$ y $R$",
+              "expresion": "$$(x - 2)^2 + (y + 3)^2 = 25 \\implies C(2, -3), \\quad R = \\sqrt{25} = 5$$",
+              "explicacion": "En $(y + 3) = (y - (-3))$, así que $k = -3$."
+            }
+          ],
+          "resultado_final": "$$\\text{Centro } (2, -3), \\quad \\text{Radio } R = 5$$"
+        },
+        "trampas_examen": [
+          "Olvidar cambiar el signo al leer el centro: $(x + 2)^2$ da $h = -2$, NO $+2$.",
+          "Olvidar sacar raíz cuadrada al lado derecho y reportar $R = 25$ en vez de $R = 5$."
+        ]
+      },
+      "paso1_concepto": {
+        "titulo": "Leer centro y radio desde forma ordinaria",
+        "enunciado_latex": "¿Cuáles son el centro $C$ y radio $R$ de la circunferencia $$(x + 3)^2 + (y - 1)^2 = 16$$?",
+        "opciones": [
+          "$C(3, -1),\\; R = 16$",
+          "$C(-3, 1),\\; R = 4$",
+          "$C(-3, 1),\\; R = 16$",
+          "$C(3, -1),\\; R = 4$"
+        ],
+        "respuesta_correcta": "$C(-3, 1),\\; R = 4$",
+        "explicacion": "$(x - (-3))^2 + (y - 1)^2 = 4^2 \\implies C(-3, 1)$ y $R = 4$."
+      },
+      "paso2_practica": {
+        "titulo": "Radio tras completar cuadrados",
+        "enunciado_latex": "Determina el radio $R$ de la circunferencia $x^2 + y^2 - 8x + 2y + 8 = 0$.",
+        "respuesta_correcta": "3",
+        "respuestas_aceptadas": [
+          "3",
+          "3.0"
+        ],
+        "pista": "$(x - 4)^2 + (y + 1)^2 = -8 + 16 + 1 = 9$."
+      },
+      "paso3_reto_foto": {
+        "titulo": "Recta tangente a una circunferencia",
+        "enunciado_latex": "Dada la circunferencia $x^2 + y^2 = 25$, verifica que el punto $P(3, 4)$ pertenece a ella y halla la ecuación de la recta tangente en $P$ (perpendicular al radio $OP$).",
+        "prerrequisito_evaluado": "Pendiente radial y perpendicularidad en punto de tangencia.",
+        "instrucciones": "Calcula $m_{\\text{radio}} = 4/3$, usa $m_T = -1/m_{\\text{radio}}$ y arma la recta que pasa por $(3,4)$."
+      }
+    },
+    {
+      "id": "geo_04_parabola",
+      "ranking_criticidad": 4,
+      "frecuencia_examen": "94%",
+      "prioridad": "🔥 Fijo en Parcial",
+      "materia": "Geometría Analítica",
+      "unidad": "Unidad 2: Cónicas Fundamentales",
+      "nombre": "Parábola Vertical/Horizontal y Trayectorias",
+      "area": "Cónicas",
+      "prerrequisito_id": "geo_03_circunferencia",
+      "xp": 120,
+      "tip_auxiliar": "La variable que NO está al cuadrado indica el eje de simetría de la parábola; y el vértice $V(h, k)$ corresponde al máximo o mínimo donde la derivada vale $0$.",
+      "guia_aprendizaje": {
+        "idea_clave": "La ecuación cuadrática $y = ax^2 + bx + c$ describe tanto las trayectorias parabólicas de proyectiles en Física I como máximos/mínimos cuadráticos y áreas bajo curvas en Cálculo I.",
+        "formulas": [
+          {
+            "nombre": "Parábola vertical",
+            "latex": "$$(x - h)^2 = 4p(y - k) \\quad \\text{ó} \\quad y = a(x - h)^2 + k$$"
+          },
+          {
+            "nombre": "Parábola horizontal",
+            "latex": "$$(y - k)^2 = 4p(x - h)$$"
+          },
+          {
+            "nombre": "Vértice y foco",
+            "latex": "$$V(h, k), \\quad \\text{eje focal paralelo al término lineal}$$"
+          }
+        ],
+        "receta": [
+          "Identifica cuál variable aparece al cuadrado ($x^2 \\to$ vertical; $y^2 \\to$ horizontal).",
+          "Completa el cuadrado solo en la variable cuadrática y factoriza el coeficiente del miembro lineal.",
+          "Lee $V(h, k)$ y el parámetro focal $4p$ (si $p > 0$ abre hacia arriba/derecha; si $p < 0$, abajo/izquierda)."
+        ],
+        "ejemplo_guiado": {
+          "enunciado": "Encuentra vértice, foco y abertura de la parábola: $$y = -\\frac{1}{8}x^2 + x + 2$$",
+          "pasos": [
+            {
+              "titulo": "Paso 1: Ordenar en forma estándar multiplicando por $-8$",
+              "expresion": "$$x^2 - 8x = -8y + 16$$",
+              "explicacion": "Pasamos todo para despejar $x^2 - 8x$ con coeficiente $1$."
+            },
+            {
+              "titulo": "Paso 2: Completar cuadrado sumando $(-8/2)^2 = 16$",
+              "expresion": "$$(x^2 - 8x + 16) = -8y + 16 + 16 \\implies (x - 4)^2 = -8(y - 4)$$",
+              "explicacion": "Factorizamos $-8$ a la derecha para obtener $(y - k)$."
+            },
+            {
+              "titulo": "Paso 3: Identificar vértice $V$, $p$ y foco $F$",
+              "expresion": "$$V(4, 4), \\quad 4p = -8 \\implies p = -2 \\implies \\text{Abre hacia abajo}, \\quad F(4, 4 - 2) = (4, 2)$$",
+              "explicacion": "Como $p = -2 < 0$, el foco queda $2$ unidades debajo del vértice."
+            }
+          ],
+          "resultado_final": "$$V(4, 4), \\quad F(4, 2), \\quad \\text{directriz } y = 6$$"
+        },
+        "trampas_examen": [
+          "Confundir quién es $h$ y quién es $k$ en $(y - k)^2 = 4p(x - h)$ ($h$ siempre acompaña a $x$ y $k$ a $y$).",
+          "En proyectiles $y = x\\tan\\theta - \\frac{g x^2}{2v_0^2\\cos^2\\theta}$, olvidar que el alcance máximo se halla igualando $y = 0$ (raíces de la parábola)."
+        ]
+      },
+      "paso1_concepto": {
+        "titulo": "Orientación de una parábola horizontal",
+        "enunciado_latex": "La ecuación $$(y - 2)^2 = -12(x + 1)$$ representa una parábola con vértice $V(-1, 2)$ que abre hacia:",
+        "opciones": [
+          "Arriba",
+          "Abajo",
+          "La derecha",
+          "La izquierda"
+        ],
+        "respuesta_correcta": "La izquierda",
+        "explicacion": "Como la variable cuadrática es $y$, es horizontal; y como $4p = -12 < 0$, abre hacia el eje $-X$ (izquierda)."
+      },
+      "paso2_practica": {
+        "titulo": "Altura máxima usando vértice",
+        "enunciado_latex": "Un proyectil sigue la ecuación $y = -5t^2 + 20t + 3$. ¿Cuál es su altura máxima $y_{\\max}$?",
+        "respuesta_correcta": "23",
+        "respuestas_aceptadas": [
+          "23",
+          "23.0"
+        ],
+        "pista": "$t_V = \\frac{-b}{2a} = \\frac{-20}{-10} = 2\\text{ s}$; evalúa $y(2)$."
+      },
+      "paso3_reto_foto": {
+        "titulo": "Transformación a forma canónica",
+        "enunciado_latex": "Convierte a forma ordinaria y halla vértice y foco de: $$x^2 - 6x - 8y + 1 = 0$$",
+        "prerrequisito_evaluado": "Completación de cuadrados e interpretación de $4p$.",
+        "instrucciones": "Deja las $x$ a la izquierda, completa cuadrados, factoriza el coeficiente de $y$ y determina $V(h, k)$ y $F$."
+      }
+    },
+    {
+      "id": "geo_05_elipse_hiperbola",
+      "ranking_criticidad": 5,
+      "frecuencia_examen": "88%",
+      "prioridad": "📌 Base clave",
+      "materia": "Geometría Analítica",
+      "unidad": "Unidad 2: Cónicas Fundamentales",
+      "nombre": "Elipse, Hipérbola y Propiedades Focales",
+      "area": "Cónicas",
+      "prerrequisito_id": "geo_04_parabola",
+      "xp": 125,
+      "tip_auxiliar": "Diferencia rápida: en la elipse ambos términos al cuadrado SUMAN ($+$) y $a > b$ con $a^2 = b^2 + c^2$; en la hipérbola RESTAN ($-$) y $c^2 = a^2 + b^2$.",
+      "guia_aprendizaje": {
+        "idea_clave": "Reconocer al instante si una ecuación es elipse o hipérbola, trazar sus asíntotas y acotar sus valores $|x| \\le a$ o $|x| \\ge a$ resulta clave en dominios, áreas entre curvas y órbitas gravitatorias.",
+        "formulas": [
+          {
+            "nombre": "Elipse centrada en $(h,k)$",
+            "latex": "$$\\frac{(x-h)^2}{a^2} + \\frac{(y-k)^2}{b^2} = 1, \\qquad c^2 = a^2 - b^2 \\;(a > b)$$"
+          },
+          {
+            "nombre": "Hipérbola horizontal",
+            "latex": "$$\\frac{(x-h)^2}{a^2} - \\frac{(y-k)^2}{b^2} = 1, \\qquad c^2 = a^2 + b^2$$"
+          },
+          {
+            "nombre": "Asíntotas de hipérbola",
+            "latex": "$$y - k = \\pm\\frac{b}{a}(x - h)$$"
+          }
+        ],
+        "receta": [
+          "Verifica los signos de $x^2$ e $y^2$: iguales coeficientes positivos $\\to$ circunferencia; distintos coeficientes positivos $\\to$ elipse; signos opuestos $\\to$ hipérbola.",
+          "Divide toda la ecuación para dejar un $1$ exacto en el lado derecho.",
+          "En elipses, $a^2$ siempre es el denominador MAYOR; en hipérbolas, $a^2$ siempre es el denominador del término POSITIVO."
+        ],
+        "ejemplo_guiado": {
+          "enunciado": "Identifica la cónica, centro, vértices y asíntotas de: $$9x^2 - 16y^2 = 144$$",
+          "pasos": [
+            {
+              "titulo": "Paso 1: Dividir todo entre $144$ para dejar $1$ a la derecha",
+              "expresion": "$$\\frac{9x^2}{144} - \\frac{16y^2}{144} = 1 \\implies \\frac{x^2}{16} - \\frac{y^2}{9} = 1$$",
+              "explicacion": "Los signos son opuestos ($+$ en $x^2$ y $-$ en $y^2$), luego es una hipérbola horizontal centrada en $(0,0)$."
+            },
+            {
+              "titulo": "Paso 2: Leer $a$, $b$ y calcular la distancia focal $c$",
+              "expresion": "$$a = \\sqrt{16} = 4, \\quad b = \\sqrt{9} = 3 \\implies c = \\sqrt{a^2 + b^2} = \\sqrt{16 + 9} = 5$$",
+              "explicacion": "Los vértices reales están en $(\\pm 4, 0)$ y los focos en $(\\pm 5, 0)$."
+            },
+            {
+              "titulo": "Paso 3: Escribir las ecuaciones de sus asíntotas",
+              "expresion": "$$y = \\pm \\frac{b}{a}x \\implies y = \\pm\\frac{3}{4}x$$",
+              "explicacion": "Igualando $\\frac{x^2}{16} - \\frac{y^2}{9} = 0$ salen directamente las dos asíntotas."
+            }
+          ],
+          "resultado_final": "$$\\text{Hipérbola horizontal: } V(\\pm 4, 0),\\; F(\\pm 5, 0),\\; y = \\pm\\frac{3}{4}x$$"
+        },
+        "trampas_examen": [
+          "Usar $c^2 = a^2 + b^2$ dentro de una elipse (en la elipse el foco está DENTRO, así que $c < a$ y $c^2 = a^2 - b^2$).",
+          "Suponer que en la hipérbola $a$ debe ser mayor que $b$: en la hipérbola $a^2$ es el denominador del término POSITIVO aunque sea menor."
+        ]
+      },
+      "paso1_concepto": {
+        "titulo": "Clasificación rápida de cónicas",
+        "enunciado_latex": "La ecuación $$4x^2 + 9y^2 = 36$$ corresponde gráficamente a:",
+        "opciones": [
+          "Una circunferencia de radio $6$",
+          "Una elipse horizontal con semiejes $a = 3, b = 2$",
+          "Una elipse vertical con semiejes $a = 3, b = 2$",
+          "Una hipérbola con asíntotas $y = \\pm\\frac{2}{3}x$"
+        ],
+        "respuesta_correcta": "Una elipse horizontal con semiejes $a = 3, b = 2$",
+        "explicacion": "Al dividir entre $36$ queda $\\frac{x^2}{9} + \\frac{y^2}{4} = 1$, suma de cuadrados con mayor denominador $a^2 = 9$ bajo $x^2$."
+      },
+      "paso2_practica": {
+        "titulo": "Semieje focal de una elipse",
+        "enunciado_latex": "En la elipse $\\frac{x^2}{25} + \\frac{y^2}{9} = 1$, ¿cuál es el valor numérico de la distancia focal $c$ desde el centro hasta un foco?",
+        "respuesta_correcta": "4",
+        "respuestas_aceptadas": [
+          "4",
+          "4.0"
+        ],
+        "pista": "$c = \\sqrt{a^2 - b^2} = \\sqrt{25 - 9}$."
+      },
+      "paso3_reto_foto": {
+        "titulo": "Elipse trasladada mediante cuadrados",
+        "enunciado_latex": "Halla el centro y los semiejes de la elipse: $$4x^2 + y^2 - 8x + 4y - 8 = 0$$",
+        "prerrequisito_evaluado": "Factor común antes de completar cuadrados y división para normalizar a $1$.",
+        "instrucciones": "Factoriza el $4$ en $4(x^2 - 2x)$ antes de completar el cuadrado de $x$, suma $4(1)=4$ al lado derecho y divide todo entre $16$."
+      }
+    }
+  ],
+  "preguntas_examen": [
+    {
+      "id": "exam_geo_1",
+      "skill_id": "geo_01_plano_distancias",
+      "nivel_nodo": 1,
+      "tema": "Distancias y Punto Medio",
+      "area": "Plano y Rectas",
+      "tiempo_segundos": 60,
+      "enunciado_latex": "¿Cuál es la distancia desde el punto $(2, -1)$ hasta la recta $3x - 4y + 5 = 0$?",
+      "opciones": [
+        "$3$",
+        "$5$",
+        "$2$",
+        "$15$"
+      ],
+      "respuesta_correcta": "$3$",
+      "explicacion_breve": "$d = \\frac{|3(2) - 4(-1) + 5|}{\\sqrt{3^2 + (-4)^2}} = \\frac{|6 + 4 + 5|}{5} = \\frac{15}{5} = 3$."
+    },
+    {
+      "id": "exam_geo_2",
+      "skill_id": "geo_02_rectas_pendientes",
+      "nivel_nodo": 2,
+      "tema": "Rectas Perpendiculares",
+      "area": "Plano y Rectas",
+      "tiempo_segundos": 60,
+      "enunciado_latex": "La recta que pasa por $(0, 3)$ y es paralela a $4x + 2y - 1 = 0$ es:",
+      "opciones": [
+        "$y = -2x + 3$",
+        "$y = 2x + 3$",
+        "$y = \\frac{1}{2}x + 3$",
+        "$y = -4x + 3$"
+      ],
+      "respuesta_correcta": "$y = -2x + 3$",
+      "explicacion_breve": "De $2y = -4x + 1$ se lee $m = -2$; con corte $b = 3$ da $y = -2x + 3$."
+    },
+    {
+      "id": "exam_geo_3",
+      "skill_id": "geo_03_circunferencia",
+      "nivel_nodo": 3,
+      "tema": "Circunferencia",
+      "area": "Cónicas",
+      "tiempo_segundos": 60,
+      "enunciado_latex": "El centro y radio de $x^2 + y^2 + 6x - 2y + 6 = 0$ son:",
+      "opciones": [
+        "$C(-3, 1),\\; R = 2$",
+        "$C(3, -1),\\; R = 2$",
+        "$C(-3, 1),\\; R = 4$",
+        "$C(3, -1),\\; R = 4$"
+      ],
+      "respuesta_correcta": "$C(-3, 1),\\; R = 2$",
+      "explicacion_breve": "$(x + 3)^2 + (y - 1)^2 = -6 + 9 + 1 = 4 \\implies C(-3, 1), R = 2$."
+    },
+    {
+      "id": "exam_geo_4",
+      "skill_id": "geo_04_parabola",
+      "nivel_nodo": 4,
+      "tema": "Parábola",
+      "area": "Cónicas",
+      "tiempo_segundos": 60,
+      "enunciado_latex": "El vértice de la parábola $y = 2x^2 - 8x + 11$ es el punto:",
+      "opciones": [
+        "$(2, 3)$",
+        "$(-2, 3)$",
+        "$(4, 11)$",
+        "$(2, 11)$"
+      ],
+      "respuesta_correcta": "$(2, 3)$",
+      "explicacion_breve": "$y = 2(x - 2)^2 + 3 \\implies V(2, 3)$."
+    },
+    {
+      "id": "exam_geo_5",
+      "skill_id": "geo_05_elipse_hiperbola",
+      "nivel_nodo": 5,
+      "tema": "Hipérbola",
+      "area": "Cónicas",
+      "tiempo_segundos": 60,
+      "enunciado_latex": "Las ecuaciones de las asíntotas de la hipérbola $\\frac{x^2}{4} - \\frac{y^2}{25} = 1$ son:",
+      "opciones": [
+        "$y = \\pm\\frac{5}{2}x$",
+        "$y = \\pm\\frac{2}{5}x$",
+        "$y = \\pm\\frac{25}{4}x$",
+        "$y = \\pm x$"
+      ],
+      "respuesta_correcta": "$y = \\pm\\frac{5}{2}x$",
+      "explicacion_breve": "$a = 2, b = 5 \\implies y = \\pm\\frac{b}{a}x = \\pm\\frac{5}{2}x$."
+    }
+  ]
+}

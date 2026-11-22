@@ -1,0 +1,701 @@
+{
+  "id": "algebra_base",
+  "nombre": "Álgebra de Supervivencia",
+  "codigo": "NIV-0 · ALG",
+  "nivel": 0,
+  "etapa": "pre_u",
+  "area": "matematicas",
+  "icono": "bi-superscript",
+  "color": "blue",
+  "descripcion": "Fundamentos operativos reales para sobrevivir a Cálculo I y Física I sin errores de signo, factorización o despeje.",
+  "unidades": [
+    {
+      "id": "alg_base_u1",
+      "titulo": "Unidad 1: Potencias, Raíces y Operaciones Combinadas",
+      "descripcion": "Exponentes negativos y fraccionarios, radicales anidados y control estricto de signos.",
+      "bases_requeridas": [],
+      "nodos_ids": [
+        "alg_01_potencias_raices",
+        "alg_02_signos_jerarquia"
+      ]
+    },
+    {
+      "id": "alg_base_u2",
+      "titulo": "Unidad 2: Fracciones Algebraicas, Factorización y Racionalización",
+      "descripcion": "Productos notables inversos, fracciones complejas, cancelación válida y conjugados.",
+      "bases_requeridas": [
+        {
+          "id": "alg_01_potencias_raices",
+          "nombre": "Leyes de Exponentes, Potencias Negativas y Radicales"
+        },
+        {
+          "id": "alg_02_signos_jerarquia",
+          "nombre": "Jerarquía de Operaciones, Signos y Radicales Anidados"
+        }
+      ],
+      "nodos_ids": [
+        "alg_03_factorizacion_notables",
+        "alg_04_fracciones_racionalizacion"
+      ]
+    },
+    {
+      "id": "alg_base_u3",
+      "titulo": "Unidad 3: Despejes de Fórmulas, Valor Absoluto e Inecuaciones",
+      "descripcion": "Despeje de fórmulas reales en Física/Cálculo, valor absoluto e intervalos de validez.",
+      "bases_requeridas": [
+        {
+          "id": "alg_02_signos_jerarquia",
+          "nombre": "Jerarquía de Operaciones, Signos y Radicales Anidados"
+        },
+        {
+          "id": "alg_03_factorizacion_notables",
+          "nombre": "Factorización y Productos Notables (Fórmulas Inversas)"
+        },
+        {
+          "id": "alg_04_fracciones_racionalizacion",
+          "nombre": "Fracciones Complejas, Cancelación Válida y Racionalización"
+        }
+      ],
+      "nodos_ids": [
+        "alg_05_despejes_formulas",
+        "alg_06_inecuaciones_validez"
+      ]
+    }
+  ],
+  "skills": [
+    {
+      "id": "alg_01_potencias_raices",
+      "ranking_criticidad": 1,
+      "frecuencia_examen": "98%",
+      "prioridad": "🔥 Fijo en Parcial",
+      "materia": "Álgebra de Supervivencia",
+      "unidad": "Unidad 1: Potencias, Raíces y Operaciones Combinadas",
+      "nombre": "Leyes de Exponentes, Potencias Negativas y Radicales",
+      "area": "Potencias y Raíces",
+      "prerrequisito_id": null,
+      "xp": 100,
+      "tip_auxiliar": "Convierte todo radical en potencia fraccionaria $a^{m/n}$ antes de operar y recuerda que $a^{-n} = \\frac{1}{a^n}$ ($a \\neq 0$).",
+      "guia_aprendizaje": {
+        "idea_clave": "Las leyes de exponentes negativos y fraccionarios permiten transformar raíces y cocientes complejos en potencias manipulables sin error en límites, derivadas e integrales.",
+        "formulas": [
+          {
+            "nombre": "Exponente negativo",
+            "latex": "$$a^{-n} = \\frac{1}{a^n}, \\quad \\left(\\frac{a}{b}\\right)^{-n} = \\left(\\frac{b}{a}\\right)^n$$"
+          },
+          {
+            "nombre": "Raíz como potencia",
+            "latex": "$$\\sqrt[n]{a^m} = a^{m/n}, \\quad \\sqrt{a^2} = |a|$$"
+          },
+          {
+            "nombre": "Producto y cociente",
+            "latex": "$$a^m \\cdot a^n = a^{m+n}, \\quad \\frac{a^m}{a^n} = a^{m-n}$$"
+          }
+        ],
+        "receta": [
+          "Transforma exponentes negativos de fracciones invirtiendo la base.",
+          "Pasa todas las raíces $\\sqrt[n]{x^m}$ a exponentes fraccionarios $x^{m/n}$.",
+          "Descompón números compuestos en factores primos y agrupa bases iguales.",
+          "Recuerda que un exponente solo afecta a una suma después de factorizar o desarrollar, jamás se distribuye sobre $a + b$."
+        ],
+        "ejemplo_guiado": {
+          "enunciado": "Simplifica completamente la expresión: $$E = \\left(\\frac{8x^{-3}}{27y^{6}}\\right)^{-2/3} \\cdot \\frac{\\sqrt{x^4}}{y^{-2}}$$",
+          "pasos": [
+            {
+              "titulo": "Paso 1: Eliminar el signo negativo del exponente externo",
+              "expresion": "$$\\left(\\frac{8x^{-3}}{27y^{6}}\\right)^{-2/3} = \\left(\\frac{27y^6}{8x^{-3}}\\right)^{2/3} = \\left(\\frac{27 x^3 y^6}{8}\\right)^{2/3}$$",
+              "explicacion": "Invertimos la fracción para volver positivo el exponente $2/3$ y subimos $x^{-3}$ al numerador como $x^3$."
+            },
+            {
+              "titulo": "Paso 2: Aplicar la potencia $2/3$ a cada factor primo",
+              "expresion": "$$= \\frac{(3^3)^{2/3} \\cdot (x^3)^{2/3} \\cdot (y^6)^{2/3}}{(2^3)^{2/3}} = \\frac{3^2 x^2 y^4}{2^2} = \\frac{9x^2y^4}{4}$$",
+              "explicacion": "Multiplicamos cada exponente por $2/3$ porque solo hay productos y cocientes dentro del paréntesis."
+            },
+            {
+              "titulo": "Paso 3: Multiplicar por $\\sqrt{x^4}/y^{-2} = x^2 y^2$",
+              "expresion": "$$E = \\frac{9x^2y^4}{4} \\cdot x^2 y^2 = \\frac{9}{4}x^4y^6$$",
+              "explicacion": "Como $\\sqrt{x^4} = (x^2)^1 = x^2 \\ge 0$ y $1/y^{-2} = y^2$, sumamos exponentes de igual base."
+            }
+          ],
+          "resultado_final": "$$E = \\frac{9}{4}x^4y^6$$"
+        },
+        "trampas_examen": [
+          "Error clásico universitario: escribir $(a + b)^2 = a^2 + b^2$ o $\\sqrt{x^2 + 9} = x + 3$. ¡La potencia y la raíz NO se distribuyen sobre sumas!",
+          "En $-3^2$ sin paréntesis, el signo queda afuera: $-3^2 = -9$, mientras $(-3)^2 = 9$."
+        ]
+      },
+      "paso1_concepto": {
+        "titulo": "Concepto de potencia negativa y suma bajo raíz",
+        "enunciado_latex": "¿Cuál de las siguientes igualdades es **siempre** verdadera para cualquier $x > 0$?",
+        "opciones": [
+          "$\\sqrt{x^2 + 4} = x + 2$",
+          "$(x + y)^{-1} = x^{-1} + y^{-1}$",
+          "$\\left(\\frac{1}{x}\\right)^{-2} = x^2$",
+          "$-x^2 = (-x)^2$"
+        ],
+        "respuesta_correcta": "$\\left(\\frac{1}{x}\\right)^{-2} = x^2$",
+        "explicacion": "Invertir $\\frac{1}{x}$ da $x$, por lo que $\\left(\\frac{1}{x}\\right)^{-2} = x^2$. Ni las raíces ni las potencias negativas se reparten sobre una suma."
+      },
+      "paso2_practica": {
+        "titulo": "Cálculo rápido con exponentes fraccionarios",
+        "enunciado_latex": "Calcula el valor numérico exacto de $$M = 16^{-3/4} \\cdot 8^{2/3} + (-2)^2$$",
+        "respuesta_correcta": "4.5",
+        "respuestas_aceptadas": [
+          "9/2",
+          "4.5",
+          "4,5"
+        ],
+        "pista": "$16^{-3/4} = (2^4)^{-3/4} = 2^{-3} = \\frac{1}{8}$ y $8^{2/3} = (2^3)^{2/3} = 4$."
+      },
+      "paso3_reto_foto": {
+        "titulo": "Simplificación algebraica paso a paso",
+        "enunciado_latex": "Simplifica en tu cuaderno expresando sin exponentes negativos: $$K = \\frac{(x^{-2} y^3)^2 \\cdot \\sqrt{x^8 y^{-2}}}{(x^{-1} y)^3}$$",
+        "prerrequisito_evaluado": "Leyes de exponentes negativos, fraccionarios y orden de potencias.",
+        "instrucciones": "Pasa cada potencia paso a paso sin omitir signos. Indica la condición $x \\neq 0, y > 0$."
+      }
+    },
+    {
+      "id": "alg_02_signos_jerarquia",
+      "ranking_criticidad": 2,
+      "frecuencia_examen": "95%",
+      "prioridad": "🔥 Fijo en Parcial",
+      "materia": "Álgebra de Supervivencia",
+      "unidad": "Unidad 1: Potencias, Raíces y Operaciones Combinadas",
+      "nombre": "Jerarquía de Operaciones, Signos y Radicales Anidados",
+      "area": "Potencias y Raíces",
+      "prerrequisito_id": "alg_01_potencias_raices",
+      "xp": 105,
+      "tip_auxiliar": "Un signo menos delante de un paréntesis o fracción cambia el signo de **todos** los términos interiores al eliminarlo.",
+      "guia_aprendizaje": {
+        "idea_clave": "Más del 40% de los errores en exámenes de Cálculo I y Física I vienen de distribuir mal signos negativos delante de fracciones o no respetar la jerarquía entre potencias, productos y sumas.",
+        "formulas": [
+          {
+            "nombre": "Negativo ante suma",
+            "latex": "$$-(a - b + c) = -a + b - c$$"
+          },
+          {
+            "nombre": "Negativo ante fracción",
+            "latex": "$$-\\frac{a - b}{c} = \\frac{-a + b}{c} = \\frac{b - a}{c}$$"
+          },
+          {
+            "nombre": "Radical anidado",
+            "latex": "$$\\sqrt[m]{\\sqrt[n]{a}} = \\sqrt[m\\cdot n]{a}, \\quad a\\sqrt[n]{b} = \\sqrt[n]{a^n b}\\;(a \\ge 0)$$"
+          }
+        ],
+        "receta": [
+          "Resuelve primero paréntesis internos, luego potencias y raíces.",
+          "Convierte cualquier fracción precedida de signo menos $-\\frac{N}{D}$ encerrando $N$ entre paréntesis: $\\frac{-(N)}{D}$.",
+          "Para radicales anidados multiplicativos como $\\sqrt{x\\sqrt{x}}$, introduce factores externos elevando al índice interior o usa exponentes fraccionarios desde adentro hacia afuera."
+        ],
+        "ejemplo_guiado": {
+          "enunciado": "Reduce y simplifica para $x > 0$: $$A = \\frac{3 - \\frac{x + 2}{2} - (1 - 2x)}{\\sqrt{x\\sqrt{x}}}$$",
+          "pasos": [
+            {
+              "titulo": "Paso 1: Proteger el numerador de la fracción con paréntesis",
+              "expresion": "$$\\text{Num} = 3 - \\left(\\frac{x + 2}{2}\\right) - 1 + 2x = 2 + 2x - \\frac{x + 2}{2}$$",
+              "explicacion": "El signo menos delante de $(1 - 2x)$ invierte ambos términos a $-1 + 2x$."
+            },
+            {
+              "titulo": "Paso 2: Común denominador cuidando el signo de $(x + 2)$",
+              "expresion": "$$\\text{Num} = \\frac{4 + 4x - (x + 2)}{2} = \\frac{4 + 4x - x - 2}{2} = \\frac{3x + 2}{2}$$",
+              "explicacion": "Al quitar el paréntesis, $- (x + 2)$ da $-x - 2$ (no $-x + 2$)."
+            },
+            {
+              "titulo": "Paso 3: Expresar el radical anidado como potencia",
+              "expresion": "$$\\sqrt{x \\cdot x^{1/2}} = (x^{3/2})^{1/2} = x^{3/4} \\implies A = \\frac{3x + 2}{2 x^{3/4}}$$",
+              "explicacion": "Sumamos $1 + 1/2 = 3/2$ antes de aplicar la raíz exterior $1/2$."
+            }
+          ],
+          "resultado_final": "$$A = \\frac{3x + 2}{2x^{3/4}}$$"
+        },
+        "trampas_examen": [
+          "Error clásico: en $\\frac{1}{2} - \\frac{x - 3}{2}$, escribir $\\frac{1 - x - 3}{2}$ olvidando que el menos multiplica al $-3$. Lo correcto es $\\frac{1 - x + 3}{2}$.",
+          "En $\\sqrt{x + \\sqrt{x}}$, NO se pueden multiplicar índices porque hay una suma; solo funciona si es producto."
+        ]
+      },
+      "paso1_concepto": {
+        "titulo": "Signos delante de una fracción compuesta",
+        "enunciado_latex": "Al simplificar la expresión $$\\frac{2x + 1}{3} - \\frac{x - 4}{3}$$, el resultado correcto es:",
+        "opciones": [
+          "$\\frac{x - 3}{3}$",
+          "$\\frac{x + 5}{3}$",
+          "$\\frac{3x - 3}{3}$",
+          "$\\frac{x - 5}{3}$"
+        ],
+        "respuesta_correcta": "$\\frac{x + 5}{3}$",
+        "explicacion": "$\\frac{(2x + 1) - (x - 4)}{3} = \\frac{2x + 1 - x + 4}{3} = \\frac{x + 5}{3}$."
+      },
+      "paso2_practica": {
+        "titulo": "Exponente de un radical anidado",
+        "enunciado_latex": "Si $\\sqrt{x \\sqrt[3]{x^2}} = x^k$ para $x > 0$, ¿cuál es el valor fraccionario o decimal de $k$?",
+        "respuesta_correcta": "5/6",
+        "respuestas_aceptadas": [
+          "5/6",
+          "0.833",
+          "0,833"
+        ],
+        "pista": "$x \\cdot x^{2/3} = x^{5/3}$, y luego aplica raíz cuadrada $(x^{5/3})^{1/2}$."
+      },
+      "paso3_reto_foto": {
+        "titulo": "Jerarquía y signos en papel",
+        "enunciado_latex": "Reduce completamente cuidando signos y radicales: $$B = 2 - \\frac{x - 3(2 - x)}{4} - \\left(-x + \\frac{1}{2}\\right)$$",
+        "prerrequisito_evaluado": "Distribución de signos negativos ante paréntesis y fracciones.",
+        "instrucciones": "Muestra primero el desarrollo del paréntesis interno $-3(2-x)$ y luego unifica todo en una sola fracción."
+      }
+    },
+    {
+      "id": "alg_03_factorizacion_notables",
+      "ranking_criticidad": 3,
+      "frecuencia_examen": "96%",
+      "prioridad": "🔥 Fijo en Parcial",
+      "materia": "Álgebra de Supervivencia",
+      "unidad": "Unidad 2: Fracciones Algebraicas, Factorización y Racionalización",
+      "nombre": "Factorización y Productos Notables (Fórmulas Inversas)",
+      "area": "Factorización",
+      "prerrequisito_id": "alg_02_signos_jerarquia",
+      "xp": 110,
+      "tip_auxiliar": "Sigue este orden mental: 1) Factor común, 2) Binomios notables ($a^2-b^2$, $a^3\\pm b^3$), 3) Trinomio o Ruffini.",
+      "guia_aprendizaje": {
+        "idea_clave": "Factorizar transforma sumas en productos para hallar ceros de inecuaciones, levantar indeterminaciones $0/0$ en límites y completar cuadrados en cónicas e integrales.",
+        "formulas": [
+          {
+            "nombre": "Diferencia de cuadrados",
+            "latex": "$$a^2 - b^2 = (a - b)(a + b)$$"
+          },
+          {
+            "nombre": "Suma y diferencia de cubos",
+            "latex": "$$a^3 \\pm b^3 = (a \\pm b)(a^2 \\mp ab + b^2)$$"
+          },
+          {
+            "nombre": "Completar cuadrados",
+            "latex": "$$x^2 + bx + c = \\left(x + \\frac{b}{2}\\right)^2 - \\left(\\frac{b}{2}\\right)^2 + c$$"
+          }
+        ],
+        "receta": [
+          "Extrae primero el máximo factor común numérico y literal (con el menor exponente).",
+          "Si hay 2 términos, verifica diferencia de cuadrados o suma/diferencia de cubos.",
+          "Si hay 3 términos cuadráticos, prueba trinomio cuadrado perfecto o aspa simple $ax^2 + bx + c$.",
+          "Si hay grado $\\ge 3$ con 4+ términos, agrupa de dos en dos o evalúa divisores del término independiente con Ruffini."
+        ],
+        "ejemplo_guiado": {
+          "enunciado": "Factoriza completamente en $\\mathbb{R}$: $$P(x) = 2x^3 - 18x + x^2 - 9$$",
+          "pasos": [
+            {
+              "titulo": "Paso 1: Agrupar de dos en dos",
+              "expresion": "$$P(x) = 2x(x^2 - 9) + 1(x^2 - 9)$$",
+              "explicacion": "Sacamos factor común $2x$ de los primeros dos términos y notamos el factor común $(x^2 - 9)$."
+            },
+            {
+              "titulo": "Paso 2: Extraer el binomio común $(x^2 - 9)$",
+              "expresion": "$$P(x) = (x^2 - 9)(2x + 1)$$",
+              "explicacion": "Reunimos los coeficientes que acompañaban a $(x^2 - 9)$."
+            },
+            {
+              "titulo": "Paso 3: Aplicar diferencia de cuadrados hasta factores lineales",
+              "expresion": "$$P(x) = (x - 3)(x + 3)(2x + 1)$$",
+              "explicacion": "Un polinomio está completamente factorizado cuando no quedan factores reducibles como $x^2 - 9$."
+            }
+          ],
+          "resultado_final": "$$P(x) = (x - 3)(x + 3)(2x + 1)$$"
+        },
+        "trampas_examen": [
+          "Error típico: dejar $x^3 + 8$ sin factorizar o escribir $(x + 2)^3$; recuerda $a^3 + b^3 = (a+b)(a^2 - ab + b^2)$.",
+          "Una suma de cuadrados $x^2 + 9$ es irreducible en $\\mathbb{R}$ (no es $(x+3)^2$)."
+        ]
+      },
+      "paso1_concepto": {
+        "titulo": "Reconocer factorización de cubos",
+        "enunciado_latex": "¿Cuál es la factorización correcta de $$x^3 - 27$$ en $\\mathbb{R}$?",
+        "opciones": [
+          "$(x - 3)^3$",
+          "$(x - 3)(x^2 + 3x + 9)$",
+          "$(x - 3)(x^2 - 3x + 9)$",
+          "$(x + 3)(x^2 - 3x + 9)$"
+        ],
+        "respuesta_correcta": "$(x - 3)(x^2 + 3x + 9)$",
+        "explicacion": "Por diferencia de cubos $a^3 - b^3 = (a - b)(a^2 + ab + b^2)$ con $a = x$ y $b = 3$."
+      },
+      "paso2_practica": {
+        "titulo": "Completar cuadrados rápidamente",
+        "enunciado_latex": "Al escribir $x^2 - 6x + 13$ en la forma $(x - h)^2 + k$, ¿cuál es el valor numérico de $k$?",
+        "respuesta_correcta": "4",
+        "respuestas_aceptadas": [
+          "4",
+          "+4"
+        ],
+        "pista": "$x^2 - 6x + 9 + 4 = (x - 3)^2 + 4$."
+      },
+      "paso3_reto_foto": {
+        "titulo": "Factorización combinada en papel",
+        "enunciado_latex": "Factoriza al máximo posible: $$Q(x) = 3x^4 - 24x$$",
+        "prerrequisito_evaluado": "Factor común combinado con diferencia de cubos.",
+        "instrucciones": "Extrae primero el factor común $3x$ y luego factoriza el binomio cúbico resultante."
+      }
+    },
+    {
+      "id": "alg_04_fracciones_racionalizacion",
+      "ranking_criticidad": 4,
+      "frecuencia_examen": "96%",
+      "prioridad": "🔥 Fijo en Parcial",
+      "materia": "Álgebra de Supervivencia",
+      "unidad": "Unidad 2: Fracciones Algebraicas, Factorización y Racionalización",
+      "nombre": "Fracciones Complejas, Cancelación Válida y Racionalización",
+      "area": "Fracciones y Racionalización",
+      "prerrequisito_id": "alg_03_factorizacion_notables",
+      "xp": 115,
+      "tip_auxiliar": "SOLO se cancelan factores que multiplican a TODO el numerador y a TODO el denominador. Nunca taches términos que estén sumando.",
+      "guia_aprendizaje": {
+        "idea_clave": "Saber operar fracciones complejas y multiplicar por conjugados $(\\sqrt{a} \\pm \\sqrt{b})$ es el corazón técnico de los límites algebraicos y las derivadas por definición en MAT-1101.",
+        "formulas": [
+          {
+            "nombre": "Cancelación válida",
+            "latex": "$$\\frac{k \\cdot A}{k \\cdot B} = \\frac{A}{B} \\;(k \\neq 0), \\qquad \\frac{x + 2}{x + 5} \\neq \\frac{2}{5}$$"
+          },
+          {
+            "nombre": "Conjugado cuadrático",
+            "latex": "$$(\\sqrt{A} - \\sqrt{B})(\\sqrt{A} + \\sqrt{B}) = A - B$$"
+          },
+          {
+            "nombre": "Fracción compuesta",
+            "latex": "$$\\frac{\\frac{a}{b}}{\\frac{c}{d}} = \\frac{a \\cdot d}{b \\cdot c}$$"
+          }
+        ],
+        "receta": [
+          "En fracciones complejas, unifica primero numerador y denominador con mínimo común múltiplo.",
+          "Factoriza ambos términos antes de intentar simplificar factores comunes.",
+          "Si aparecen raíces $\\sqrt{A} - B$ en numerador o denominador, multiplica arriba y abajo por su conjugado $\\sqrt{A} + B$.",
+          "No desarrolles el lado que NO tiene conjugado; déjalo factorizado para cancelar el término problemático."
+        ],
+        "ejemplo_guiado": {
+          "enunciado": "Simplifica racionalizando el numerador: $$F(x) = \\frac{\\sqrt{x + 3} - 2}{x - 1} \\quad (x \\neq 1)$$",
+          "pasos": [
+            {
+              "titulo": "Paso 1: Multiplicar arriba y abajo por el conjugado",
+              "expresion": "$$F(x) = \\frac{\\sqrt{x + 3} - 2}{x - 1} \\cdot \\frac{\\sqrt{x + 3} + 2}{\\sqrt{x + 3} + 2}$$",
+              "explicacion": "Multiplicamos por $1$ disfrazado del conjugado de $\\sqrt{x + 3} - 2$."
+            },
+            {
+              "titulo": "Paso 2: Aplicar diferencia de cuadrados solo arriba",
+              "expresion": "$$F(x) = \\frac{(\\sqrt{x + 3})^2 - 2^2}{(x - 1)(\\sqrt{x + 3} + 2)} = \\frac{x + 3 - 4}{(x - 1)(\\sqrt{x + 3} + 2)}$$",
+              "explicacion": "Dejamos el denominador factorizado para poder cancelar $(x - 1)$."
+            },
+            {
+              "titulo": "Paso 3: Simplificar factor común $(x - 1)$",
+              "expresion": "$$F(x) = \\frac{x - 1}{(x - 1)(\\sqrt{x + 3} + 2)} = \\frac{1}{\\sqrt{x + 3} + 2}$$",
+              "explicacion": "Como $x - 1 \\neq 0$, cancelamos todo el factor numerador/denominador."
+            }
+          ],
+          "resultado_final": "$$F(x) = \\frac{1}{\\sqrt{x + 3} + 2} \\quad (x \\ge -3,\\; x \\neq 1)$$"
+        },
+        "trampas_examen": [
+          "Error fatal: cancelar $x$ en $\\frac{x + 4}{x} = 1 + 4 = 5$. Lo correcto es $\\frac{x + 4}{x} = 1 + \\frac{4}{x}$.",
+          "Al racionalizar $\\sqrt{x+3} - 2$, el cuadrado afecta a ambos: $(x+3) - 4$, no $(x+3) - 2$."
+        ]
+      },
+      "paso1_concepto": {
+        "titulo": "Detectar cancelación ilegal",
+        "enunciado_latex": "¿En cuál expresión es **inválida** la simplificación mostrada?",
+        "opciones": [
+          "$\\frac{3(x - 2)}{6(x + 1)} = \\frac{x - 2}{2(x + 1)}$",
+          "$\\frac{x^2 - 9}{x - 3} = x + 3 \\;(x \\neq 3)$",
+          "$\\frac{x + 5}{x + 2} = \\frac{5}{2}$",
+          "$\\frac{(x+1)^2}{x+1} = x + 1 \\;(x \\neq -1)$"
+        ],
+        "respuesta_correcta": "$\\frac{x + 5}{x + 2} = \\frac{5}{2}$",
+        "explicacion": "No se pueden cancelar sumandos ($x$) porque $x$ no está multiplicando a toda la expresión."
+      },
+      "paso2_practica": {
+        "titulo": "Evaluar tras racionalizar",
+        "enunciado_latex": "Al racionalizar y simplificar $\\frac{\\sqrt{x + 5} - 3}{x - 4}$ para $x \\neq 4$, si luego sustituyes $x = 4$ en la expresión simplificada, ¿qué fracción irreducible obtienes?",
+        "respuesta_correcta": "1/6",
+        "respuestas_aceptadas": [
+          "1/6"
+        ],
+        "pista": "El numerador queda $(x+5)-9 = x-4$ y se cancela con el denominador; queda $\\frac{1}{\\sqrt{x+5}+3}$."
+      },
+      "paso3_reto_foto": {
+        "titulo": "Fracción compleja con conjugado",
+        "enunciado_latex": "Simplifica completamente en tu hoja: $$R(x) = \\frac{\\frac{1}{x} - \\frac{1}{2}}{x - 2} \\quad (x \\neq 0, 2)$$",
+        "prerrequisito_evaluado": "Mínimo común múltiplo, signo de factor invertido $(2 - x) = -(x - 2)$ y cancelación válida.",
+        "instrucciones": "Opera primero $\\frac{1}{x} - \\frac{1}{2}$, aplica extremos y medios y cuida el signo al cancelar con $(x - 2)$."
+      }
+    },
+    {
+      "id": "alg_05_despejes_formulas",
+      "ranking_criticidad": 5,
+      "frecuencia_examen": "92%",
+      "prioridad": "⭐ Muy frecuente",
+      "materia": "Álgebra de Supervivencia",
+      "unidad": "Unidad 3: Despejes de Fórmulas, Valor Absoluto e Inecuaciones",
+      "nombre": "Despeje de Fórmulas Físicas y Variables Restringidas",
+      "area": "Despejes y Ecuaciones",
+      "prerrequisito_id": "alg_04_fracciones_racionalizacion",
+      "xp": 115,
+      "tip_auxiliar": "Si la variable que buscas aparece en dos términos (o en numerador y denominador), agrúpalos primero en un solo lado y saca factor común.",
+      "guia_aprendizaje": {
+        "idea_clave": "En Física I y Derivación Implícita necesitas despejar $a$, $T$, $v$ o $y'$ dentro de fórmulas con raíces, fracciones y varios términos en segundos.",
+        "formulas": [
+          {
+            "nombre": "Despeje con factor común",
+            "latex": "$$a x + b = c x + d \\implies x(a - c) = d - b \\implies x = \\frac{d - b}{a - c}$$"
+          },
+          {
+            "nombre": "Despeje bajo raíz",
+            "latex": "$$T = 2\\pi\\sqrt{\\frac{L}{g}} \\implies L = \\frac{g T^2}{4\\pi^2}$$"
+          }
+        ],
+        "receta": [
+          "Elimina denominadores multiplicando toda la igualdad por el MCM si facilita agrupar términos.",
+          "Si la incógnita está dentro de una raíz, aísla la raíz primero antes de elevar al cuadrado.",
+          "Reúne todos los términos con la incógnita a despejar en un miembro y los demás en el otro.",
+          "Factoriza la variable buscada para dividir al coeficiente resultante (anotando que no sea cero)."
+        ],
+        "ejemplo_guiado": {
+          "enunciado": "En la fórmula de energía y masa en movimiento, despeja la variable $v > 0$: $$E = \\frac{1}{2}mv^2 + mgh \\implies \\text{y luego en } \\frac{1}{f} = \\frac{1}{p} + \\frac{1}{q} \\text{ despeja } q$$",
+          "pasos": [
+            {
+              "titulo": "Paso 1: Aislar el término con $v^2$ en el primer despeje",
+              "expresion": "$$E - mgh = \\frac{1}{2}mv^2 \\implies v^2 = \\frac{2(E - mgh)}{m}$$",
+              "explicacion": "Pasamos $mgh$ restando, luego multiplicamos por $2$ y dividimos entre $m$."
+            },
+            {
+              "titulo": "Paso 2: Extraer raíz cuadrada para $v > 0$",
+              "expresion": "$$v = \\sqrt{\\frac{2(E - mgh)}{m}}$$",
+              "explicacion": "Como la rapidez es positiva, tomamos la raíz positiva exigiendo $E \\ge mgh$."
+            },
+            {
+              "titulo": "Paso 3: Despejar $q$ en la ecuación de lentes",
+              "expresion": "$$\\frac{1}{q} = \\frac{1}{f} - \\frac{1}{p} = \\frac{p - f}{fp} \\implies q = \\frac{fp}{p - f}$$",
+              "explicacion": "Unificamos la resta en una sola fracción ANTES de invertir ambos lados; nunca se invierte término a término."
+            }
+          ],
+          "resultado_final": "$$v = \\sqrt{\\frac{2(E - mgh)}{m}}, \\qquad q = \\frac{fp}{p - f}$$"
+        },
+        "trampas_examen": [
+          "Error gravísimo en Física I: de $\\frac{1}{f} = \\frac{1}{p} + \\frac{1}{q}$ concluir $f = p + q$ o $q = f - p$. ¡Debes sacar común denominador antes de invertir!",
+          "Elevar al cuadrado una ecuación con suma sin aislar la raíz genera términos cruzados que complica todo."
+        ]
+      },
+      "paso1_concepto": {
+        "titulo": "Despeje correcto de resistencias o lentes",
+        "enunciado_latex": "Si $\\frac{1}{R_{eq}} = \\frac{1}{R_1} + \\frac{1}{R_2}$ (con $R_1, R_2 > 0$), ¿cuál es el despeje correcto de $R_2$?",
+        "opciones": [
+          "$R_2 = R_{eq} - R_1$",
+          "$R_2 = \\frac{R_1 R_{eq}}{R_1 - R_{eq}}$",
+          "$R_2 = \\frac{R_1 - R_{eq}}{R_1 R_{eq}}$",
+          "$R_2 = \\frac{R_1 + R_{eq}}{R_1 R_{eq}}$"
+        ],
+        "respuesta_correcta": "$R_2 = \\frac{R_1 R_{eq}}{R_1 - R_{eq}}$",
+        "explicacion": "$\\frac{1}{R_2} = \\frac{1}{R_{eq}} - \\frac{1}{R_1} = \\frac{R_1 - R_{eq}}{R_1 R_{eq}}$, por tanto al invertir se obtiene $\\frac{R_1 R_{eq}}{R_1 - R_{eq}}$."
+      },
+      "paso2_practica": {
+        "titulo": "Cálculo con fórmula física despejada",
+        "enunciado_latex": "De la ecuación de velocidad $v_f^2 = v_0^2 + 2ad$, si $v_f = 10$, $v_0 = 4$ y $a = 3$, calcula la distancia $d$.",
+        "respuesta_correcta": "14",
+        "respuestas_aceptadas": [
+          "14",
+          "14.0"
+        ],
+        "pista": "$d = \\frac{v_f^2 - v_0^2}{2a} = \\frac{100 - 16}{6}$."
+      },
+      "paso3_reto_foto": {
+        "titulo": "Despeje con factor común en papel",
+        "enunciado_latex": "Despeja $y$ en función de $x$ en la ecuación: $$x = \\frac{3y - 1}{y + 2}$$",
+        "prerrequisito_evaluado": "Eliminación de denominador, distribución y agrupación de la variable buscada.",
+        "instrucciones": "Pasa $(y+2)$ multiplicando, agrupa los términos con $y$ en el lado izquierdo, factoriza $y$ y despeja."
+      }
+    },
+    {
+      "id": "alg_06_inecuaciones_validez",
+      "ranking_criticidad": 6,
+      "frecuencia_examen": "94%",
+      "prioridad": "🔥 Fijo en Parcial",
+      "materia": "Álgebra de Supervivencia",
+      "unidad": "Unidad 3: Despejes de Fórmulas, Valor Absoluto e Inecuaciones",
+      "nombre": "Valor Absoluto, Inecuaciones y Conjuntos de Validez",
+      "area": "Despejes y Ecuaciones",
+      "prerrequisito_id": "alg_05_despejes_formulas",
+      "xp": 125,
+      "tip_auxiliar": "Al dividir o multiplicar una desigualdad por un número negativo, el sentido de la desigualdad SE INVIERTE; y jamás pases multiplicando una incógnita sin conocer su signo.",
+      "guia_aprendizaje": {
+        "idea_clave": "Determinar dónde $P(x) \\ge 0$ (raíces pares), dónde $Q(x) \\neq 0$ (denominadores) y dónde $|u| < a$ es el puente directo hacia Dominio de Funciones e Inecuaciones de Cálculo I.",
+        "formulas": [
+          {
+            "nombre": "Cambio de signo",
+            "latex": "$$a < b \\iff -a > -b$$"
+          },
+          {
+            "nombre": "Desigualdad con valor absoluto",
+            "latex": "$$|u| \\le a \\iff -a \\le u \\le a, \\quad |u| \\ge a \\iff u \\le -a \\lor u \\ge a$$"
+          },
+          {
+            "nombre": "Validez real combinada",
+            "latex": "$$\\frac{1}{\\sqrt{A(x)}} \\implies A(x) > 0$$"
+          }
+        ],
+        "receta": [
+          "Pasa todo al primer miembro comparando contra $0$ y reduce a una fracción factorizada.",
+          "Obtén raíces del numerador (cerradas si hay $\\ge, \\le$) y del denominador (SIEMPRE abiertas).",
+          "Evalúa los intervalos de la recta real respetando potencias pares (rebotan sin cambiar signo).",
+          "En expresiones con $\\sqrt{A(x)}$ o $\\ln(B(x))$, exige $A(x) \\ge 0$ o $B(x) > 0$."
+        ],
+        "ejemplo_guiado": {
+          "enunciado": "Determina el conjunto de valores reales $x$ para los cuales está definida la expresión: $$G(x) = \\sqrt{\\frac{x - 3}{x + 2}}$$",
+          "pasos": [
+            {
+              "titulo": "Paso 1: Plantear la condición de existencia real",
+              "expresion": "$$\\frac{x - 3}{x + 2} \\ge 0 \\quad \\text{y} \\quad x + 2 \\neq 0$$",
+              "explicacion": "El radicando de una raíz cuadrada debe ser $\\ge 0$ y el denominador nunca puede ser $0$."
+            },
+            {
+              "titulo": "Paso 2: Ubicar puntos críticos",
+              "expresion": "$$x = -2 \\;(\\text{abierto}), \\qquad x = 3 \\;(\\text{cerrado})$$",
+              "explicacion": "$x=3$ hace $0$ el numerador ($\\sqrt{0}=0$ válido), mientras $x=-2$ anula el denominador."
+            },
+            {
+              "titulo": "Paso 3: Analizar signos por intervalo",
+              "expresion": "$$(- \\infty, -2): \\frac{-}{-} = + \\;\\checkmark \\quad (-2, 3): \\frac{-}{+} = - \\quad [3, +\\infty): \\frac{+}{+} = + \\;\\checkmark$$",
+              "explicacion": "Tomamos los intervalos positivos incluyendo $3$ y excluyendo $-2$."
+            }
+          ],
+          "resultado_final": "$$x \\in (-\\infty, -2) \\cup [3, +\\infty)$$"
+        },
+        "trampas_examen": [
+          "Error muy frecuente: resolver $\\frac{x-3}{x+2} \\ge 0$ multiplicando por $(x+2)$ como si fuera una ecuación. Si $x < -2$, $(x+2)$ es negativo y voltearía la desigualdad.",
+          "Si la raíz está en el denominador $\\frac{1}{\\sqrt{x-3}}$, la condición pasa a ser estricta $x - 3 > 0$."
+        ]
+      },
+      "paso1_concepto": {
+        "titulo": "Dominio con raíz en denominador",
+        "enunciado_latex": "¿Qué valores reales de $x$ hacen válida a la expresión $$H(x) = \\frac{5}{\\sqrt{4 - 2x}}$$?",
+        "opciones": [
+          "$x \\le 2$",
+          "$x < 2$",
+          "$x \\ge 2$",
+          "$x > 2$"
+        ],
+        "respuesta_correcta": "$x < 2$",
+        "explicacion": "Al estar en el denominador y bajo raíz cuadrada, exigimos $4 - 2x > 0 \\implies -2x > -4 \\implies x < 2$."
+      },
+      "paso2_practica": {
+        "titulo": "Extremo superior de valor absoluto",
+        "enunciado_latex": "Si $|3x - 6| \\le 9$, ¿cuál es el máximo valor entero posible para $x$?",
+        "respuesta_correcta": "5",
+        "respuestas_aceptadas": [
+          "5",
+          "+5"
+        ],
+        "pista": "$-9 \\le 3x - 6 \\le 9 \\implies -3 \\le 3x \\le 15 \\implies -1 \\le x \\le 5$."
+      },
+      "paso3_reto_foto": {
+        "titulo": "Inecuación racional completa",
+        "enunciado_latex": "Halla el conjunto solución real mediante tabla de signos: $$\\frac{x^2 - 1}{x - 4} \\le 0$$",
+        "prerrequisito_evaluado": "Factorización completa, puntos críticos abiertos/cerrados y tabla de signos.",
+        "instrucciones": "Factoriza $x^2 - 1$, marca qué raíces van cerradas y cuál abierta, y escribe la unión de intervalos."
+      }
+    }
+  ],
+  "preguntas_examen": [
+    {
+      "id": "exam_alg_1",
+      "skill_id": "alg_01_potencias_raices",
+      "nivel_nodo": 1,
+      "tema": "Leyes de Exponentes y Radicales",
+      "area": "Potencias y Raíces",
+      "tiempo_segundos": 60,
+      "enunciado_latex": "Simplifica la expresión numérica $$\\left(\\frac{27}{8}\\right)^{-2/3} + (-3)^2$$",
+      "opciones": [
+        "$\\frac{85}{9}$",
+        "$\\frac{77}{9}$",
+        "$-\\frac{77}{9}$",
+        "$\\frac{4}{9}$"
+      ],
+      "respuesta_correcta": "$\\frac{85}{9}$",
+      "explicacion_breve": "$(27/8)^{-2/3} = (8/27)^{2/3} = (2/3)^2 = 4/9$, y $(-3)^2 = 9$, luego $4/9 + 9 = 85/9$."
+    },
+    {
+      "id": "exam_alg_2",
+      "skill_id": "alg_02_signos_jerarquia",
+      "nivel_nodo": 2,
+      "tema": "Jerarquía y Signos",
+      "area": "Potencias y Raíces",
+      "tiempo_segundos": 60,
+      "enunciado_latex": "Simplifica $$\\frac{x + 2}{4} - \\frac{3x - 2}{4}$$",
+      "opciones": [
+        "$\\frac{2 - x}{2}$",
+        "$-\\frac{x}{2}$",
+        "$\\frac{4 - 2x}{4}$",
+        "$\\frac{-2x}{4}$"
+      ],
+      "respuesta_correcta": "$\\frac{2 - x}{2}$",
+      "explicacion_breve": "$\\frac{(x + 2) - (3x - 2)}{4} = \\frac{-2x + 4}{4} = \\frac{2 - x}{2}$."
+    },
+    {
+      "id": "exam_alg_3",
+      "skill_id": "alg_03_factorizacion_notables",
+      "nivel_nodo": 3,
+      "tema": "Factorización",
+      "area": "Factorización",
+      "tiempo_segundos": 60,
+      "enunciado_latex": "Factoriza completamente $$x^4 - 16$$ en los reales:",
+      "opciones": [
+        "$(x - 2)(x + 2)(x^2 + 4)$",
+        "$(x^2 - 4)^2$",
+        "$(x - 2)^2(x + 2)^2$",
+        "$(x - 2)(x^3 + 8)$"
+      ],
+      "respuesta_correcta": "$(x - 2)(x + 2)(x^2 + 4)$",
+      "explicacion_breve": "Aplicamos diferencia de cuadrados dos veces: $(x^2 - 4)(x^2 + 4) = (x - 2)(x + 2)(x^2 + 4)$."
+    },
+    {
+      "id": "exam_alg_4",
+      "skill_id": "alg_04_fracciones_racionalizacion",
+      "nivel_nodo": 4,
+      "tema": "Fracciones y Racionalización",
+      "area": "Fracciones y Racionalización",
+      "tiempo_segundos": 60,
+      "enunciado_latex": "Para $x \\neq 3$, simplifica $$\\frac{x^2 - 9}{\\frac{1}{x} - \\frac{1}{3}}$$",
+      "opciones": [
+        "$-3x(x + 3)$",
+        "$3x(x + 3)$",
+        "$\\frac{x + 3}{3x}$",
+        "$-3(x - 3)$"
+      ],
+      "respuesta_correcta": "$-3x(x + 3)$",
+      "explicacion_breve": "$\\frac{1}{x}-\\frac{1}{3}=\\frac{3-x}{3x}=-\\frac{x-3}{3x}$. Al dividir $(x-3)(x+3)$ entre $-\\frac{x-3}{3x}$ se cancela $x-3$ quedando $-3x(x+3)$."
+    },
+    {
+      "id": "exam_alg_5",
+      "skill_id": "alg_05_despejes_formulas",
+      "nivel_nodo": 5,
+      "tema": "Despejes",
+      "area": "Despejes y Ecuaciones",
+      "tiempo_segundos": 60,
+      "enunciado_latex": "Si $y = \\frac{2x + 3}{x - 1}$ ($x \\neq 1$), el despeje de $x$ en términos de $y$ es:",
+      "opciones": [
+        "$x = \\frac{y + 3}{y - 2}$",
+        "$x = \\frac{y - 3}{y + 2}$",
+        "$x = \\frac{3 - y}{y - 2}$",
+        "$x = \\frac{2y + 3}{y - 1}$"
+      ],
+      "respuesta_correcta": "$x = \\frac{y + 3}{y - 2}$",
+      "explicacion_breve": "$xy - y = 2x + 3 \\implies x(y - 2) = y + 3 \\implies x = \\frac{y + 3}{y - 2}$."
+    },
+    {
+      "id": "exam_alg_6",
+      "skill_id": "alg_06_inecuaciones_validez",
+      "nivel_nodo": 6,
+      "tema": "Conjuntos de Validez",
+      "area": "Despejes y Ecuaciones",
+      "tiempo_segundos": 60,
+      "enunciado_latex": "Determina el conjunto solución de $$|2x + 1| \\ge 5$$",
+      "opciones": [
+        "$(-\\infty, -3] \\cup [2, +\\infty)$",
+        "$[-3, 2]$",
+        "$(-\\infty, -2] \\cup [3, +\\infty)$",
+        "$[2, +\\infty)$"
+      ],
+      "respuesta_correcta": "$(-\\infty, -3] \\cup [2, +\\infty)$",
+      "explicacion_breve": "$2x + 1 \\le -5 \\implies x \\le -3$ o $2x + 1 \\ge 5 \\implies x \\ge 2$."
+    }
+  ]
+}

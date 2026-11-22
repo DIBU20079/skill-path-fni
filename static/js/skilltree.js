@@ -4,6 +4,7 @@
  */
 
 import { renderRadarOnCanvas } from "./diagnostic.js";
+import { renderKnowledgeNetwork } from "./network.js";
 import {
   appContext,
   calcularDominioMateria,
@@ -16,6 +17,7 @@ import {
   findSkillGlobal,
   getActiveMateria,
   getActiveMateriaSkills,
+  getAllMaterias,
   getMateriaSkills,
   getMateriaUnidades,
   getShortSkillLabel,
@@ -33,6 +35,17 @@ import {
   state,
   updateTopbar,
 } from "./state.js";
+
+const SUBJECT_ICON_COLORS = Object.freeze({
+  green: "subject-icon-green",
+  teal: "subject-icon-teal",
+  coral: "subject-icon-coral",
+  blue: "subject-icon-blue",
+});
+
+function getSubjectIconClass(color) {
+  return SUBJECT_ICON_COLORS[color] || "subject-icon-blue";
+}
 
 let openNodeHandler = () => {};
 let enterSectionHandler = () => {};
@@ -95,14 +108,44 @@ export function openUnitBasesModal(materia, unit) {
         const isDone = state.nodos_estado?.[base.id] === "unlocked";
         if (isDone) doneCount += 1;
 
+        const foundBase = findSkillGlobal(base.id);
+        const isCrossSubject = Boolean(foundBase && foundBase.materia?.id !== materia.id);
+        const sourceTag = isCrossSubject
+          ? `<span class="text-secondary d-block" style="font-size: 0.72rem;">Base de ${escapeHtml(foundBase.materia.nombre)}</span>`
+          : "";
+        const jumpBtn =
+          !isDone && isCrossSubject
+            ? '<button type="button" class="btn btn-duo btn-duo-outline-secondary btn-sm py-1 px-2 btn-jump-cross-base" style="font-size: 0.74rem;">Ir</button>'
+            : "";
+
         const row = document.createElement("div");
         row.className = `unit-base-item ${isDone ? "is-done" : "is-pending"}`;
         row.innerHTML = `
-          <span class="small fw-bold text-dark">${escapeHtml(base.nombre || base.id)}</span>
-          <span class="badge rounded-pill ${isDone ? "text-bg-success" : "text-bg-warning text-dark"} flex-shrink-0">
-            ${isDone ? "✅ Dominado" : "⚠️ Base pendiente"}
-          </span>
+          <div class="me-2" style="min-width: 0;">
+            <span class="small fw-bold text-dark d-block">${escapeHtml(base.nombre || base.id)}</span>
+            ${sourceTag}
+          </div>
+          <div class="d-flex align-items-center gap-2 flex-shrink-0">
+            <span class="badge rounded-pill ${isDone ? "text-bg-success" : "text-bg-warning text-dark"}">
+              ${isDone ? "✅ Dominado" : "⚠️ Base pendiente"}
+            </span>
+            ${jumpBtn}
+          </div>
         `;
+        row.querySelector(".btn-jump-cross-base")?.addEventListener("click", () => {
+          state.etapa = foundBase.stageKey;
+          state.materia_activa = foundBase.materia.id;
+          appContext.skillsSelectedMateriaId = foundBase.materia.id;
+          if (!state.materias_iniciadas || typeof state.materias_iniciadas !== "object") {
+            state.materias_iniciadas = {};
+          }
+          state.materias_iniciadas[foundBase.materia.id] = true;
+          ensureConsistentNodeStatesForStage(foundBase.stageKey);
+          saveState();
+          hideBootstrapModal(dom["unitBasesModal"]);
+          enterSectionHandler("camino");
+          window.requestAnimationFrame(() => scrollToPathNode(foundBase.skill.id));
+        });
         listEl.appendChild(row);
       });
     }
@@ -194,8 +237,7 @@ function renderSubjectOnboardingCard(materia, skills) {
       "Elige si deseas comenzar desde el Nodo #1 o realizar un Examen de Ubicación para desbloquear lo que ya sabes.";
   }
   if (dom["onboarding-subject-icon"]) {
-    const colorClass =
-      materia.color === "green" ? "subject-icon-green" : "subject-icon-blue";
+    const colorClass = getSubjectIconClass(materia.color);
     dom["onboarding-subject-icon"].className =
       `subject-icon-box ${colorClass} mx-auto mb-3`;
     dom["onboarding-subject-icon"].innerHTML =
@@ -536,28 +578,45 @@ export function renderCriticalRanking(skills = getActiveMateriaSkills()) {
 
 export function renderMateriasSection() {
   const container = dom["subjects-catalog-container"];
-  if (!container || !appContext.skillsDB) return;
+  if (!appContext.skillsDB) return;
 
+  const allMaterias = getAllMaterias();
   if (dom["materias-stage-pill"]) {
-    dom["materias-stage-pill"].textContent =
-      state.etapa === "facultad" ? "Etapa actual: Facultad" : "Etapa actual: Pre-U";
+    dom["materias-stage-pill"].textContent = `${allMaterias.length} Materias · Acceso Libre`;
   }
 
+  const mode = appContext.materiasViewMode === "levels" ? "levels" : "network";
+  dom["btn-materias-view-network"]?.classList.toggle("active", mode === "network");
+  dom["btn-materias-view-network"]?.setAttribute("aria-selected", String(mode === "network"));
+  dom["btn-materias-view-levels"]?.classList.toggle("active", mode === "levels");
+  dom["btn-materias-view-levels"]?.setAttribute("aria-selected", String(mode === "levels"));
+
+  dom["materias-network-view"]?.classList.toggle("d-none", mode !== "network");
+  dom["materias-levels-view"]?.classList.toggle("d-none", mode !== "levels");
+
+  if (mode === "network") {
+    renderKnowledgeNetwork();
+    return;
+  }
+
+  if (!container) return;
   container.innerHTML = "";
 
-  const stageConfigs =
-    state.etapa === "facultad"
-      ? [
-          { key: "facultad", label: "🚀 Etapa Facultad (Tus Materias Activas)" },
-          { key: "pre_u", label: "🎓 Etapa Pre-U (Nivelación Disponible)" },
-        ]
-      : [
-          { key: "pre_u", label: "🎓 Etapa Pre-U (Tus Materias Activas)" },
-          { key: "facultad", label: "🚀 Etapa Facultad (Siguiente Nivel)" },
-        ];
+  const levelConfigs = [
+    {
+      nivel: 0,
+      stageKey: "pre_u",
+      label: "🟢 Nivel 0 · Fundamentos (Pre-U / Base de Ingeniería)",
+    },
+    {
+      nivel: 1,
+      stageKey: "facultad",
+      label: "🔵 Nivel 1 · Ciencias Básicas I (Facultad FNI)",
+    },
+  ];
 
-  stageConfigs.forEach(({ key, label }) => {
-    const materias = getStageMaterias(key);
+  levelConfigs.forEach(({ nivel, stageKey, label }) => {
+    const materias = allMaterias.filter((m) => Number(m.nivel ?? (m.etapa === "facultad" ? 1 : 0)) === nivel);
     if (materias.length === 0) return;
 
     const groupDiv = document.createElement("div");
@@ -574,9 +633,9 @@ export function renderMateriasSection() {
       const total = skills.length;
       const done = skills.filter((s) => state.nodos_estado[s.id] === "unlocked").length;
       const pct = calcularDominioMateria(mat, state);
-      const initiated = isMateriaIniciada(mat.id);
-      const isCurrentActive =
-        initiated && state.etapa === key && state.materia_activa === mat.id;
+      const initiated = Boolean(state.is_tester) || isMateriaIniciada(mat.id);
+      const isCurrentActive = initiated && state.materia_activa === mat.id;
+      const matStageKey = mat.etapa || stageKey;
 
       const col = document.createElement("div");
       col.className = "col-12 col-md-6";
@@ -584,8 +643,7 @@ export function renderMateriasSection() {
       const card = document.createElement("article");
       card.className = `duo-card subject-catalog-card p-4 h-100 d-flex flex-column${isCurrentActive ? " is-active-subject" : ""}`;
 
-      const iconColorClass =
-        mat.color === "green" ? "subject-icon-green" : "subject-icon-blue";
+      const iconColorClass = getSubjectIconClass(mat.color);
 
       const topicsHtml = skills
         .map((skill) => {
@@ -628,7 +686,7 @@ export function renderMateriasSection() {
               <i class="bi ${escapeHtml(mat.icono || "bi-book-fill")}"></i>
             </span>
             <div>
-              <span class="badge rounded-pill text-bg-light border mb-1">${escapeHtml(mat.codigo || key.toUpperCase())}</span>
+              <span class="badge rounded-pill text-bg-light border mb-1">${escapeHtml(mat.codigo || `NIVEL ${nivel}`)}</span>
               <h3 class="h5 fw-black mb-0">${escapeHtml(mat.nombre)}</h3>
             </div>
           </div>
@@ -657,11 +715,11 @@ export function renderMateriasSection() {
       `;
 
       card.querySelector(".btn-go-subject-path")?.addEventListener("click", () => {
-        state.etapa = key;
+        state.etapa = matStageKey;
         state.materia_activa = mat.id;
         appContext.skillsSelectedMateriaId = mat.id;
         if (initiated) {
-          ensureConsistentNodeStatesForStage(key);
+          ensureConsistentNodeStatesForStage(matStageKey);
         }
         saveState();
         enterSectionHandler("camino");
@@ -736,25 +794,17 @@ export function renderMedalsGrid(containerEl, countEl) {
 export function renderGlobalSubjectsProgress(containerEl, badgeEl) {
   if (!containerEl || !appContext.skillsDB) return;
 
-  const orderedStages =
-    state.etapa === "pre_u"
-      ? [
-          { key: "pre_u", label: "Pre-U" },
-          { key: "facultad", label: "Facultad" },
-        ]
-      : [
-          { key: "facultad", label: "Facultad" },
-          { key: "pre_u", label: "Pre-U" },
-        ];
-
   const entries = [];
-  orderedStages.forEach(({ key, label }) => {
-    getStageMaterias(key).forEach((mat) => {
-      const skills = getMateriaSkills(mat);
-      const done = skills.filter((s) => state.nodos_estado[s.id] === "unlocked").length;
-      const pct = calcularDominioMateria(mat, state);
-      entries.push({ mat, stageKey: key, stageLabel: label, done, total: skills.length, pct });
-    });
+  [0, 1].forEach((lvl) => {
+    const label = lvl === 0 ? "Nivel 0" : "Nivel 1";
+    getAllMaterias()
+      .filter((m) => Number(m.nivel ?? (m.etapa === "facultad" ? 1 : 0)) === lvl)
+      .forEach((mat) => {
+        const skills = getMateriaSkills(mat);
+        const done = skills.filter((s) => state.nodos_estado[s.id] === "unlocked").length;
+        const pct = calcularDominioMateria(mat, state);
+        entries.push({ mat, stageLabel: label, done, total: skills.length, pct });
+      });
   });
 
   if (badgeEl) {
@@ -797,12 +847,15 @@ export function renderGlobalSubjectsProgress(containerEl, badgeEl) {
    ======================================================================== */
 
 export function getSkillsSelectedMateria() {
-  const materias = getStageMaterias(state.etapa);
+  const materias = getAllMaterias();
   if (materias.length === 0) return null;
 
   if (appContext.skillsSelectedMateriaId) {
-    const found = materias.find((m) => m.id === appContext.skillsSelectedMateriaId);
-    if (found) return found;
+    const resolved = findMateriaById(appContext.skillsSelectedMateriaId)?.materia;
+    if (resolved) {
+      appContext.skillsSelectedMateriaId = resolved.id;
+      return resolved;
+    }
   }
 
   const activeMat = getActiveMateria();
@@ -1045,7 +1098,7 @@ function renderSkillsTopicsBreakdown(selectedMat, skills) {
 }
 
 export function renderSkillsSection() {
-  const materias = getStageMaterias(state.etapa);
+  const materias = getAllMaterias();
   const selectedMat = getSkillsSelectedMateria();
   if (!selectedMat) return;
 

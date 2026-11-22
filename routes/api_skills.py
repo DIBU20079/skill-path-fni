@@ -1,4 +1,4 @@
-"""Endpoints de lectura y combinación del currículo multi-materia por etapa."""
+"""Endpoints de lectura dinámica del currículo unificado (5 materias) y Red de Conocimientos."""
 
 from __future__ import annotations
 
@@ -11,8 +11,8 @@ from flask import Blueprint, jsonify
 api_skills_bp = Blueprint("api_skills", __name__)
 
 DATA_DIR = Path(__file__).resolve().parent.parent / "data"
-PRE_U_PATH = DATA_DIR / "pre_u.json"
-FACULTAD_PATH = DATA_DIR / "facultad.json"
+MATERIAS_DIR = DATA_DIR / "materias"
+RED_PATH = DATA_DIR / "red_conocimientos.json"
 
 
 def _leer_json(ruta: Path) -> dict[str, Any]:
@@ -25,7 +25,7 @@ def _leer_json(ruta: Path) -> dict[str, Any]:
 
 
 def _construir_banco_etapa(materias: list[dict[str, Any]]) -> list[dict[str, Any]]:
-    """Reúne las preguntas de examen de las materias de la etapa para compatibilidad de /api/skills."""
+    """Reúne las preguntas de examen de un conjunto de materias."""
     preguntas: list[dict[str, Any]] = []
     for mat in materias:
         for q in mat.get("preguntas_examen") or []:
@@ -34,7 +34,10 @@ def _construir_banco_etapa(materias: list[dict[str, Any]]) -> list[dict[str, Any
     return preguntas
 
 
-def _normalizar_unidades(mat: dict[str, Any], skills_norm: list[dict[str, Any]]) -> list[dict[str, Any]]:
+def _normalizar_unidades(
+    mat: dict[str, Any],
+    skills_norm: list[dict[str, Any]],
+) -> list[dict[str, Any]]:
     """Preserva el arreglo `unidades` o lo deriva de los skills manteniendo orden e integridad."""
     skill_ids_validos = {s["id"] for s in skills_norm if s.get("id")}
     raw_unidades = mat.get("unidades")
@@ -91,55 +94,137 @@ def _normalizar_unidades(mat: dict[str, Any], skills_norm: list[dict[str, Any]])
     return unidades_norm
 
 
-def _normalizar_materias(materias: list[dict[str, Any]]) -> list[dict[str, Any]]:
-    """Asegura campos opcionales de unidad, unidades y guia_aprendizaje sin alterar existentes."""
-    normalizadas: list[dict[str, Any]] = []
-    for mat in materias:
-        if not isinstance(mat, dict):
+def _normalizar_materia(mat: dict[str, Any]) -> dict[str, Any]:
+    """Normaliza una materia individual y asegura todos sus campos obligatorios."""
+    mat_copy = dict(mat)
+    nivel = int(mat_copy.get("nivel", 1 if mat_copy.get("etapa") == "facultad" else 0))
+    mat_copy["nivel"] = nivel
+    if not str(mat_copy.get("etapa") or "").strip():
+        mat_copy["etapa"] = "pre_u" if nivel == 0 else "facultad"
+    if not str(mat_copy.get("area") or "").strip():
+        mat_copy["area"] = "matematicas"
+
+    skills_norm: list[dict[str, Any]] = []
+    for skill in mat.get("skills") or []:
+        if not isinstance(skill, dict):
             continue
-        mat_copy = dict(mat)
-        skills_norm: list[dict[str, Any]] = []
-        for skill in mat.get("skills") or []:
-            if not isinstance(skill, dict):
-                continue
-            skill_copy = dict(skill)
-            if not str(skill_copy.get("unidad") or "").strip():
-                skill_copy["unidad"] = "Unidad 1: Fundamentos"
-            if not isinstance(skill_copy.get("guia_aprendizaje"), dict):
-                skill_copy["guia_aprendizaje"] = {}
-            skills_norm.append(skill_copy)
-        mat_copy["skills"] = skills_norm
-        mat_copy["unidades"] = _normalizar_unidades(mat_copy, skills_norm)
-        normalizadas.append(mat_copy)
-    return normalizadas
+        skill_copy = dict(skill)
+        if not str(skill_copy.get("unidad") or "").strip():
+            skill_copy["unidad"] = "Unidad 1: Fundamentos"
+        if not isinstance(skill_copy.get("guia_aprendizaje"), dict):
+            skill_copy["guia_aprendizaje"] = {}
+        if not str(skill_copy.get("prioridad") or "").strip():
+            freq_digits = "".join(
+                ch for ch in str(skill_copy.get("frecuencia_examen") or "85") if ch.isdigit()
+            )
+            freq_num = int(freq_digits) if freq_digits else 85
+            skill_copy["prioridad"] = (
+                "🔥 Fijo en Parcial"
+                if freq_num >= 94
+                else "⭐ Muy frecuente"
+                if freq_num >= 90
+                else "📌 Base clave"
+            )
+        skills_norm.append(skill_copy)
+
+    mat_copy["skills"] = skills_norm
+    mat_copy["unidades"] = _normalizar_unidades(mat_copy, skills_norm)
+    return mat_copy
+
+
+def _cargar_catalogo_materias(red_data: dict[str, Any]) -> list[dict[str, Any]]:
+    """Carga dinámicamente todos los archivos JSON en `data/materias/` siguiendo el orden de la red."""
+    if not MATERIAS_DIR.exists():
+        raise FileNotFoundError(f"No existe el directorio {MATERIAS_DIR}")
+
+    por_id: dict[str, dict[str, Any]] = {}
+    orden_preferido: list[str] = []
+
+    for entry in red_data.get("materias") or []:
+        if not isinstance(entry, dict):
+            continue
+        archivo = str(entry.get("archivo") or f"{entry.get('id', '')}.json").strip()
+        ruta = MATERIAS_DIR / archivo
+        if ruta.exists():
+            mat_norm = _normalizar_materia(_leer_json(ruta))
+            mat_id = str(mat_norm.get("id") or entry.get("id") or "").strip()
+            if mat_id:
+                mat_norm["id"] = mat_id
+                por_id[mat_id] = mat_norm
+                orden_preferido.append(mat_id)
+
+    for ruta in sorted(MATERIAS_DIR.glob("*.json")):
+        mat_norm = _normalizar_materia(_leer_json(ruta))
+        mat_id = str(mat_norm.get("id") or ruta.stem).strip()
+        if mat_id and mat_id not in por_id:
+            mat_norm["id"] = mat_id
+            por_id[mat_id] = mat_norm
+            orden_preferido.append(mat_id)
+
+    materias = [por_id[mid] for mid in orden_preferido if mid in por_id]
+    materias.sort(key=lambda m: (int(m.get("nivel", 0)), orden_preferido.index(m["id"])))
+    return materias
 
 
 def cargar_skills_combinados() -> dict[str, Any]:
-    """Lee pre_u.json y facultad.json manteniendo la estructura esperada por el frontend."""
-    etapas_archivos = (
-        ("pre_u", PRE_U_PATH, 270),
-        ("facultad", FACULTAD_PATH, 360),
-    )
+    """Lee `data/red_conocimientos.json` y `data/materias/*.json` devolviendo el catálogo unificado."""
+    red_raw = _leer_json(RED_PATH)
+    materias = _cargar_catalogo_materias(red_raw)
+    mat_ids_activos = {m["id"] for m in materias}
 
-    combinado: dict[str, Any] = {}
-    for stage_key, stage_path, default_time in etapas_archivos:
-        stage_info = _leer_json(stage_path)
-        materias = _normalizar_materias(stage_info["materias"])
-        combinado[stage_key] = {
-            "id": stage_info["id"],
-            "nombre": stage_info["nombre"],
-            "descripcion": stage_info["descripcion"],
-            "tiempo_diagnostico_seg": default_time,
-            "diagnostico": _construir_banco_etapa(materias),
-            "materias": materias,
+    red_materias = [
+        {
+            "id": m["id"],
+            "nombre": m["nombre"],
+            "codigo": m.get("codigo", ""),
+            "nivel": m["nivel"],
+            "etapa": m["etapa"],
+            "area": m.get("area", "matematicas"),
+            "descripcion": m.get("descripcion", ""),
         }
+        for m in materias
+    ]
 
-    return combinado
+    conexiones_norm: list[dict[str, Any]] = []
+    for conn in red_raw.get("conexiones") or []:
+        if not isinstance(conn, dict):
+            continue
+        origen = str(conn.get("origen") or "").strip()
+        destino = str(conn.get("destino") or "").strip()
+        if origen in mat_ids_activos and destino in mat_ids_activos:
+            conexiones_norm.append(dict(conn))
+
+    pre_u_materias = [m for m in materias if int(m.get("nivel", 0)) == 0]
+    facultad_materias = [m for m in materias if int(m.get("nivel", 0)) >= 1]
+
+    return {
+        "materias": materias,
+        "red_conocimientos": {
+            "materias": red_materias,
+            "conexiones": conexiones_norm,
+        },
+        "pre_u": {
+            "id": "pre_u",
+            "nombre": "Nivel 0 · Fundamentos",
+            "descripcion": "Álgebra de Supervivencia, Trigonometría Aplicada y Geometría Analítica.",
+            "tiempo_diagnostico_seg": 270,
+            "diagnostico": _construir_banco_etapa(pre_u_materias),
+            "materias": pre_u_materias,
+        },
+        "facultad": {
+            "id": "facultad",
+            "nombre": "Nivel 1 · Ciencias Básicas I",
+            "descripcion": "Cálculo I (MAT 1101) y Física I (FIS 1100) conectadas con Nivel 0.",
+            "tiempo_diagnostico_seg": 360,
+            "diagnostico": _construir_banco_etapa(facultad_materias),
+            "materias": facultad_materias,
+        },
+    }
 
 
 @api_skills_bp.get("/api/skills")
 def get_skills():
-    """Devuelve el árbol de rutas, preguntas de examen por materia y skills en JSON."""
+    """Devuelve el catálogo unificado de materias, la red de conocimientos y los niveles compatibles."""
     try:
         data = cargar_skills_combinados()
         return jsonify(data), 200
@@ -147,8 +232,8 @@ def get_skills():
         return (
             jsonify(
                 {
-                    "error": "Base de habilidades no encontrada",
-                    "detalle": f"Falta un archivo de datos requerido en data/: {exc.filename or exc}",
+                    "error": "Base curricular no encontrada",
+                    "detalle": f"Falta un archivo requerido en data/: {exc.filename or exc}",
                 }
             ),
             404,
@@ -177,7 +262,7 @@ def get_skills():
         return (
             jsonify(
                 {
-                    "error": "Error al cargar las habilidades",
+                    "error": "Error inesperado al cargar materias y red de conocimientos",
                     "detalle": str(exc),
                 }
             ),

@@ -44,6 +44,14 @@ import {
   stopDiagnosticTimer,
 } from "./diagnostic.js";
 import {
+  configureNetworkHandlers,
+  destroyKnowledgeNetwork,
+  fitNetworkAll,
+  zoomNetworkIn,
+  zoomNetworkOut,
+  centerNetworkSelection,
+} from "./network.js";
+import {
   configureSkilltreeHandlers,
   handleUnitFreePractice,
   handleUnitValidateAndSkip,
@@ -54,6 +62,7 @@ import {
   renderMedalsGrid,
   renderRankCard,
   renderSkillsSection,
+  scrollToPathNode,
   setVaultFilterScope,
 } from "./skilltree.js";
 import {
@@ -62,7 +71,11 @@ import {
   clearSessionLocalState,
   dom,
   ensureConsistentNodeStatesForStage,
+  findMateriaById,
+  findSkillGlobal,
   getActiveMateria,
+  getAllCurriculumSkills,
+  getAllMaterias,
   getAllStageSkills,
   getDiagnosticAreasForStage,
   getMateriaSkills,
@@ -93,9 +106,12 @@ export function enterAppSection(sectionName) {
   const target = validSections.includes(sectionName) ? sectionName : "materias";
   appContext.activeSection = target;
 
-  if (!state.etapa || !appContext.skillsDB?.[state.etapa]) {
+  if (!appContext.skillsDB || getAllMaterias().length === 0) {
     showView("stage-selector");
     return;
+  }
+  if (!state.etapa) {
+    state.etapa = "pre_u";
   }
 
   ensureConsistentNodeStatesForStage(state.etapa);
@@ -131,8 +147,8 @@ export function enterAppSection(sectionName) {
 function renderPerfilSection() {
   updateGreetingUI();
 
-  const stageSkills = getAllStageSkills(state.etapa);
-  const doneTotal = stageSkills.filter(
+  const allSkills = getAllCurriculumSkills();
+  const doneTotal = allSkills.filter(
     (s) => state.nodos_estado[s.id] === "unlocked"
   ).length;
   const rank = obtenerRangoFNI(state.xp);
@@ -148,7 +164,7 @@ function renderPerfilSection() {
   if (dom["profile-xp"]) dom["profile-xp"].textContent = String(state.xp || 0);
   if (dom["profile-streak"]) dom["profile-streak"].textContent = String(state.racha || 0);
   if (dom["profile-completed"]) {
-    dom["profile-completed"].textContent = `${doneTotal}/${stageSkills.length}`;
+    dom["profile-completed"].textContent = `${doneTotal}/${allSkills.length}`;
   }
 
   dom["profile-name-saved-msg"]?.classList.add("d-none");
@@ -298,7 +314,7 @@ function loadDemoProfile() {
     state.nodos_pasos = {};
   }
 
-  getAllStageSkills(targetStage).forEach((s) => {
+  getAllCurriculumSkills().forEach((s) => {
     state.nodos_estado[s.id] = "locked";
     delete state.nodos_pasos[s.id];
     delete state.xp_otorgado_nodos[s.id];
@@ -350,8 +366,8 @@ function loadDemoProfile() {
             id: "err_demo_fac_1",
             resumen: "Olvidó restringir argumento positivo en logaritmo",
             tema: primarySkills[0]?.nombre || "Inecuaciones y Dominios",
-            materia: primaryMat?.nombre || "Cálculo I",
-            materia_id: primaryMat?.id || "fac_calculo1",
+            materia: primaryMat?.nombre || "Cálculo I - MAT 1101",
+            materia_id: primaryMat?.id || "calculo_1",
             tipo_error: "fallo_prerrequisito",
             fecha: hoy,
             superado: false,
@@ -360,8 +376,8 @@ function loadDemoProfile() {
             id: "err_demo_fac_2",
             resumen: "Error de signo al multiplicar por conjugado",
             tema: primarySkills[1]?.nombre || "Límites Algebraicos",
-            materia: primaryMat?.nombre || "Cálculo I",
-            materia_id: primaryMat?.id || "fac_calculo1",
+            materia: primaryMat?.nombre || "Cálculo I - MAT 1101",
+            materia_id: primaryMat?.id || "calculo_1",
             tipo_error: "error_operativo",
             fecha: hoy,
             superado: false,
@@ -371,9 +387,9 @@ function loadDemoProfile() {
           {
             id: "err_demo_preu_1",
             resumen: "Error de signo al factorizar trinomio cuadrático",
-            tema: primarySkills[0]?.nombre || "Factorización",
-            materia: primaryMat?.nombre || "Álgebra Pre-U",
-            materia_id: primaryMat?.id || "pre_algebra",
+            tema: primarySkills[0]?.nombre || "Leyes de Exponentes, Potencias Negativas y Radicales",
+            materia: primaryMat?.nombre || "Álgebra de Supervivencia",
+            materia_id: primaryMat?.id || "algebra_base",
             tipo_error: "error_operativo",
             fecha: hoy,
             superado: false,
@@ -381,9 +397,9 @@ function loadDemoProfile() {
           {
             id: "err_demo_preu_2",
             resumen: "No excluyó raíces del denominador al simplificar",
-            tema: primarySkills[1]?.nombre || "Fracciones Algebraicas",
-            materia: primaryMat?.nombre || "Álgebra Pre-U",
-            materia_id: primaryMat?.id || "pre_algebra",
+            tema: primarySkills[1]?.nombre || "Fracciones Complejas, Cancelación Válida y Racionalización",
+            materia: primaryMat?.nombre || "Álgebra de Supervivencia",
+            materia_id: primaryMat?.id || "algebra_base",
             tipo_error: "fallo_prerrequisito",
             fecha: hoy,
             superado: false,
@@ -443,19 +459,22 @@ async function applyAuthenticatedUser(userData) {
   updateGreetingUI();
   updateTopbar();
 
-  const stageMaterias = getStageMaterias(state.etapa);
+  const allMaterias = getAllMaterias();
   const activeInitiated =
     state.materia_activa && isMateriaIniciada(state.materia_activa);
-  const anyInitiated = stageMaterias.find((m) => isMateriaIniciada(m.id));
+  const anyInitiated = allMaterias.find((m) => isMateriaIniciada(m.id));
 
-  if (activeInitiated) {
+  if (state.is_tester && state.materia_activa) {
+    enterAppSection("materias");
+  } else if (activeInitiated) {
     enterAppSection("camino");
   } else if (anyInitiated) {
+    state.etapa = anyInitiated.etapa || state.etapa;
     state.materia_activa = anyInitiated.id;
     saveState();
     enterAppSection("camino");
   } else {
-    // Sin diagnóstico global obligatorio: lleva directo al catálogo de Materias
+    // Catálogo unificado abre directo en Red de Conocimientos / Materias
     enterAppSection("materias");
   }
 }
@@ -551,6 +570,9 @@ async function handleLogoutClick() {
   }
 
   stopDiagnosticTimer();
+  destroyKnowledgeNetwork();
+  appContext.networkSelectedType = null;
+  appContext.networkSelectedId = null;
   if (appContext.diagRadarChartInstance) {
     appContext.diagRadarChartInstance.destroy();
     appContext.diagRadarChartInstance = null;
@@ -728,6 +750,20 @@ function bindEvents() {
     hideBootstrapModal(dom["nodeLessonModal"]);
   });
 
+  // Selector de Vista en Materias (Red de Conocimientos vs Vista por Niveles) y Controles Cytoscape
+  dom["btn-materias-view-network"]?.addEventListener("click", () => {
+    appContext.materiasViewMode = "network";
+    renderMateriasSection();
+  });
+  dom["btn-materias-view-levels"]?.addEventListener("click", () => {
+    appContext.materiasViewMode = "levels";
+    renderMateriasSection();
+  });
+  dom["btn-net-zoom-in"]?.addEventListener("click", zoomNetworkIn);
+  dom["btn-net-zoom-out"]?.addEventListener("click", zoomNetworkOut);
+  dom["btn-net-center"]?.addEventListener("click", centerNetworkSelection);
+  dom["btn-net-fit"]?.addEventListener("click", fitNetworkAll);
+
   dom["nodeLessonModal"]?.addEventListener("hidden.bs.modal", () => {
     cleanupModalResources();
   });
@@ -735,6 +771,37 @@ function bindEvents() {
 
 async function init() {
   cacheDom();
+  configureNetworkHandlers({
+    onOpenSubjectCamino: (materiaId) => {
+      const found = findMateriaById(materiaId);
+      if (!found) return;
+      state.etapa = found.stageKey;
+      state.materia_activa = found.materia.id;
+      appContext.skillsSelectedMateriaId = found.materia.id;
+      if (state.is_tester || isMateriaIniciada(found.materia.id)) {
+        ensureConsistentNodeStatesForStage(found.stageKey);
+      }
+      saveState();
+      enterAppSection("camino");
+    },
+    onJumpToTopic: (materiaId, nodoId) => {
+      const found = findMateriaById(materiaId);
+      if (!found) return;
+      state.etapa = found.stageKey;
+      state.materia_activa = found.materia.id;
+      appContext.skillsSelectedMateriaId = found.materia.id;
+      if (!state.materias_iniciadas || typeof state.materias_iniciadas !== "object") {
+        state.materias_iniciadas = {};
+      }
+      if (!isMateriaIniciada(found.materia.id)) {
+        state.materias_iniciadas[found.materia.id] = true;
+      }
+      ensureConsistentNodeStatesForStage(found.stageKey);
+      saveState();
+      enterAppSection("camino");
+      window.requestAnimationFrame(() => scrollToPathNode(nodoId));
+    },
+  });
   configureSkilltreeHandlers({
     onOpenNode: openNodeModal,
     onEnterSection: enterAppSection,

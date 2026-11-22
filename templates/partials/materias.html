@@ -1,17 +1,114 @@
       <!-- =========================================================
-           SECCIÓN B: MATERIAS (CATÁLOGO MULTI-MATERIA)
+           SECCIÓN B: MATERIAS (CATÁLOGO UNIFICADO + RED DE CONOCIMIENTOS)
            ========================================================= -->
       <section id="view-materias" class="app-view d-none">
-        <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+        <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-3">
           <div>
-            <span class="path-kicker">CATÁLOGO CURRICULAR MULTI-MATERIA</span>
-            <h2 class="h3 fw-black mb-1">Tus Materias de Ingeniería</h2>
+            <span class="path-kicker">CATÁLOGO UNIFICADO · 5 MATERIAS ACTIVAS</span>
+            <h2 class="h3 fw-black mb-1">Tus Materias y Red de Conocimientos</h2>
             <p class="text-secondary small mb-0">
-              Explora los temas ordenados por criticidad en examen y salta directo al camino de cualquier materia.
+              Explora cómo se conectan las bases de Nivel 0 con Ciencias Básicas I o entra directo al camino de cualquier asignatura.
             </p>
           </div>
-          <span id="materias-stage-pill" class="subject-pill">Etapa actual: Pre-U</span>
+          <span id="materias-stage-pill" class="subject-pill align-self-center">5 Materias · Acceso Libre</span>
         </div>
 
-        <div id="subjects-catalog-container" class="d-flex flex-column gap-4"></div>
+        <!-- Selector de vista: Red de Conocimientos vs Vista por Niveles -->
+        <div class="materias-view-switcher mb-4" role="tablist" aria-label="Modo de visualización de materias">
+          <button
+            type="button"
+            id="btn-materias-view-network"
+            class="view-switch-btn active"
+            role="tab"
+            aria-selected="true"
+          >
+            🕸️ Red de Conocimientos
+          </button>
+          <button
+            type="button"
+            id="btn-materias-view-levels"
+            class="view-switch-btn"
+            role="tab"
+            aria-selected="false"
+          >
+            📋 Vista por Niveles
+          </button>
+        </div>
+
+        <!-- Vista 1: Grafo interactivo Cytoscape + Panel Inspector -->
+        <div id="materias-network-view" class="row g-3 g-lg-4 align-items-start">
+          <div class="col-12 col-lg-7 col-xl-8">
+            <div class="duo-card network-graph-card p-3 p-sm-4">
+              <div class="network-legend-bar mb-3">
+                <div class="d-flex flex-wrap align-items-center gap-2 gap-sm-3 small">
+                  <span class="net-legend-item">
+                    <span class="net-line-solid" aria-hidden="true"></span>Prerrequisito
+                  </span>
+                  <span class="net-legend-item">
+                    <span class="net-line-dashed" aria-hidden="true"></span>Correquisito
+                  </span>
+                </div>
+                <div class="d-flex flex-wrap align-items-center gap-2 small">
+                  <span class="net-ring-tag net-ring-gray">Sin iniciar</span>
+                  <span class="net-ring-tag net-ring-amber">En curso</span>
+                  <span class="net-ring-tag net-ring-green">Dominada</span>
+                  <span class="net-ring-tag net-ring-red">Alerta Baúl</span>
+                </div>
+              </div>
+
+              <div class="network-canvas-shell">
+                <div
+                  id="knowledge-network-canvas"
+                  class="knowledge-network-canvas"
+                  aria-label="Red de Conocimientos interactiva de las 5 materias"
+                ></div>
+
+                <div class="network-controls-bar" role="group" aria-label="Controles del grafo">
+                  <button type="button" id="btn-net-zoom-in" class="btn-net-ctrl" title="Acercar">+</button>
+                  <button type="button" id="btn-net-zoom-out" class="btn-net-ctrl" title="Alejar">−</button>
+                  <button type="button" id="btn-net-center" class="btn-net-ctrl btn-net-ctrl-wide" title="Centrar selección">
+                    🎯 Centrar
+                  </button>
+                  <button type="button" id="btn-net-fit" class="btn-net-ctrl btn-net-ctrl-wide" title="Ver todo el mapa">
+                    Ver todo
+                  </button>
+                </div>
+              </div>
+
+              <div class="small text-secondary mt-2">
+                <i class="bi bi-hand-index-thumb me-1"></i>Toca cualquier materia o flecha para inspeccionar sus bases específicas y saltar directo al tema.
+              </div>
+            </div>
+          </div>
+
+          <!-- Panel Inspector lateral (PC) / debajo (móvil) -->
+          <div class="col-12 col-lg-5 col-xl-4">
+            <aside id="network-inspector-card" class="duo-card network-inspector-card p-3 p-sm-4">
+              <span id="inspector-kicker" class="path-kicker">PANEL INSPECTOR</span>
+              <h3 id="inspector-title" class="h4 fw-black mb-2">Selecciona una materia o conexión</h3>
+              <div id="inspector-badges" class="d-flex flex-wrap gap-2 mb-3"></div>
+
+              <div id="inspector-progress-wrap" class="exam-readiness-box mb-3 d-none">
+                <div class="d-flex justify-content-between align-items-center small fw-bold mb-1">
+                  <span>Progreso real en la materia</span>
+                  <span id="inspector-progress-text" class="text-primary">0%</span>
+                </div>
+                <div class="duo-progress-track duo-progress-track-slim">
+                  <div id="inspector-progress-bar" class="duo-progress-fill" style="width: 0%;"></div>
+                </div>
+              </div>
+
+              <div id="inspector-body" class="d-flex flex-column gap-3">
+                <p class="small text-secondary mb-0">
+                  Haz clic en un nodo (ej. Cálculo I o Física I) o en una flecha del mapa para ver exactamente qué temas de Nivel 0 necesitas dominar.
+                </p>
+              </div>
+            </aside>
+          </div>
+        </div>
+
+        <!-- Vista 2: Catálogo agrupado por Nivel 0 y Nivel 1 -->
+        <div id="materias-levels-view" class="d-none">
+          <div id="subjects-catalog-container" class="d-flex flex-column gap-4"></div>
+        </div>
       </section>

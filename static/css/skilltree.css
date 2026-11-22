@@ -430,6 +430,241 @@
   color: #3f6212;
 }
 
+.subject-icon-teal {
+  background-color: #ccfbf1;
+  color: #0f766e;
+}
+
+.subject-icon-coral {
+  background-color: #ffedd5;
+  color: #c2410c;
+}
+
+/* ==========================================================================
+   Red de Conocimientos (Cytoscape.js) y Panel Inspector
+   ========================================================================== */
+
+.materias-view-switcher {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  background-color: #ffffff;
+  border: 2px solid var(--border-soft);
+  border-radius: 16px;
+  padding: 0.35rem;
+  max-width: 100%;
+}
+
+.view-switch-btn {
+  border: 0;
+  background: transparent;
+  color: #475569;
+  font-family: "Nunito", sans-serif;
+  font-weight: 800;
+  font-size: 0.9rem;
+  padding: 0.5rem 0.95rem;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.view-switch-btn.active {
+  background-color: var(--duo-blue);
+  color: #ffffff;
+  box-shadow: 0 3px 8px rgba(28, 176, 246, 0.25);
+}
+
+.network-graph-card {
+  max-width: 100%;
+}
+
+.network-legend-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem 1rem;
+  background-color: #f8fafc;
+  border: 1px solid var(--border-soft);
+  border-radius: 12px;
+  padding: 0.5rem 0.8rem;
+}
+
+.net-legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-weight: 700;
+  color: #334155;
+  font-size: 0.78rem;
+}
+
+.net-line-solid,
+.net-line-dashed {
+  display: inline-block;
+  width: 22px;
+  height: 0;
+}
+
+.net-line-solid {
+  border-top: 3px solid #64748b;
+}
+
+.net-line-dashed {
+  border-top: 3px dashed #6366f1;
+}
+
+.net-ring-tag {
+  font-size: 0.72rem;
+  font-weight: 800;
+  padding: 0.12rem 0.5rem;
+  border-radius: 999px;
+  background-color: #ffffff;
+  border: 2px solid #94a3b8;
+  color: #334155;
+}
+
+.net-ring-amber {
+  border-color: #f59e0b;
+  color: #92400e;
+}
+
+.net-ring-green {
+  border-color: #22c55e;
+  color: #166534;
+}
+
+.net-ring-red {
+  border-color: #ef4444;
+  color: #991b1b;
+}
+
+.network-canvas-shell {
+  position: relative;
+  width: 100%;
+  max-width: 100%;
+  background: radial-gradient(circle at top left, #f8fafc 0%, #f1f5f9 100%);
+  border: 2px solid var(--border-soft);
+  border-radius: 18px;
+  overflow: hidden;
+}
+
+.knowledge-network-canvas {
+  width: 100%;
+  height: 500px;
+  touch-action: pan-y;
+}
+
+.network-controls-bar {
+  position: absolute;
+  right: 12px;
+  bottom: 12px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  z-index: 10;
+  max-width: calc(100% - 24px);
+}
+
+.btn-net-ctrl {
+  min-width: 36px;
+  height: 34px;
+  padding: 0 0.65rem;
+  border-radius: 10px;
+  border: 1.5px solid var(--border-strong);
+  background-color: rgba(255, 255, 255, 0.94);
+  color: #0f172a;
+  font-family: "Nunito", sans-serif;
+  font-weight: 800;
+  font-size: 0.82rem;
+  box-shadow: 0 3px 8px rgba(15, 23, 42, 0.12);
+  cursor: pointer;
+}
+
+.btn-net-ctrl:hover {
+  border-color: var(--duo-blue);
+  background-color: #ffffff;
+}
+
+.network-inspector-card {
+  position: sticky;
+  top: 90px;
+  max-width: 100%;
+}
+
+.inspector-section-title {
+  font-family: "Nunito", sans-serif;
+  font-weight: 900;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+  margin-bottom: 0.45rem;
+}
+
+.inspector-topic-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  background-color: #f8fafc;
+  border: 1.5px solid var(--border-soft);
+  border-radius: 12px;
+  padding: 0.55rem 0.75rem;
+  max-width: 100%;
+}
+
+.inspector-topic-row.is-done {
+  background-color: #f0fdf4;
+  border-color: #bbf7d0;
+}
+
+.inspector-topic-row.is-blocker {
+  background-color: #fff5f5;
+  border-color: #fecaca;
+}
+
+.inspector-topic-row.is-pending {
+  background-color: #fffbeb;
+  border-color: #fde68a;
+}
+
+.inspector-support-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.32rem 0.7rem;
+  border-radius: 999px;
+  border: 1.5px solid #bae6fd;
+  background-color: #f0f9ff;
+  color: #0369a1;
+  font-family: "Nunito", sans-serif;
+  font-weight: 800;
+  font-size: 0.78rem;
+  cursor: pointer;
+}
+
+.inspector-support-pill:hover {
+  background-color: #e0f2fe;
+}
+
+@media (max-width: 991.98px) {
+  .network-inspector-card {
+    position: static;
+  }
+}
+
+@media (max-width: 767.98px) {
+  .knowledge-network-canvas {
+    height: 400px;
+  }
+
+  .view-switch-btn {
+    padding: 0.42rem 0.75rem;
+    font-size: 0.84rem;
+  }
+}
+
 .subject-topics-list {
   display: flex;
   flex-direction: column;

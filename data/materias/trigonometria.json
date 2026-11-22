@@ -1,0 +1,578 @@
+{
+  "id": "trigonometria",
+  "nombre": "Trigonometría Aplicada",
+  "codigo": "NIV-0 · TRIG",
+  "nivel": 0,
+  "etapa": "pre_u",
+  "area": "matematicas",
+  "icono": "bi-triangle-half",
+  "color": "teal",
+  "descripcion": "Círculo trigonométrico, vectores no ortogonales, identidades y ecuaciones indispensables para Cálculo I y Física I.",
+  "unidades": [
+    {
+      "id": "trig_u1",
+      "titulo": "Unidad 1: Razones, Círculo Trigonométrico y Ley de Senos/Cosenos",
+      "descripcion": "Círculo unitario, signos por cuadrante, descomposición de vectores y triángulos no rectángulos.",
+      "bases_requeridas": [],
+      "nodos_ids": [
+        "trig_01_razones_circulo",
+        "trig_02_ley_senos_cosenos"
+      ]
+    },
+    {
+      "id": "trig_u2",
+      "titulo": "Unidad 2: Identidades Pitagóricas, Ángulo Doble y Ecuaciones Trigonométricas",
+      "descripcion": "Identidades pitagóricas, reducción de potencias con ángulo doble y ecuaciones periódicas.",
+      "bases_requeridas": [
+        {
+          "id": "trig_01_razones_circulo",
+          "nombre": "Razones, Círculo Trigonométrico y Descomposición Vectorial"
+        },
+        {
+          "id": "trig_02_ley_senos_cosenos",
+          "nombre": "Ley de Senos, Ley de Cosenos y Triángulos Aplicados"
+        },
+        {
+          "id": "alg_03_factorizacion_notables",
+          "nombre": "Factorización y Productos Notables (Fórmulas Inversas)"
+        }
+      ],
+      "nodos_ids": [
+        "trig_03_identidades_pitagoricas",
+        "trig_04_angulo_doble_compuesto",
+        "trig_05_ecuaciones_trig"
+      ]
+    }
+  ],
+  "skills": [
+    {
+      "id": "trig_01_razones_circulo",
+      "ranking_criticidad": 1,
+      "frecuencia_examen": "96%",
+      "prioridad": "🔥 Fijo en Parcial",
+      "materia": "Trigonometría Aplicada",
+      "unidad": "Unidad 1: Razones, Círculo Trigonométrico y Ley de Senos/Cosenos",
+      "nombre": "Razones, Círculo Trigonométrico y Descomposición Vectorial",
+      "area": "Trigonometría Geométrica",
+      "prerrequisito_id": null,
+      "xp": 100,
+      "tip_auxiliar": "Si el ángulo está medido respecto al eje horizontal $x$, $V_x = V\\cos\\theta$ y $V_y = V\\sin\\theta$; si está medido respecto a la vertical, los roles se invierten.",
+      "guia_aprendizaje": {
+        "idea_clave": "El círculo unitario $(x, y) = (\\cos\\theta, \\sin\\theta)$ fija el signo exacto en cada cuadrante y permite descomponer fuerzas y vectores en Física I y evaluar límites en Cálculo I.",
+        "formulas": [
+          {
+            "nombre": "Círculo unitario",
+            "latex": "$$x = r\\cos\\theta, \\quad y = r\\sin\\theta, \\quad \\tan\\theta = \\frac{\\sin\\theta}{\\cos\\theta}$$"
+          },
+          {
+            "nombre": "Conversión a radianes",
+            "latex": "$$\\theta_{\\text{rad}} = \\theta^\\circ \\cdot \\frac{\\pi}{180^\\circ}$$"
+          },
+          {
+            "nombre": "Valores clave",
+            "latex": "$$\\sin 30^\\circ = \\cos 60^\\circ = \\frac{1}{2}, \\quad \\sin 45^\\circ = \\cos 45^\\circ = \\frac{\\sqrt{2}}{2}$$"
+          }
+        ],
+        "receta": [
+          "Ubica primero el ángulo en el cuadrante correcto (I: todas $+$, II: $\\sin +$, III: $\\tan +$, IV: $\\cos +$).",
+          "Determina el ángulo agudo de referencia respecto al eje $X$ horizontal.",
+          "En triángulos rectángulos físicos, verifica siempre qué cateto es adyacente al ángulo dado antes de asignar $\\cos$ o $\\sin$."
+        ],
+        "ejemplo_guiado": {
+          "enunciado": "Un vector fuerza $F = 20\\text{ N}$ apunta en dirección $\\theta = 150^\\circ$ respecto al semieje $+X$. Halla sus componentes $(F_x, F_y)$ exactas.",
+          "pasos": [
+            {
+              "titulo": "Paso 1: Identificar el cuadrante y el ángulo de referencia",
+              "expresion": "$$150^\\circ \\in \\text{II Cuadrante} \\implies \\alpha = 180^\\circ - 150^\\circ = 30^\\circ$$",
+              "explicacion": "En el cuadrante II, el coseno es negativo y el seno es positivo."
+            },
+            {
+              "titulo": "Paso 2: Calcular $\\cos 150^\\circ$ y $\\sin 150^\\circ$",
+              "expresion": "$$\\cos 150^\\circ = -\\cos 30^\\circ = -\\frac{\\sqrt{3}}{2}, \\qquad \\sin 150^\\circ = +\\sin 30^\\circ = \\frac{1}{2}$$",
+              "explicacion": "Usamos el triángulo notable de $30^\\circ$-$60^\\circ$ ajustando los signos por cuadrante."
+            },
+            {
+              "titulo": "Paso 3: Multiplicar por la magnitud $F = 20\\text{ N}$",
+              "expresion": "$$F_x = 20\\left(-\\frac{\\sqrt{3}}{2}\\right) = -10\\sqrt{3}\\text{ N}, \\qquad F_y = 20\\left(\\frac{1}{2}\\right) = 10\\text{ N}$$",
+              "explicacion": "Las componentes mantienen signo negativo en $X$ y positivo en $Y$."
+            }
+          ],
+          "resultado_final": "$$(F_x, F_y) = (-10\\sqrt{3},\\; 10)\\text{ N}$$"
+        },
+        "trampas_examen": [
+          "Confundir radianes y grados en calculadora cuando se evalúan límites o derivadas trigonométricas (en Cálculo I siempre se usan radianes).",
+          "Suponer automáticamente que la componente vertical siempre usa $\\sin$ sin mirar contra qué eje está dibujado el ángulo en planos inclinados."
+        ]
+      },
+      "paso1_concepto": {
+        "titulo": "Signos en el círculo trigonométrico",
+        "enunciado_latex": "Si $\\sin\\theta < 0$ y $\\tan\\theta > 0$, ¿en qué cuadrante se encuentra el ángulo $\\theta$?",
+        "opciones": [
+          "Cuadrante I",
+          "Cuadrante II",
+          "Cuadrante III",
+          "Cuadrante IV"
+        ],
+        "respuesta_correcta": "Cuadrante III",
+        "explicacion": "Como $\\tan\\theta = \\frac{\\sin\\theta}{\\cos\\theta} > 0$ y $\\sin\\theta < 0$, necesariamente $\\cos\\theta < 0$, lo cual ocurre en el Cuadrante III."
+      },
+      "paso2_practica": {
+        "titulo": "Componente vertical exacta",
+        "enunciado_latex": "Un proyectil sale con rapidez $v_0 = 40\\text{ m/s}$ a $\\theta = 30^\\circ$ sobre la horizontal. ¿Cuánto vale su componente vertical inicial $v_{0y}$ en m/s?",
+        "respuesta_correcta": "20",
+        "respuestas_aceptadas": [
+          "20",
+          "20.0"
+        ],
+        "pista": "$v_{0y} = v_0 \\sin 30^\\circ = 40 \\cdot \\frac{1}{2}$."
+      },
+      "paso3_reto_foto": {
+        "titulo": "Razones desde un cuadrante dado",
+        "enunciado_latex": "Sabiendo que $\\cos\\theta = -\\frac{5}{13}$ y $\\theta \\in (\\pi, \\frac{3\\pi}{2})$ (Cuadrante III), calcula el valor exacto de $\\sin\\theta$ y $\\tan\\theta$.",
+        "prerrequisito_evaluado": "Relación pitagórica y signos del Cuadrante III.",
+        "instrucciones": "Construye el triángulo rectángulo de catetos $5$-$12$-$13$ y justifica el signo de cada razón."
+      }
+    },
+    {
+      "id": "trig_02_ley_senos_cosenos",
+      "ranking_criticidad": 2,
+      "frecuencia_examen": "91%",
+      "prioridad": "⭐ Muy frecuente",
+      "materia": "Trigonometría Aplicada",
+      "unidad": "Unidad 1: Razones, Círculo Trigonométrico y Ley de Senos/Cosenos",
+      "nombre": "Ley de Senos, Ley de Cosenos y Triángulos Aplicados",
+      "area": "Trigonometría Geométrica",
+      "prerrequisito_id": "trig_01_razones_circulo",
+      "xp": 110,
+      "tip_auxiliar": "Si conoces DOS lados y el ángulo ENTRE ellos (LAL), o los TRES lados (LLL), usa Ley de Cosenos. Si conoces un par lado-ángulo opuesto completo, usa Ley de Senos.",
+      "guia_aprendizaje": {
+        "idea_clave": "Cuando dos fuerzas o trayectorias NO son perpendiculares ($90^\\circ$), la suma vectorial analítica usa directamente la Ley de Cosenos (con $+2AB\\cos\\theta$ en paralelogramo o $-2ab\\cos C$ en triángulo).",
+        "formulas": [
+          {
+            "nombre": "Ley de Senos",
+            "latex": "$$\\frac{a}{\\sin A} = \\frac{b}{\\sin B} = \\frac{c}{\\sin C}$$"
+          },
+          {
+            "nombre": "Ley de Cosenos",
+            "latex": "$$c^2 = a^2 + b^2 - 2ab\\cos C$$"
+          },
+          {
+            "nombre": "Resultante de 2 vectores",
+            "latex": "$$R = \\sqrt{A^2 + B^2 + 2AB\\cos\\theta}$$"
+          }
+        ],
+        "receta": [
+          "Dibuja el triángulo ubicando cada vértice opuesto al lado de la misma letra ($a$ frente a $A$).",
+          "Para suma de dos vectores que forman $\\theta$ entre sus colas, nota que el ángulo interno en el triángulo cabeza-cola es $180^\\circ - \\theta$ ($\\cos(180^\\circ - \\theta) = -\\cos\\theta$).",
+          "Aplica Ley de Cosenos para el lado desconocido o el coseno del ángulo buscado."
+        ],
+        "ejemplo_guiado": {
+          "enunciado": "Dos fuerzas $F_1 = 5\\text{ N}$ y $F_2 = 8\\text{ N}$ actúan sobre un punto formando un ángulo de $60^\\circ$ entre sí. Halla la magnitud exacta de la fuerza resultante $R$.",
+          "pasos": [
+            {
+              "titulo": "Paso 1: Identificar la fórmula de resultante entre dos vectores",
+              "expresion": "$$R^2 = F_1^2 + F_2^2 + 2F_1F_2\\cos\\theta$$",
+              "explicacion": "En el método del paralelogramo con $\\theta = 60^\\circ$ entre vectores concurrentes, el término mixto lleva signo $+$."
+            },
+            {
+              "titulo": "Paso 2: Sustituir valores exactos",
+              "expresion": "$$R^2 = 5^2 + 8^2 + 2(5)(8)\\cos 60^\\circ = 25 + 64 + 80\\left(\\frac{1}{2}\\right)$$",
+              "explicacion": "Sustituimos $\\cos 60^\\circ = 1/2$."
+            },
+            {
+              "titulo": "Paso 3: Calcular la raíz cuadrada",
+              "expresion": "$$R^2 = 25 + 64 + 40 = 129 \\implies R = \\sqrt{129}\\text{ N}$$",
+              "explicacion": "$129 = 3 \\times 43$, por lo que queda exacto como $\\sqrt{129}$."
+            }
+          ],
+          "resultado_final": "$$R = \\sqrt{129}\\text{ N}$$"
+        },
+        "trampas_examen": [
+          "Confundir el signo $+2AB\\cos\\theta$ (ángulo entre vectores cola-con-cola) con $-2ab\\cos C$ (ángulo interno de triángulo opuesto al lado $c$).",
+          "Olvidar sumar $F_1^2 + F_2^2$ como cuadrado antes de sumar el término del coseno."
+        ]
+      },
+      "paso1_concepto": {
+        "titulo": "Criterio de elección entre leyes",
+        "enunciado_latex": "En un triángulo cualquiera conoces exactamente $a = 7$, $b = 10$ y el ángulo comprendido $C = 60^\\circ$. ¿Qué ley te permite hallar el lado $c$ directamente?",
+        "opciones": [
+          "Solo Teorema de Pitágoras $c^2 = a^2 + b^2$",
+          "Ley de Cosenos: $c^2 = a^2 + b^2 - 2ab\\cos C$",
+          "Ley de Senos en un paso directo",
+          "Tangente del ángulo medio"
+        ],
+        "respuesta_correcta": "Ley de Cosenos: $c^2 = a^2 + b^2 - 2ab\\cos C$",
+        "explicacion": "Cuando tienes dos lados y el ángulo entre ellos (LAL), falta un par lado-ángulo opuesto para usar Ley de Senos; corresponde Ley de Cosenos."
+      },
+      "paso2_practica": {
+        "titulo": "Cálculo exacto con ángulo de $60^\\circ$",
+        "enunciado_latex": "En un triángulo con lados $a = 3$, $b = 8$ y ángulo $C = 60^\\circ$, calcula el valor entero del tercer lado $c$.",
+        "respuesta_correcta": "7",
+        "respuestas_aceptadas": [
+          "7",
+          "7.0"
+        ],
+        "pista": "$c^2 = 3^2 + 8^2 - 2(3)(8)\\cos 60^\\circ = 9 + 64 - 24 = 49$."
+      },
+      "paso3_reto_foto": {
+        "titulo": "Aplicación geométrica en papel",
+        "enunciado_latex": "Un triángulo tiene ángulos $A = 30^\\circ$, $B = 45^\\circ$ y lado $a = 6\\text{ cm}$. Calcula el valor exacto del lado $b$ usando Ley de Senos.",
+        "prerrequisito_evaluado": "Ley de Senos y racionalización del resultado.",
+        "instrucciones": "Plantea la proporción $\\frac{b}{\\sin 45^\\circ} = \\frac{6}{\\sin 30^\\circ}$ y expresa $b$ con radical simplificado."
+      }
+    },
+    {
+      "id": "trig_03_identidades_pitagoricas",
+      "ranking_criticidad": 3,
+      "frecuencia_examen": "94%",
+      "prioridad": "🔥 Fijo en Parcial",
+      "materia": "Trigonometría Aplicada",
+      "unidad": "Unidad 2: Identidades Pitagóricas, Ángulo Doble y Ecuaciones Trigonométricas",
+      "nombre": "Identidades Fundamentales y Pitagóricas",
+      "area": "Identidades Trigonométricas",
+      "prerrequisito_id": "trig_02_ley_senos_cosenos",
+      "xp": 115,
+      "tip_auxiliar": "Cuando una demostración o integral trigonométrica se trabe, transforma $\\tan$, $\\cot$, $\\sec$ y $\\csc$ a $\\sin\\theta$ y $\\cos\\theta$, o busca $1 - \\cos^2\\theta = \\sin^2\\theta$.",
+      "guia_aprendizaje": {
+        "idea_clave": "Simplificar expresiones trigonométricas usando $\\sin^2 x + \\cos^2 x = 1$ y $1 + \\tan^2 x = \\sec^2 x$ evita indeterminaciones en límites trigonométricos y permite integrar potencias y raíces.",
+        "formulas": [
+          {
+            "nombre": "Identidad pitagórica base",
+            "latex": "$$\\sin^2 x + \\cos^2 x = 1$$"
+          },
+          {
+            "nombre": "Derivadas de la pitagórica",
+            "latex": "$$1 + \\tan^2 x = \\sec^2 x, \\qquad 1 + \\cot^2 x = \\csc^2 x$$"
+          },
+          {
+            "nombre": "Cocientes y recíprocas",
+            "latex": "$$\\tan x = \\frac{\\sin x}{\\cos x}, \\quad \\sec x = \\frac{1}{\\cos x}, \\quad \\csc x = \\frac{1}{\\sin x}$$"
+          }
+        ],
+        "receta": [
+          "Trabaja sobre el lado más complejo de una identidad hasta igualarlo al otro.",
+          "Si hay fracciones como $\\frac{1}{1-\\cos x}$, considera multiplicar por el conjugado $1+\\cos x$ para formar $1-\\cos^2 x = \\sin^2 x$.",
+          "Reescribe $\\sec, \\csc, \\tan, \\cot$ en senos y cosenos y reduce a común denominador."
+        ],
+        "ejemplo_guiado": {
+          "enunciado": "Simplifica la expresión para $\\sin x \\neq 0$ y $\\cos x \\neq 0$: $$E(x) = \\frac{\\sin x}{1 + \\cos x} + \\frac{1 + \\cos x}{\\sin x}$$",
+          "pasos": [
+            {
+              "titulo": "Paso 1: Obtener el común denominador",
+              "expresion": "$$E(x) = \\frac{\\sin^2 x + (1 + \\cos x)^2}{\\sin x(1 + \\cos x)}$$",
+              "explicacion": "Multiplicamos en cruz conservando el denominador factorizado."
+            },
+            {
+              "titulo": "Paso 2: Desarrollar $(1+\\cos x)^2$ y aplicar $\\sin^2 x + \\cos^2 x = 1$",
+              "expresion": "$$E(x) = \\frac{(\\sin^2 x + \\cos^2 x) + 1 + 2\\cos x}{\\sin x(1 + \\cos x)} = \\frac{2 + 2\\cos x}{\\sin x(1 + \\cos x)}$$",
+              "explicacion": "Reemplazamos $\\sin^2 x + \\cos^2 x = 1$, sumando $1 + 1 = 2$."
+            },
+            {
+              "titulo": "Paso 3: Factorizar el $2$ y cancelar $(1 + \\cos x)$",
+              "expresion": "$$E(x) = \\frac{2(1 + \\cos x)}{\\sin x(1 + \\cos x)} = \\frac{2}{\\sin x} = 2\\csc x$$",
+              "explicacion": "Al factorizar el $2$ aparece el factor idéntico al denominador."
+            }
+          ],
+          "resultado_final": "$$E(x) = 2\\csc x$$"
+        },
+        "trampas_examen": [
+          "Escribir $1 - \\sin^2 x = 1 + \\cos^2 x$ o afirmar que $\\sin x + \\cos x = 1$ (solo vale al cuadrado!).",
+          "En Cálculo I, olvidar sustituir $1 - \\cos x$ por $\\frac{\\sin^2 x}{1 + \\cos x}$ en límites con $x \\to 0$."
+        ]
+      },
+      "paso1_concepto": {
+        "titulo": "Equivalencia de $1 - \\cos^2 x$ y $\\sec^2 x$",
+        "enunciado_latex": "¿A qué es igual la expresión $$\\sec^2 x - \\tan^2 x$$ siempre que $\\cos x \\neq 0$?",
+        "opciones": [
+          "$0$",
+          "$1$",
+          "$\\sin^2 x$",
+          "$-1$"
+        ],
+        "respuesta_correcta": "$1$",
+        "explicacion": "De $1 + \\tan^2 x = \\sec^2 x$, al pasar $\\tan^2 x$ restando se obtiene $\\sec^2 x - \\tan^2 x = 1$."
+      },
+      "paso2_practica": {
+        "titulo": "Reducción numérica con identidad",
+        "enunciado_latex": "Evalúa el valor constante de $$K = 3\\sin^2(17^\\circ) + 3\\cos^2(17^\\circ) + 2(\\sec^2 40^\\circ - \\tan^2 40^\\circ)$$",
+        "respuesta_correcta": "5",
+        "respuestas_aceptadas": [
+          "5",
+          "5.0"
+        ],
+        "pista": "$3(\\sin^2 17^\\circ + \\cos^2 17^\\circ) = 3(1) = 3$, y $\\sec^2 40^\\circ - \\tan^2 40^\\circ = 1$."
+      },
+      "paso3_reto_foto": {
+        "titulo": "Demostración trigonométrica paso a paso",
+        "enunciado_latex": "Demuestra paso a paso que para $\\cos\\theta \\neq 0, \\pm 1$: $$(\\sec\\theta - \\tan\\theta)^2 = \\frac{1 - \\sin\\theta}{1 + \\sin\\theta}$$",
+        "prerrequisito_evaluado": "Conversión a senos/cosenos, diferencia de cuadrados y factorización.",
+        "instrucciones": "Expresa $\\sec\\theta - \\tan\\theta = \\frac{1 - \\sin\\theta}{\\cos\\theta}$, eleva al cuadrado y usa $\\cos^2\\theta = 1 - \\sin^2\\theta$."
+      }
+    },
+    {
+      "id": "trig_04_angulo_doble_compuesto",
+      "ranking_criticidad": 4,
+      "frecuencia_examen": "92%",
+      "prioridad": "⭐ Muy frecuente",
+      "materia": "Trigonometría Aplicada",
+      "unidad": "Unidad 2: Identidades Pitagóricas, Ángulo Doble y Ecuaciones Trigonométricas",
+      "nombre": "Ángulo Compuesto, Doble y Mitad",
+      "area": "Identidades Trigonométricas",
+      "prerrequisito_id": "trig_03_identidades_pitagoricas",
+      "xp": 120,
+      "tip_auxiliar": "La identidad de reducción de potencia $\\sin^2 x = \\frac{1 - \\cos 2x}{2}$ y $\\cos^2 x = \\frac{1 + \\cos 2x}{2}$ es obligatoria para resolver integrales de $\\sin^2$ y $\\cos^2$ en MAT-1101.",
+      "guia_aprendizaje": {
+        "idea_clave": "Permiten descomponer $\\sin(x+h)$ en derivadas por definición, integrar potencias pares mediante $\\cos 2x$ y factorizar límites trigonométricos.",
+        "formulas": [
+          {
+            "nombre": "Seno y coseno de suma",
+            "latex": "$$\\sin(a \\pm b) = \\sin a\\cos b \\pm \\cos a\\sin b, \\quad \\cos(a \\pm b) = \\cos a\\cos b \\mp \\sin a\\sin b$$"
+          },
+          {
+            "nombre": "Ángulo doble",
+            "latex": "$$\\sin 2x = 2\\sin x\\cos x, \\qquad \\cos 2x = \\cos^2 x - \\sin^2 x$$"
+          },
+          {
+            "nombre": "Reducción de potencia",
+            "latex": "$$\\sin^2 x = \\frac{1 - \\cos 2x}{2}, \\qquad \\cos^2 x = \\frac{1 + \\cos 2x}{2}$$"
+          }
+        ],
+        "receta": [
+          "Para expandir $\\sin(x+h)$ en Cálculo, usa la fórmula de suma (nunca $\\sin x + \\sin h$).",
+          "Para eliminar cuadrados en integrales, reemplaza $\\sin^2 x$ o $\\cos^2 x$ por su forma con $\\cos 2x$.",
+          "En $\\cos 2x$, elige la forma que mejor cancele un $1$: $1 - 2\\sin^2 x$ o $2\\cos^2 x - 1$."
+        ],
+        "ejemplo_guiado": {
+          "enunciado": "Simplifica completamente la expresión: $$M(x) = \\frac{1 - \\cos 2x}{\\sin 2x}$$",
+          "pasos": [
+            {
+              "titulo": "Paso 1: Elegir la forma de $\\cos 2x$ que cancela al $1$",
+              "expresion": "$$1 - \\cos 2x = 1 - (1 - 2\\sin^2 x) = 2\\sin^2 x$$",
+              "explicacion": "Usamos $\\cos 2x = 1 - 2\\sin^2 x$ para eliminar la constante $1$."
+            },
+            {
+              "titulo": "Paso 2: Sustituir $\\sin 2x = 2\\sin x\\cos x$",
+              "expresion": "$$M(x) = \\frac{2\\sin^2 x}{2\\sin x \\cos x}$$",
+              "explicacion": "Aplicamos la fórmula del seno del ángulo doble al denominador."
+            },
+            {
+              "titulo": "Paso 3: Simplificar factores comunes",
+              "expresion": "$$M(x) = \\frac{\\sin x}{\\cos x} = \\tan x$$",
+              "explicacion": "Cancelamos $2\\sin x$ asumiendo $\\sin x \\neq 0$ y $\\cos x \\neq 0$."
+            }
+          ],
+          "resultado_final": "$$M(x) = \\tan x$$"
+        },
+        "trampas_examen": [
+          "Error fatal: escribir $\\sin(2x) = 2\\sin x$ o $\\cos(a + b) = \\cos a + \\cos b$.",
+          "En $\\cos(a + b)$, los signos van INVERTIDOS: lleva signo $-$ entre $\\cos a\\cos b$ y $\\sin a\\sin b$."
+        ]
+      },
+      "paso1_concepto": {
+        "titulo": "Identidad de reducción para integrar $\\cos^2 x$",
+        "enunciado_latex": "¿Qué identidad permite expresar $\\cos^2 x$ de manera lineal para integrarlo fácilmente?",
+        "opciones": [
+          "$\\cos^2 x = \\frac{1 - \\cos 2x}{2}$",
+          "$\\cos^2 x = \\frac{1 + \\cos 2x}{2}$",
+          "$\\cos^2 x = \\frac{\\cos 2x}{2}$",
+          "$\\cos^2 x = 2\\cos x$"
+        ],
+        "respuesta_correcta": "$\\cos^2 x = \\frac{1 + \\cos 2x}{2}$",
+        "explicacion": "De $\\cos 2x = 2\\cos^2 x - 1$, al despejar $\\cos^2 x$ se obtiene $\\frac{1 + \\cos 2x}{2}$."
+      },
+      "paso2_practica": {
+        "titulo": "Cálculo exacto de $\\sin 2\\theta$",
+        "enunciado_latex": "Si $\\sin\\theta = \\frac{3}{5}$ y $\\theta$ está en el primer cuadrante, calcula el valor decimal o fraccionario de $\\sin 2\\theta$.",
+        "respuesta_correcta": "0.96",
+        "respuestas_aceptadas": [
+          "24/25",
+          "0.96",
+          "0,96"
+        ],
+        "pista": "En el cuadrante I, $\\cos\\theta = \\frac{4}{5}$, luego $\\sin 2\\theta = 2\\sin\\theta\\cos\\theta = 2\\cdot\\frac{3}{5}\\cdot\\frac{4}{5}$."
+      },
+      "paso3_reto_foto": {
+        "titulo": "Reducción con ángulo doble en hoja",
+        "enunciado_latex": "Demuestra paso a paso usando ángulo doble que: $$\\frac{\\sin 2x}{1 + \\cos 2x} = \\tan x$$",
+        "prerrequisito_evaluado": "Uso selectivo de $\\cos 2x = 2\\cos^2 x - 1$ y $\\sin 2x = 2\\sin x\\cos x$.",
+        "instrucciones": "Sustituye $\\cos 2x$ de modo que se cancele el $+1$ del denominador y simplifica."
+      }
+    },
+    {
+      "id": "trig_05_ecuaciones_trig",
+      "ranking_criticidad": 5,
+      "frecuencia_examen": "89%",
+      "prioridad": "📌 Base clave",
+      "materia": "Trigonometría Aplicada",
+      "unidad": "Unidad 2: Identidades Pitagóricas, Ángulo Doble y Ecuaciones Trigonométricas",
+      "nombre": "Ecuaciones Trigonométricas e Inversas Acotadas",
+      "area": "Ecuaciones Trigonométricas",
+      "prerrequisito_id": "trig_04_angulo_doble_compuesto",
+      "xp": 125,
+      "tip_auxiliar": "Una ecuación como $\\sin x = \\frac{1}{2}$ casi siempre tiene DOS soluciones en $[0, 2\\pi)$ (no solo la primera de la calculadora!).",
+      "guia_aprendizaje": {
+        "idea_clave": "Hallar intersecciones de curvas, puntos críticos ($f'(x) = 0$) en funciones periódicas y tiempos de alcance en tiro parabólico exige resolver ecuaciones trigonométricas sin olvidar ángulos coterminales y cuadrantes.",
+        "formulas": [
+          {
+            "nombre": "Solución para $\\sin x = k$",
+            "latex": "$$x = \\alpha \\quad \\text{y} \\quad x = \\pi - \\alpha \\quad (\\text{en } [0, 2\\pi))$$"
+          },
+          {
+            "nombre": "Solución para $\\cos x = k$",
+            "latex": "$$x = \\alpha \\quad \\text{y} \\quad x = 2\\pi - \\alpha \\quad (\\text{en } [0, 2\\pi))$$"
+          },
+          {
+            "nombre": "Rango acotado $|\\sin x| \\le 1$",
+            "latex": "$$-1 \\le \\sin x \\le 1, \\qquad -1 \\le \\cos x \\le 1$$"
+          }
+        ],
+        "receta": [
+          "Reduce la ecuación a una sola función trigonométrica mediante identidades pitagóricas o de ángulo doble.",
+          "Lleva todo a un lado e iguala a $0$ para factorizar (NO dividas entre $\\sin x$ o $\\cos x$, pues pierdes soluciones donde valen $0$).",
+          "Descarta cualquier raíz fuera de $[-1, 1]$ para $\\sin$ o $\\cos$.",
+          "Encuentra todas las soluciones dentro del intervalo pedido (ej. $[0, 2\\pi)$) verificando los dos cuadrantes válidos."
+        ],
+        "ejemplo_guiado": {
+          "enunciado": "Resuelve en el intervalo $[0, 2\\pi)$: $$2\\cos^2 x - \\cos x - 1 = 0$$",
+          "pasos": [
+            {
+              "titulo": "Paso 1: Factorizar como cuadrática en $u = \\cos x$",
+              "expresion": "$$(2\\cos x + 1)(\\cos x - 1) = 0$$",
+              "explicacion": "Factorizamos $2u^2 - u - 1 = (2u + 1)(u - 1)$ sin perder raíces."
+            },
+            {
+              "titulo": "Paso 2: Resolver $\\cos x = 1$ en $[0, 2\\pi)$",
+              "expresion": "$$\\cos x = 1 \\implies x = 0$$",
+              "explicacion": "Note que $2\\pi$ está abierto en $[0, 2\\pi)$, así que solo entra $x = 0$."
+            },
+            {
+              "titulo": "Paso 3: Resolver $\\cos x = -1/2$ en cuadrantes II y III",
+              "expresion": "$$\\cos x = -\\frac{1}{2} \\implies x = \\frac{2\\pi}{3}, \\quad x = \\frac{4\\pi}{3}$$",
+              "explicacion": "El ángulo de referencia es $\\pi/3$, y el coseno es negativo en Cuadrante II y III."
+            }
+          ],
+          "resultado_final": "$$S = \\left\\{0,\\; \\frac{2\\pi}{3},\\; \\frac{4\\pi}{3}\\right\\}$$"
+        },
+        "trampas_examen": [
+          "Error típico: pasar dividiendo $\\sin x$ en $\\sin x \\cos x = \\sin x$, perdiendo todas las soluciones de $\\sin x = 0$.",
+          "Entregar solo $x = \\arcsin(k)$ sin revisar la segunda solución dentro de $[0, 2\\pi)$."
+        ]
+      },
+      "paso1_concepto": {
+        "titulo": "Evitar perder soluciones al dividir",
+        "enunciado_latex": "¿Cuántas soluciones distintas en el intervalo $[0, 2\\pi)$ tiene la ecuación $$\\sin x \\cos x = 0$$?",
+        "opciones": [
+          "$2$ soluciones",
+          "$3$ soluciones",
+          "$4$ soluciones",
+          "$1$ solución"
+        ],
+        "respuesta_correcta": "$4$ soluciones",
+        "explicacion": "$\\sin x = 0$ da $0$ y $\\pi$; $\\cos x = 0$ da $\\frac{\\pi}{2}$ y $\\frac{3\\pi}{2}$. Son 4 soluciones en total."
+      },
+      "paso2_practica": {
+        "titulo": "Suma de soluciones en $[0, 2\\pi)$",
+        "enunciado_latex": "¿Cuántas soluciones tiene la ecuación $2\\sin^2 x + 3\\sin x - 2 = 0$ dentro de $[0, 2\\pi)$?",
+        "respuesta_correcta": "2",
+        "respuestas_aceptadas": [
+          "2",
+          "2 soluciones"
+        ],
+        "pista": "$(2\\sin x - 1)(\\sin x + 2) = 0$. Como $\\sin x = -2$ es imposible, solo queda $\\sin x = 1/2$ ($\\pi/6$ y $5\\pi/6$)."
+      },
+      "paso3_reto_foto": {
+        "titulo": "Ecuación trigonométrica cuadrática en cuaderno",
+        "enunciado_latex": "Halla todas las soluciones en $[0, 2\\pi)$ de: $$\\cos 2x + \\cos x = 0$$",
+        "prerrequisito_evaluado": "Sustitución $\\cos 2x = 2\\cos^2 x - 1$, factorización y cuadrantes válidos.",
+        "instrucciones": "Reemplaza $\\cos 2x = 2\\cos^2 x - 1$, factoriza el trinomio en $\\cos x$ y lista todas las raíces en radianes."
+      }
+    }
+  ],
+  "preguntas_examen": [
+    {
+      "id": "exam_trig_1",
+      "skill_id": "trig_01_razones_circulo",
+      "nivel_nodo": 1,
+      "tema": "Círculo Trigonométrico",
+      "area": "Trigonometría Geométrica",
+      "tiempo_segundos": 60,
+      "enunciado_latex": "Calcula el valor exacto de $$\\sin\\left(\\frac{5\\pi}{6}\\right) + \\cos\\left(\\frac{2\\pi}{3}\\right)$$",
+      "opciones": [
+        "$0$",
+        "$1$",
+        "$\\sqrt{3}$",
+        "$-1$"
+      ],
+      "respuesta_correcta": "$0$",
+      "explicacion_breve": "$\\sin(150^\\circ) = 1/2$ y $\\cos(120^\\circ) = -1/2$, así que $1/2 - 1/2 = 0$."
+    },
+    {
+      "id": "exam_trig_2",
+      "skill_id": "trig_02_ley_senos_cosenos",
+      "nivel_nodo": 2,
+      "tema": "Ley de Cosenos",
+      "area": "Trigonometría Geométrica",
+      "tiempo_segundos": 60,
+      "enunciado_latex": "Dos fuerzas de $3\\text{ N}$ y $4\\text{ N}$ forman entre sí un ángulo $\\theta = 90^\\circ$; si en otro caso el ángulo pasa a ser $\\theta = 180^\\circ$, sus resultantes respectivas son:",
+      "opciones": [
+        "$5\\text{ N}$ y $1\\text{ N}$",
+        "$7\\text{ N}$ y $1\\text{ N}$",
+        "$5\\text{ N}$ y $7\\text{ N}$",
+        "$12\\text{ N}$ y $0\\text{ N}$"
+      ],
+      "respuesta_correcta": "$5\\text{ N}$ y $1\\text{ N}$",
+      "explicacion_breve": "Con $90^\\circ$: $\\sqrt{3^2+4^2}=5\\text{ N}$; con $180^\\circ$ son opuestos: $|4-3|=1\\text{ N}$."
+    },
+    {
+      "id": "exam_trig_3",
+      "skill_id": "trig_03_identidades_pitagoricas",
+      "nivel_nodo": 3,
+      "tema": "Identidades Pitagóricas",
+      "area": "Identidades Trigonométricas",
+      "tiempo_segundos": 60,
+      "enunciado_latex": "Al simplificar la expresión $$\\frac{1 - \\cos^2 x}{\\tan x}$$ (donde está definida), se obtiene:",
+      "opciones": [
+        "$\\sin x \\cos x$",
+        "$\\frac{\\cos x}{\\sin x}$",
+        "$\\sec x$",
+        "$\\sin^2 x$"
+      ],
+      "respuesta_correcta": "$\\sin x \\cos x$",
+      "explicacion_breve": "$\\frac{\\sin^2 x}{\\sin x / \\cos x} = \\sin x \\cos x$."
+    },
+    {
+      "id": "exam_trig_4",
+      "skill_id": "trig_04_angulo_doble_compuesto",
+      "nivel_nodo": 4,
+      "tema": "Ángulo Doble",
+      "area": "Identidades Trigonométricas",
+      "tiempo_segundos": 60,
+      "enunciado_latex": "La expresión $1 - 2\\sin^2(3x)$ equivale exactamente a:",
+      "opciones": [
+        "$\\cos(6x)$",
+        "$\\sin(6x)$",
+        "$\\cos(3x)$",
+        "$2\\cos(6x)$"
+      ],
+      "respuesta_correcta": "$\\cos(6x)$",
+      "explicacion_breve": "Por coseno del ángulo doble: $\\cos(2u) = 1 - 2\\sin^2 u$ con $u = 3x$."
+    },
+    {
+      "id": "exam_trig_5",
+      "skill_id": "trig_05_ecuaciones_trig",
+      "nivel_nodo": 5,
+      "tema": "Ecuaciones Trigonométricas",
+      "area": "Ecuaciones Trigonométricas",
+      "tiempo_segundos": 60,
+      "enunciado_latex": "¿Cuál de los siguientes valores satisface $\\tan x = -1$ en $(\\frac{\\pi}{2}, \\pi)$?",
+      "opciones": [
+        "$\\frac{3\\pi}{4}$",
+        "$\\frac{\\pi}{4}$",
+        "$\\frac{5\\pi}{4}$",
+        "$\\frac{7\\pi}{4}$"
+      ],
+      "respuesta_correcta": "$\\frac{3\\pi}{4}$",
+      "explicacion_breve": "En el segundo cuadrante $(\\pi/2, \\pi)$, $\\pi - \\pi/4 = 3\\pi/4$ tiene tangente $-1$."
+    }
+  ]
+}

@@ -15,7 +15,7 @@ Guía de arquitectura, restricciones técnicas, reglas pedagógicas y contratos 
   - Todas las llamadas a Gemini deben estar envueltas en `try/except` y retornar errores JSON claros.
 - **Frontend**: Una sola página modular (`templates/index.html` + `templates/partials/*.html`) + hojas CSS modulares (`base.css`, `skilltree.css`, `modals.css`) + **ES Modules** en **JavaScript Vanilla** (`static/js/*.js` cargados desde `main.js` con `<script type="module">`).
   - Prohibido usar React, Vue, Angular, npm, bundlers o `onclick="..."` inline en HTML.
-  - CDNs permitidos exclusivamente: **Bootstrap 5**, **Bootstrap Icons**, **KaTeX** (con extensión `auto-render`) y **Chart.js** (solo para gráficos radar).
+  - CDNs permitidos exclusivamente: **Bootstrap 5**, **Bootstrap Icons**, **KaTeX** (con extensión `auto-render`), **Chart.js** (para gráficos radar) y **Cytoscape.js + Dagre** (`cytoscape`, `dagre`, `cytoscape-dagre` para la Red de Conocimientos).
   - **Sin pizarra digital**: Prohibido implementar `<canvas>` de dibujo o pizarras interactivas; la práctica del Paso 3 se basa en foto del cuaderno físico (`<input type="file" accept="image/*" capture="environment">`) y/o explicación escrita en texto.
 - **Persistencia**: Persistencia híbrida multi-dispositivo: caché inmediata en `localStorage` bajo la clave `skillpath_fni_progress_v1` + sincronización en la nube vía HTTPS REST (`services/db_cloud.py` -> tabla `usuarios` en **Supabase** usando `requests`, limpiando `SUPABASE_URL` y `SUPABASE_KEY` con `.strip().strip("()\"'")` y `.rstrip("/")`, con headers `apikey` + `Content-Type` + `Prefer: return=representation` y **sin** `Authorization: Bearer` cuando `SUPABASE_KEY` comienza con `sb_secret_`). Si faltan variables de Supabase, usa `data/usuarios_fallback.json` como respaldo local:
   - `nombre`, `etapa`, `is_tester`, `materia_activa`, `materias_iniciadas`, `xp`, `racha`, `nodos_estado`, `nodos_pasos` (progreso real `0..3` de sub-pasos por nodo), `metricas_ia_materia` (`{ intentos_ia, aprobados_ia }` por materia), `historial_errores` (cada entrada con `id`, `resumen`, `tema`, `materia`, `materia_id`, `tipo_error`, `fecha`, `superado`), `diagnostico_completado`, `diagnostico_resultados`, `xp_otorgado_nodos`, `nodo_retorno`, `contadores_medallas`, `simulacros_mejor_nota`.
@@ -38,7 +38,7 @@ Guía de arquitectura, restricciones técnicas, reglas pedagógicas y contratos 
 ├── routes/
 │   ├── __init__.py               # Exporta los 4 Blueprints
 │   ├── views.py                  # GET / -> renderiza index.html
-│   ├── api_skills.py             # GET /api/skills (combina pre_u.json + facultad.json con arreglo `unidades`)
+│   ├── api_skills.py             # GET /api/skills (carga data/materias/*.json + data/red_conocimientos.json y expone materias, red_conocimientos, pre_u y facultad)
 │   ├── api_ai.py                 # POST /api/{evaluar,generar-ejercicio,ejemplo-analogo,generar-ejercicio-error,explicar-paso,generar-ejemplo-guiado}
 │   └── api_auth.py               # POST /api/{register,login,demo-login,tester/sync,logout,progreso} y GET /api/me
 ├── services/
@@ -48,31 +48,37 @@ Guía de arquitectura, restricciones técnicas, reglas pedagógicas y contratos 
 │   ├── ai_generator.py           # Ejercicios 3 pasos (base/parcial_fni), ejemplo análogo, reto de error y guía paso a paso
 │   └── db_cloud.py               # Cliente HTTPS Supabase REST (`usuarios`) + respaldo data/usuarios_fallback.json
 ├── data/
-│   ├── pre_u.json                # Materias, unidades, preguntas_examen y skills de la etapa Pre-U
-│   └── facultad.json             # Materias, unidades, preguntas_examen y skills de la etapa Facultad
+│   ├── red_conocimientos.json    # Grafo de conexiones prerrequisito/correquisito y temas_clave entre las 5 materias
+│   └── materias/                 # Catálogo unificado modular de 5 materias completas (Nivel 0 y Nivel 1)
+│       ├── algebra_base.json
+│       ├── trigonometria.json
+│       ├── geometria_analitica.json
+│       ├── calculo_1.json
+│       └── fisica_1.json
 ├── templates/
-│   ├── index.html                # Shell HTML, CDNs, CSS modulares e entry ES Module (main.js)
+│   ├── index.html                # Shell HTML, CDNs (incluyendo Cytoscape/Dagre), CSS modulares e entry ES Module (main.js)
 │   └── partials/
 │       ├── navbar.html           # Navegación Duolingo, topbar con saludo, Ubicación y botón Salir
-│       ├── auth_welcome.html     # Login, Registro (Pre-U/Facultad) y Acceso Rápido Demo (Jurados)
+│       ├── auth_welcome.html     # Login, Registro (Nivel 0 / Nivel 1 inicial) y Acceso Rápido Demo (Jurados)
 │       ├── diagnostic.html       # Motor de examen reutilizable (Ubicación por materia + Salto de Unidad)
 │       ├── skilltree.html        # Inicio de materia, camino por unidades, Modal Check de Bases y Temas Críticos
-│       ├── materias.html         # Catálogo curricular multi-materia
-│       ├── skills_stats.html     # Mis Skills 100% por materia: selector, 4 KPIs, radar de temas, desglose y Baúl Activo
+│       ├── materias.html         # Catálogo Unificado: Red de Conocimientos (Cytoscape + Inspector) y Vista por Niveles
+│       ├── skills_stats.html     # Mis Skills 100% por materia (5 materias): selector, 4 KPIs, radar de temas, desglose y Baúl Activo
 │       ├── profile.html          # Sección Perfil: identidad (@username), Modo Tester, Rango, Medallas, avance global y Demo
 │       └── challenge_modal.html  # Modal de 3 pasos (Concepto, Práctica, Reto Foto)
 └── static/
     ├── css/
     │   ├── base.css              # Design tokens, botones 3D, navbar, bienvenida y motor de examen
-    │   ├── skilltree.css         # Inicio de materia, árbol de nodos, "⚡ Saltar aquí", catálogo y medallas
+    │   ├── skilltree.css         # Camino por unidades, Red de Conocimientos + Inspector, catálogo y medallas
     │   └── modals.css            # Modal 3 pasos, dropzone, tarjeta IA, historial e intentos
     └── js/
         ├── api.js                # Llamadas fetch tipadas (/api/skills, /api/evaluar, auth y sync)
-        ├── state.js              # Estado localStorage + Supabase, materias_iniciadas, caché DOM y KaTeX
+        ├── state.js              # Estado localStorage + Supabase, alias heredados, catálogo unificado, caché DOM y KaTeX
+        ├── network.js            # Red de Conocimientos con Cytoscape + Dagre, filtros de progreso y Panel Inspector
         ├── diagnostic.js         # Motor de examen reutilizable: Ubicación por materia y Salto de Nivel
-        ├── skilltree.js          # Inicio de materia, Camino de nodos, Materias, Mis Skills y Baúl
+        ├── skilltree.js          # Inicio de materia, Camino de nodos, Materias (Red/Niveles), Mis Skills y Baúl
         ├── challenge.js          # Modal 3 pasos, generación IA, subida foto, auditoría continua
-        └── main.js               # Orquestador inicialización, navegación, perfil y eventos
+        └── main.js               # Orquestador inicialización, navegación, perfil, red interactiva y eventos
 ```
 
 ---
@@ -113,7 +119,7 @@ La función `auditar_resolucion(enunciado, prerrequisito, texto_usuario, imagen_
 ## 4. Contratos de API (`routes/*.py`)
 
 - **`GET /` (`routes/views.py`)**: Renderiza `templates/index.html`.
-- **`GET /api/skills` (`routes/api_skills.py`)**: Lee y combina `data/pre_u.json` y `data/facultad.json` en UTF-8 devolviendo exactamente el objeto unificado `{ "pre_u": ..., "facultad": ... }` (HTTP 200).
+- **`GET /api/skills` (`routes/api_skills.py`)**: Lee y combina dinámicamente `data/materias/*.json` y `data/red_conocimientos.json` en UTF-8, devolviendo `{ "materias": [...], "red_conocimientos": {...}, "pre_u": ..., "facultad": ... }` (HTTP 200) para el Catálogo Unificado de 5 materias y la Red de Conocimientos.
 - **`POST /api/evaluar` (`routes/api_ai.py`)**:
   - Acepta `multipart/form-data` (y fallback JSON) con:
     - `enunciado` (obligatorio)
@@ -145,13 +151,15 @@ La función `auditar_resolucion(enunciado, prerrequisito, texto_usuario, imagen_
 
 ---
 
-## 5. Contrato Curricular (`data/{pre_u,facultad}.json`) y Flujo UI
+## 5. Contrato Curricular (`data/materias/*.json`, `data/red_conocimientos.json`) y Flujo UI
 
-- Dos etapas de primer nivel: `pre_u` y `facultad`.
-- Cada etapa contiene `materias`: catálogo multi-materia por etapa (`pre_u`: **Álgebra Pre-U** [6 temas, 3 unidades] y **Trigonometría** [5 temas, 3 unidades]; `facultad`: **Cálculo I** [9 temas, 4 unidades] y **Física I** [6 temas, 3 unidades]).
-- Cada materia contiene `id`, `nombre`, `codigo`, `icono`, `color`, `descripcion`, `unidades` (`id`, `titulo`, `descripcion`, `bases_requeridas: [{ id, nombre }]`, `nodos_ids`), `preguntas_examen` (preguntas de opción múltiple en LaTeX vinculadas por `skill_id` y `nivel_nodo` de básico a avanzado) y `skills` ordenados por `ranking_criticidad` y encadenados por `prerrequisito_id`.
-- Campos obligatorios de cada skill (especialmente para colaboradores de `feat/datos`):
-  - `id`, `ranking_criticidad`, `frecuencia_examen`, `materia`, **`unidad`** (ej. `"Unidad 1: Funciones y Dominios"`), `nombre`, `area`, `prerrequisito_id`, `xp`, `tip_auxiliar`.
+- **Catálogo Unificado de 5 Materias Activas** (acceso libre para todos los usuarios; `etapa` solo sugiere punto de partida):
+  - **Nivel 0 · Fundamentos (`nivel: 0`, `etapa: "pre_u"`)**: **Álgebra de Supervivencia** (`algebra_base`, 6 temas, 3 unidades), **Trigonometría Aplicada** (`trigonometria`, 5 temas, 2 unidades) y **Geometría Analítica** (`geometria_analitica`, 5 temas, 2 unidades).
+  - **Nivel 1 · Ciencias Básicas I (`nivel: 1`, `etapa: "facultad"`)**: **Cálculo I - MAT 1101** (`calculo_1`, 9 temas, 4 unidades) y **Física I - FIS 1100** (`fisica_1`, 6 temas, 3 unidades).
+- **Red de Conocimientos (`data/red_conocimientos.json` + `static/js/network.js`)**: grafo interactivo con **Cytoscape.js + Dagre** (`LR` en escritorio, `TB` en móvil `<768px`, `userZoomingEnabled: false` para proteger el scroll) con nodos coloreados por área (`matematicas` / `fisica`), anillo de progreso dinámico, botones flotantes (`+`, `-`, `🎯 Centrar`, `Ver todo`), resaltado de prerrequisitos/correquisitos y **Panel Inspector** con `temas_clave` y botón **`Ir al tema`** hacia ese nodo en Camino.
+- Cada materia contiene `id`, `nombre`, `codigo`, `nivel`, `etapa`, `area`, `icono`, `color`, `descripcion`, `unidades` (`id`, `titulo`, `descripcion`, `bases_requeridas: [{ id, nombre }]`, `nodos_ids`), `preguntas_examen` (preguntas de opción múltiple en LaTeX vinculadas por `skill_id` y `nivel_nodo` de básico a avanzado) y `skills` ordenados por `ranking_criticidad` y encadenados por `prerrequisito_id`.
+- Campos obligatorios de cada skill:
+  - `id`, `ranking_criticidad`, `prioridad` (`"Fijo en Parcial"` / `"Muy frecuente"` / `"Base clave"`), `frecuencia_examen`, `materia`, **`unidad`** (ej. `"Unidad 1: Funciones y Dominios"`), `nombre`, `area`, `prerrequisito_id`, `xp`, `tip_auxiliar`.
   - **`guia_aprendizaje`**:
     ```json
     {
@@ -169,16 +177,16 @@ La función `auditar_resolucion(enunciado, prerrequisito, texto_usuario, imagen_
     }
     ```
   - `paso1_concepto` (`titulo`, `enunciado_latex`, `opciones`, `respuesta_correcta`, `explicacion`), `paso2_practica` (`titulo`, `enunciado_latex`, `respuesta_correcta`, `respuestas_aceptadas`, `pista`), `paso3_reto_foto` (`titulo`, `enunciado_latex`, `prerrequisito_evaluado`, `instrucciones`).
-- **Camino Agrupado por Unidades y Check de Bases**: cada materia incluye el arreglo `unidades` (`id`, `titulo`, `descripcion`, `bases_requeridas`, `nodos_ids`). `renderCaminoSection()` renderiza un encabezado visual por unidad y, cuando una unidad está bloqueada (o en Modo Tester), muestra un único botón **"⚡ Adelantar a esta unidad"** que abre `#unitBasesModal` (*Check de Bases*), cruzando `bases_requeridas` contra `nodos_estado` (`✅ Dominado` vs `⚠️ Base pendiente`) con dos opciones: **"🎯 Validar bases y saltar"** (examen de 3–4 preguntas previas, `>= 75%` marca anteriores en verde + `+60 XP`) y **"🔓 Entrar en Práctica Libre (bajo aviso)"** (activa solo el nodo 1 de esa unidad sin desbloquear anteriores ni regalar XP).
-- **Cuenta Tester (`tester` / `1234`)**: sin botón de acceso rápido en `auth_welcome.html`; al iniciar sesión con `tester`/`1234`, `POST /api/login` auto-crea o autentica la cuenta usando `construir_estado_tester()` (leyendo todas las materias y nodos actuales con `is_tester: true`, `1500 XP`, `racha: 7`, mezcla de `unlocked`/`active`/`blocker`, métricas IA y Baúl). Cuando `state.is_tester === true`, permite probar cualquier nodo/unidad/simulacro sin bloqueos y habilita en **Perfil** el badge `🛠️ Modo Tester`, selector rápido **Pre-U / Facultad** y el botón **"Sincronizar / Desbloquear todo"** (`POST /api/tester/sync`).
+- **Camino Agrupado por Unidades y Check de Bases**: cada materia incluye el arreglo `unidades` (`id`, `titulo`, `descripcion`, `bases_requeridas`, `nodos_ids`). `renderCaminoSection()` renderiza un encabezado visual por unidad y, cuando una unidad está bloqueada (o en Modo Tester), muestra un único botón **"⚡ Adelantar a esta unidad"** que abre `#unitBasesModal` (*Check de Bases*), cruzando `bases_requeridas` contra `nodos_estado` (`✅ Dominado` vs `⚠️ Base pendiente`, con enlace rápido a bases de otra materia) y dos opciones: **"🎯 Validar bases y saltar"** (examen de 3–4 preguntas previas, `>= 75%` marca anteriores en verde + `+60 XP`) y **"🔓 Entrar en Práctica Libre (bajo aviso)"** (activa solo el nodo 1 de esa unidad sin desbloquear anteriores ni regalar XP).
+- **Cuenta Tester (`tester` / `1234`)**: sin botón de acceso rápido en `auth_welcome.html`; al iniciar sesión con `tester`/`1234`, `POST /api/login` auto-crea, actualiza o autentica la cuenta usando `construir_estado_tester()` (leyendo todas las materias y nodos actuales de `data/materias/*.json` con `is_tester: true`, `1500 XP`, `racha: 7`, mezcla de `unlocked`/`active`/`blocker`, métricas IA y Baúl). Cuando `state.is_tester === true`, permite probar cualquier nodo/unidad/simulacro sin bloqueos y habilita en **Perfil** el badge `🛠️ Modo Tester`, selector rápido **Nivel 0 / Nivel 1** y el botón **"Sincronizar / Desbloquear todo"** (`POST /api/tester/sync`).
 - **Modal de Tema en Dos Pestañas (`📖 Aprender` / `✍️ Practicar`)**:
   - **`📖 Aprender`**: Idea Clave, Formulario Esencial, Receta Rápida, Ejemplo Guiado interactivo paso a paso (`👁️ Ver Paso N`, `Mostrar todos`, botón **"❓ ¿Por qué pasó esto?"** vía `/api/explicar-paso` y **"🤖 Ver otro ejemplo guiado con IA"** vía `/api/generar-ejemplo-guiado`), Trampas Típicas de Examen y CTA **"Listo, ir a Practicar →"**. Se abre aquí por defecto para nodos `active` o `blocker`; desde el Baúl Activo (`abrirRetoSuperarError`) abre directo en **`✍️ Practicar`**.
   - **`✍️ Practicar`**: Paso 1, Paso 2 y Paso 3 con botón desplegable **"🧾 Formulario del tema"**, selector de dificultad (**"🟢 Nivel Base"** / **"🔥 Nivel Parcial FNI"** que suma **+35 XP extra** al aprobar), compresión de imagen (`1280px`, JPEG `0.78`), carga animada, ejemplo análogo gratuito tras 2 fallos y bonos XP.
 - **Navegación estilo Duolingo**: barra lateral izquierda en escritorio y barra inferior fija (grid de 4 columnas) en móvil con 4 secciones claramente separadas:
   - **Camino**: Ruta vertical por unidades con **"⚡ Adelantar a esta unidad"** + modal **Check de Bases** (`#unitBasesModal`), **"🏆 Simulacro de Parcial"** y tarjeta lateral de **Temas Críticos** (oculta en `<= 991px`) con etiquetas cualitativas (`🔥 Fijo en Parcial` / `⭐ Muy frecuente` / `📌 Base clave`), barras de progreso real del estudiante (`nodos_pasos`) y tarjetas clicables hacia cada nodo.
-  - **Materias**: Catálogo curricular multi-materia por etapa.
-  - **Mis Skills**: Analítica 100% específica por materia (sin Medallas ni Rango FNI). Incluye Selector de Materia, 4 KPIs (`col-6 col-md-3`: dominio real, temas completados, precisión en auditoría IA con `metricas_ia_materia` y alertas activas), Resumen Pre-Examen (Top 3 de la materia), Radar Chart.js dinámico con nombres cortos de los nodos reales (destruyendo la instancia previa antes de recrear), Desglose por Tema con acceso a "Practicar" / "Ver en Camino" y **Baúl de Errores Activo** con toggle `"Solo esta materia"` vs `"Todas las materias"`.
-  - **Perfil**: Único espacio para identidad (`nombre`, `@username`, etapa, Rango actual, XP total, Racha), panel discreto **Modo Tester** (cuando `state.is_tester === true`), progreso de Rango FNI, cuadrícula completa de **Medallas y Logros**, **Resumen de Avance Global entre Materias**, cambio de etapa/nombre, **Cargar Perfil Demo**, **Cerrar Sesión (Salir)** y acordeón `<details>` cerrado (`⚙️ Opciones avanzadas`) para reinicio con confirmación.
+  - **Materias**: Selector entre **🕸️ Red de Conocimientos** (Cytoscape + Dagre + Panel Inspector) y **📋 Vista por Niveles** (Nivel 0 y Nivel 1 con las 5 materias activas).
+  - **Mis Skills**: Analítica 100% específica por materia sobre las **5 materias activas** (sin Medallas ni Rango FNI). Incluye Selector de Materia, 4 KPIs (`col-6 col-md-3`: dominio real, temas completados, precisión en auditoría IA con `metricas_ia_materia` y alertas activas), Resumen Pre-Examen (Top 3 de la materia), Radar Chart.js dinámico con nombres cortos de los nodos reales (destruyendo la instancia previa antes de recrear), Desglose por Tema con acceso a "Practicar" / "Ver en Camino" y **Baúl de Errores Activo** con toggle `"Solo esta materia"` vs `"Todas las materias"`.
+  - **Perfil**: Único espacio para identidad (`nombre`, `@username`, nivel inicial sugerido, Rango actual, XP total, Racha), panel discreto **Modo Tester** (cuando `state.is_tester === true`), progreso de Rango FNI, cuadrícula completa de **Medallas y Logros**, **Resumen de Avance Global entre Materias**, cambio de nivel inicial/nombre, **Cargar Perfil Demo**, **Cerrar Sesión (Salir)** y acordeón `<details>` cerrado (`⚙️ Opciones avanzadas`) para reinicio con confirmación.
 - **Motor de examen reutilizable (`static/js/diagnostic.js`)**: Ubicación por materia, Validar bases y saltar de Unidad (`>= 75%`, `+60 XP`) y Simulacro de Parcial (`>= 60%` de nodos verdes, reloj global `05:00`, aprueba con `>= 51/100`, `+100 XP`).
 - **XP Permanente, Rangos FNI, Medallas y Baúl Activo**: `state.xp` nunca se resta; 5 Rangos FNI; 6 Medallas FNI; Baúl Activo con `id` y `superado` (**+30 XP**).
 - **Estado Rojo (`blocker`)**: Cuando `/api/evaluar` detecta `requiere_repetir_modulo: true`, el prerrequisito pasa a rojo para refuerzo guiado con retorno automático.

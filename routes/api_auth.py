@@ -43,7 +43,7 @@ def _iniciar_sesion(username: str) -> None:
 
 
 def _estado_inicial_base(nombre: str, etapa: str) -> dict[str, Any]:
-    """Construye el estado inicial compatible con `localStorage` y el frontend."""
+    """Construye el estado inicial compatible con `localStorage` y el catálogo unificado."""
     return {
         "nombre": nombre,
         "etapa": etapa,
@@ -78,9 +78,10 @@ def _estado_demo_jurados() -> dict[str, Any]:
         "nombre": "Jurado Demo FNI",
         "etapa": "facultad",
         "is_tester": False,
-        "materia_activa": "fac_calculo1",
+        "materia_activa": "calculo_1",
         "materias_iniciadas": {
-            "fac_calculo1": True,
+            "algebra_base": True,
+            "calculo_1": True,
         },
         "xp": 320,
         "racha": 4,
@@ -89,43 +90,44 @@ def _estado_demo_jurados() -> dict[str, Any]:
         "diagnostico_resultados": {
             "overallPercent": 67,
             "areaScores": {
-                "Álgebra y Trig.": 100,
+                "Potencias y Raíces": 100,
+                "Álgebra y Trig.": 75,
                 "Cálculo I": 50,
-                "Física I": 50,
             },
             "correctCount": 4,
             "totalCount": 6,
         },
         "nodos_estado": {
+            "alg_01_potencias_raices": "unlocked",
+            "alg_02_signos_jerarquia": "unlocked",
+            "alg_03_factorizacion_notables": "active",
             "fac_cal_01_inecuaciones_func": "unlocked",
             "fac_cal_01b_funciones_dominios": "unlocked",
             "fac_cal_02_limites_alg": "unlocked",
             "fac_cal_03_limites_trig": "active",
-            "fac_cal_03b_continuidad": "locked",
-            "fac_cal_04_derivadas": "locked",
-            "fac_cal_04b_deriv_implicita_log": "locked",
-            "fac_cal_05_optimizacion": "locked",
-            "fac_cal_06_integrales_basicas": "locked",
-            "fac_fis_01_vectores": "locked",
-            "fac_fis_01b_cinematica_1d": "locked",
-            "fac_fis_02_cinematica": "locked",
-            "fac_fis_03_dinamica": "locked",
-            "fac_fis_03b_poleas_circular": "locked",
-            "fac_fis_04_energia": "locked",
         },
         "nodos_pasos": {
+            "alg_01_potencias_raices": 3,
+            "alg_02_signos_jerarquia": 3,
+            "alg_03_factorizacion_notables": 1,
             "fac_cal_01_inecuaciones_func": 3,
             "fac_cal_01b_funciones_dominios": 3,
             "fac_cal_02_limites_alg": 3,
             "fac_cal_03_limites_trig": 1,
         },
         "metricas_ia_materia": {
-            "fac_calculo1": {
+            "algebra_base": {
+                "intentos_ia": 2,
+                "aprobados_ia": 2,
+            },
+            "calculo_1": {
                 "intentos_ia": 4,
                 "aprobados_ia": 3,
             },
         },
         "xp_otorgado_nodos": {
+            "alg_01_potencias_raices": True,
+            "alg_02_signos_jerarquia": True,
             "fac_cal_01_inecuaciones_func": True,
             "fac_cal_01b_funciones_dominios": True,
             "fac_cal_02_limites_alg": True,
@@ -142,9 +144,9 @@ def _estado_demo_jurados() -> dict[str, Any]:
             {
                 "id": "err_demo_1",
                 "resumen": "Olvidó restringir argumento positivo en logaritmo",
-                "tema": "Inecuaciones y Dominios",
-                "materia": "Cálculo I",
-                "materia_id": "fac_calculo1",
+                "tema": "Funciones, Composición y Dominios",
+                "materia": "Cálculo I - MAT 1101",
+                "materia_id": "calculo_1",
                 "tipo_error": "fallo_prerrequisito",
                 "fecha": hoy,
                 "superado": False,
@@ -152,9 +154,9 @@ def _estado_demo_jurados() -> dict[str, Any]:
             {
                 "id": "err_demo_2",
                 "resumen": "Error de signo al multiplicar por conjugado",
-                "tema": "Límites Algebraicos",
-                "materia": "Cálculo I",
-                "materia_id": "fac_calculo1",
+                "tema": "Límites Algebraicos e Infinitos",
+                "materia": "Cálculo I - MAT 1101",
+                "materia_id": "calculo_1",
                 "tipo_error": "error_operativo",
                 "fecha": hoy,
                 "superado": False,
@@ -164,9 +166,10 @@ def _estado_demo_jurados() -> dict[str, Any]:
 
 
 def construir_estado_tester(etapa_actual: str = "facultad") -> dict[str, Any]:
-    """Construye dinámicamente el estado del usuario Tester leyendo `pre_u.json` y `facultad.json`."""
+    """Construye dinámicamente el estado Tester desbloqueando todas las materias en `data/materias/*.json`."""
     etapa_limpia = etapa_actual if etapa_actual in VALID_STAGES else "facultad"
     combinado = cargar_skills_combinados()
+    todas_materias = combinado.get("materias") or []
 
     materias_iniciadas: dict[str, bool] = {}
     nodos_estado: dict[str, str] = {}
@@ -176,82 +179,82 @@ def construir_estado_tester(etapa_actual: str = "facultad") -> dict[str, Any]:
     simulacros_mejor_nota: dict[str, int] = {}
 
     metricas_seed = {
-        "fac_calculo1": {"intentos_ia": 6, "aprobados_ia": 5},
-        "fac_fisica1": {"intentos_ia": 4, "aprobados_ia": 3},
-        "pre_algebra": {"intentos_ia": 5, "aprobados_ia": 4},
-        "pre_trigonometria": {"intentos_ia": 3, "aprobados_ia": 2},
+        "algebra_base": {"intentos_ia": 5, "aprobados_ia": 4},
+        "trigonometria": {"intentos_ia": 3, "aprobados_ia": 2},
+        "geometria_analitica": {"intentos_ia": 4, "aprobados_ia": 3},
+        "calculo_1": {"intentos_ia": 6, "aprobados_ia": 5},
+        "fisica_1": {"intentos_ia": 4, "aprobados_ia": 3},
     }
 
-    primera_materia_por_etapa: dict[str, str | None] = {
-        "pre_u": None,
-        "facultad": None,
-    }
+    primera_nivel0: str | None = None
+    primera_nivel1: str | None = None
     primer_blocker_id: str | None = None
     retorno_calculo_id: str | None = None
 
-    for stage_key in ("pre_u", "facultad"):
-        stage_materias = combinado.get(stage_key, {}).get("materias") or []
-        for mat_idx, mat in enumerate(stage_materias):
-            mat_id = str(mat.get("id") or "").strip()
-            if not mat_id:
+    for mat in todas_materias:
+        mat_id = str(mat.get("id") or "").strip()
+        if not mat_id:
+            continue
+
+        nivel = int(mat.get("nivel", 0))
+        if nivel == 0 and primera_nivel0 is None:
+            primera_nivel0 = mat_id
+        if nivel >= 1 and primera_nivel1 is None:
+            primera_nivel1 = mat_id
+
+        materias_iniciadas[mat_id] = True
+        metricas_ia_materia[mat_id] = metricas_seed.get(
+            mat_id, {"intentos_ia": 2, "aprobados_ia": 2}
+        )
+        simulacros_mejor_nota[mat_id] = 82 if mat_id in {"calculo_1", "algebra_base"} else 70
+
+        skills = sorted(
+            mat.get("skills") or [],
+            key=lambda s: int(s.get("ranking_criticidad") or 0),
+        )
+        is_calculo = mat_id == "calculo_1"
+
+        for idx, skill in enumerate(skills):
+            skill_id = str(skill.get("id") or "").strip()
+            if not skill_id:
                 continue
 
-            if primera_materia_por_etapa[stage_key] is None:
-                primera_materia_por_etapa[stage_key] = mat_id
-
-            materias_iniciadas[mat_id] = True
-            metricas_ia_materia[mat_id] = metricas_seed.get(
-                mat_id, {"intentos_ia": 2, "aprobados_ia": 2}
-            )
-            simulacros_mejor_nota[mat_id] = 78 if mat_idx == 0 else 68
-
-            skills = sorted(
-                mat.get("skills") or [],
-                key=lambda s: int(s.get("ranking_criticidad") or 0),
-            )
-            is_primary_fac = stage_key == "facultad" and mat_idx == 0
-
-            for idx, skill in enumerate(skills):
-                skill_id = str(skill.get("id") or "").strip()
-                if not skill_id:
-                    continue
-
-                if is_primary_fac:
-                    if idx == 0:
-                        nodos_estado[skill_id] = "unlocked"
-                        nodos_pasos[skill_id] = 3
-                        xp_otorgado_nodos[skill_id] = True
-                    elif idx == 1:
-                        nodos_estado[skill_id] = "blocker"
-                        nodos_pasos[skill_id] = 0
-                        primer_blocker_id = skill_id
-                    elif idx == 2:
-                        nodos_estado[skill_id] = "unlocked"
-                        nodos_pasos[skill_id] = 3
-                        xp_otorgado_nodos[skill_id] = True
-                    elif idx == 3:
-                        nodos_estado[skill_id] = "active"
-                        nodos_pasos[skill_id] = 1
-                        retorno_calculo_id = skill_id
-                    else:
-                        nodos_estado[skill_id] = "active"
-                        nodos_pasos[skill_id] = 0
+            if is_calculo:
+                if idx == 0:
+                    nodos_estado[skill_id] = "unlocked"
+                    nodos_pasos[skill_id] = 3
+                    xp_otorgado_nodos[skill_id] = True
+                elif idx == 1:
+                    nodos_estado[skill_id] = "blocker"
+                    nodos_pasos[skill_id] = 0
+                    primer_blocker_id = skill_id
+                elif idx == 2:
+                    nodos_estado[skill_id] = "unlocked"
+                    nodos_pasos[skill_id] = 3
+                    xp_otorgado_nodos[skill_id] = True
+                elif idx == 3:
+                    nodos_estado[skill_id] = "active"
+                    nodos_pasos[skill_id] = 1
+                    retorno_calculo_id = skill_id
                 else:
-                    if idx < 2:
-                        nodos_estado[skill_id] = "unlocked"
-                        nodos_pasos[skill_id] = 3
-                        xp_otorgado_nodos[skill_id] = True
-                    elif idx == 2:
-                        nodos_estado[skill_id] = "active"
-                        nodos_pasos[skill_id] = 1
-                    else:
-                        nodos_estado[skill_id] = "active"
-                        nodos_pasos[skill_id] = 0
+                    nodos_estado[skill_id] = "active"
+                    nodos_pasos[skill_id] = 0
+            else:
+                if idx < 2:
+                    nodos_estado[skill_id] = "unlocked"
+                    nodos_pasos[skill_id] = 3
+                    xp_otorgado_nodos[skill_id] = True
+                elif idx == 2:
+                    nodos_estado[skill_id] = "active"
+                    nodos_pasos[skill_id] = 1
+                else:
+                    nodos_estado[skill_id] = "active"
+                    nodos_pasos[skill_id] = 0
 
     materia_activa = (
-        primera_materia_por_etapa.get(etapa_limpia)
-        or primera_materia_por_etapa.get("facultad")
-        or primera_materia_por_etapa.get("pre_u")
+        primera_nivel0
+        if etapa_limpia == "pre_u"
+        else (primera_nivel1 or primera_nivel0)
     )
 
     hoy = date.today().strftime("%d/%m")
@@ -260,8 +263,8 @@ def construir_estado_tester(etapa_actual: str = "facultad") -> dict[str, Any]:
             "id": "err_tester_1",
             "resumen": "Olvidó restringir argumento positivo en dominio logarítmico",
             "tema": "Funciones, Composición y Dominios",
-            "materia": "Cálculo I",
-            "materia_id": "fac_calculo1",
+            "materia": "Cálculo I - MAT 1101",
+            "materia_id": "calculo_1",
             "tipo_error": "fallo_prerrequisito",
             "fecha": hoy,
             "superado": False,
@@ -270,8 +273,8 @@ def construir_estado_tester(etapa_actual: str = "facultad") -> dict[str, Any]:
             "id": "err_tester_2",
             "resumen": "Signo invertido en componente tangencial del plano inclinado",
             "tema": "Leyes de Newton y Plano Inclinado",
-            "materia": "Física I",
-            "materia_id": "fac_fisica1",
+            "materia": "Física I - FIS 1100",
+            "materia_id": "fisica_1",
             "tipo_error": "error_operativo",
             "fecha": hoy,
             "superado": False,
@@ -292,11 +295,11 @@ def construir_estado_tester(etapa_actual: str = "facultad") -> dict[str, Any]:
         "historial_errores": historial_errores,
         "diagnostico_completado": True,
         "diagnostico_resultados": {
-            "overallPercent": 83,
+            "overallPercent": 85,
             "areaScores": {
-                "Álgebra y Trig.": 90,
-                "Cálculo I": 78,
-                "Física I": 82,
+                "Potencias y Raíces": 92,
+                "Cálculo I": 80,
+                "Física I": 84,
             },
             "correctCount": 5,
             "totalCount": 6,
@@ -312,6 +315,23 @@ def construir_estado_tester(etapa_actual: str = "facultad") -> dict[str, Any]:
         },
         "simulacros_mejor_nota": simulacros_mejor_nota,
     }
+
+
+def _tester_necesita_actualizacion(estado_actual: dict[str, Any]) -> bool:
+    """Detecta si una cuenta tester existente no tiene aún todas las materias/nodos actuales."""
+    if not estado_actual.get("is_tester"):
+        return True
+    combinado = cargar_skills_combinados()
+    materias = combinado.get("materias") or []
+    iniciadas = estado_actual.get("materias_iniciadas") or {}
+    nodos_estado = estado_actual.get("nodos_estado") or {}
+    for mat in materias:
+        if not iniciadas.get(mat["id"]):
+            return True
+        for s in mat.get("skills") or []:
+            if s["id"] not in nodos_estado:
+                return True
+    return False
 
 
 def _leer_json_dict() -> dict[str, Any]:
@@ -336,7 +356,7 @@ def register():
         nombre = str(datos.get("nombre") or "").strip()
         raw_username = str(datos.get("username") or "").strip().lower()
         password = str(datos.get("password") or "")
-        etapa = str(datos.get("etapa") or "").strip()
+        etapa = str(datos.get("etapa") or "pre_u").strip()
 
         if len(nombre) < 2:
             return (
@@ -470,10 +490,16 @@ def login():
 
         if username == TESTER_USERNAME:
             estado_actual = dict(usuario.get("estado_json") or {})
-            if not estado_actual.get("is_tester"):
-                estado_actual["is_tester"] = True
-                actualizar_estado(username=TESTER_USERNAME, estado_json=estado_actual)
-            usuario = {**usuario, "estado_json": estado_actual}
+            if _tester_necesita_actualizacion(estado_actual):
+                etapa_actual = str(usuario.get("etapa") or estado_actual.get("etapa") or "facultad")
+                estado_nuevo = construir_estado_tester(etapa_actual)
+                estado_nuevo["nombre"] = str(usuario.get("nombre") or "Tester FNI").strip() or "Tester FNI"
+                actualizar_estado(
+                    username=TESTER_USERNAME,
+                    estado_json=estado_nuevo,
+                    etapa=estado_nuevo["etapa"],
+                )
+                usuario = {**usuario, "etapa": estado_nuevo["etapa"], "estado_json": estado_nuevo}
 
         _iniciar_sesion(usuario["username"])
         return jsonify(_serializar_usuario_publico(usuario)), 200
